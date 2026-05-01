@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Generated outputs (don't commit — re-run to produce)
+results/*.db
+results/*.xlsx
+scout/*.json
+scout/*.txt
+Claude/DBY*_R5_analysis.txt
+Claude/*_R5_analysis.txt
+
+# DRF data files (binary, large, track-specific)
+"files 2/"/*.DRF
+"files 2/"/*.zip
+files/*.DRF
+
+# Old Excel macro / CSV files (legacy system, not part of R5)
+*.xlsm
+*.xlsx
+*.pdf
+
+# CSV — ignore all except the results template
+*.csv
+!results/results_template.csv
+*.html
+*.textClipping
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Claude memory (local only)
+.claude/
+
+# Misc
+untitled folder/
