@@ -226,7 +226,7 @@ def main():
         active_by_race = _dd(list)
         for h in active:
             active_by_race[h["race"]].append(h)
-        for race_num in sorted(active_by_race.keys()):
+        for race_num in sorted(active_by_race.keys(), key=lambda x: int(x)):
             report(active_by_race[race_num])
 
     # Log picks to DB if --track flag used
@@ -248,7 +248,7 @@ def main():
         for h in active:
             by_race[h["race"]].append(h)
         print("\n📋 Logging picks to DB...")
-        for race_num, race_horses in sorted(by_race.items()):
+        for race_num, race_horses in sorted(by_race.items(), key=lambda x: int(x[0])):
             _tmod.log_race_picks(race_horses, track_code, date_str, race_num)
 
     # Save if requested
@@ -263,7 +263,7 @@ def main():
             save_by_race = _dd(list)
             for h in active:
                 save_by_race[h["race"]].append(h)
-            for race_num in sorted(save_by_race.keys()):
+            for race_num in sorted(save_by_race.keys(), key=lambda x: int(x)):
                 report(save_by_race[race_num])
         _sys.stdout = old_stdout
         with open(out, "w") as f:
