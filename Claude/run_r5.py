@@ -151,7 +151,8 @@ def main():
     parser.add_argument("--auto-scout", action="store_true",
                         help="Auto-run r5_scout.py before analysis")
     parser.add_argument("--race", type=int, help="Analyze single race number only")
-    parser.add_argument("--save", action="store_true", help="Save output to file")
+    parser.add_argument("--save", action="store_true", help="Save output to txt file")
+    parser.add_argument("--pdf",  action="store_true", help="Save output to PDF (one page per race)")
     parser.add_argument("--track", action="store_true",
                         help="Log picks to SQLite results DB (opt-in)")
     args = parser.parse_args()
@@ -269,6 +270,33 @@ def main():
         with open(out, "w") as f:
             f.write(buffer.getvalue())
         print(f"\n💾 Saved: {out}")
+
+    # Generate PDF if requested
+    if args.pdf:
+        _pdf_path = Path(__file__).parent / "r5_pdf.py"
+        _pdfspec = _ilu.spec_from_file_location("r5_pdf", _pdf_path)
+        _pdfmod  = _ilu.module_from_spec(_pdfspec)
+        _pdfspec.loader.exec_module(_pdfmod)
+
+        pdf_by_race = _dd(list)
+        for h in active:
+            pdf_by_race[h["race"]].append(h)
+
+        track_code = Path(drf_path).stem[:3].upper()
+        mmdd       = Path(drf_path).stem[3:7]
+        pdf_out    = Path(drf_path).stem + "_R5.pdf"
+
+        from datetime import date as _date
+        year     = str(_date.today().year)
+        date_str = year + mmdd
+
+        _pdfmod.generate_pdf(
+            pdf_by_race,
+            out_path   = pdf_out,
+            track      = track_code,
+            race_date  = date_str,
+        )
+        print(f"\n📄 PDF saved: {pdf_out}")
 
 
 if __name__ == "__main__":
