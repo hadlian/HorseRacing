@@ -401,7 +401,7 @@ def report(horses):
     print(f"    Trainer: {top['trainer']}  |  Jockey: {top['jockey']}")
     print(f"    BRIS Speeds (last 4): {top['bris_speed'][:4]}  |  "
           f"WS4: {top['ws4']}  Trend: {top['trend']:+.1f}  FCI: {top['fci']}")
-    if top['speed_par']:
+    if top['speed_par'] and top['par_diff'] is not None:
         print(f"    Speed Par for class: {top['speed_par']:.0f}  →  WS4 vs Par: {top['par_diff']:+.1f}")
     if top['prime_power']:
         print(f"    Prime Power Rating: {top['prime_power']:.1f}")

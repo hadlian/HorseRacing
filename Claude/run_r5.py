@@ -219,8 +219,15 @@ def main():
     # Remove scratches from field
     active = [h for h in horses if not h.get("scratched")]
 
-    # Run report
-    report(active)
+    # Run report — per race if full card, single call if filtered to one race
+    if args.race:
+        report(active)
+    else:
+        active_by_race = _dd(list)
+        for h in active:
+            active_by_race[h["race"]].append(h)
+        for race_num in sorted(active_by_race.keys()):
+            report(active_by_race[race_num])
 
     # Log picks to DB if --track flag used
     if args.track:
@@ -250,7 +257,14 @@ def main():
         import io, sys as _sys
         old_stdout = _sys.stdout
         _sys.stdout = buffer = io.StringIO()
-        report(active)
+        if args.race:
+            report(active)
+        else:
+            save_by_race = _dd(list)
+            for h in active:
+                save_by_race[h["race"]].append(h)
+            for race_num in sorted(save_by_race.keys()):
+                report(save_by_race[race_num])
         _sys.stdout = old_stdout
         with open(out, "w") as f:
             f.write(buffer.getvalue())
