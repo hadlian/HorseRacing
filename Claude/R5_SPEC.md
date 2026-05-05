@@ -2,7 +2,7 @@
 
 **Version:** R5_v3.2-R4C
 **C suffix:** Continuous Trend (as opposed to prior discrete ±5/0 implementation)
-**Authoritative code:** `r5_parser_v2.py`
+**Current executable implementation:** `r5_parser_v2.py`
 
 ---
 
