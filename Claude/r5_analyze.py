@@ -390,7 +390,7 @@ def build_summary(wb, summary, by_track, pace_rows, generated_at):
         ("Avg SP (Top Pick Wins)",   summary["avg_sp_top"],      None,  None, "$"),
     ]
 
-    write_header_row(ws, row, ["Metric", "Value", "Target", "Alert", "Note"], n_cols=5)
+    write_header_row(ws, row, ["Metric", "Value", "Target", "Alert", "Note"])
     row += 1
     for i, (label, val, good, bad, note) in enumerate(metrics):
         target = f">{good}%" if good else "—"
@@ -594,7 +594,7 @@ def build_scout_impact(wb, picks):
     non_wins = [p for p in non_adj   if p.get("won") == 1]
 
     headers = ["Group", "Horses", "Winners", "Win Rate"]
-    write_header_row(ws, row, headers, n_cols=4)
+    write_header_row(ws, row, headers)
     row += 1
 
     for i, (label, total, wins) in enumerate([
@@ -612,7 +612,7 @@ def build_scout_impact(wb, picks):
 
     row += 2
     # Detailed breakdown by adjustment type
-    write_header_row(ws, row, ["Horse", "Race", "Scout Adj", "Comp Score", "Winner"], n_cols=5)
+    write_header_row(ws, row, ["Horse", "Race", "Scout Adj", "Comp Score", "Winner"])
     row += 1
     for i, p in enumerate(sorted(adjusted, key=lambda x: abs(x.get("scout_adj") or 0), reverse=True)[:30]):
         race_label = f"R{p.get('race_id', '?')}"
