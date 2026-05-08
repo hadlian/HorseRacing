@@ -19,24 +19,43 @@ results/*.db
 results/*.xlsx
 scout/*.json
 scout/*.txt
-Claude/DBY*_R5_analysis.txt
+
+# Analysis TXT outputs — committed at repo root
 Claude/*_R5_analysis.txt
 
-# DRF data files (binary, large, track-specific)
-"files 2/"/*.DRF
-"files 2/"/*.zip
-files/*.DRF
+# DRF data files and input directories (binary, large, track-specific)
+files 2/
+files/
 
-# Old Excel macro / CSV files (legacy system, not part of R5)
+# Binary / document formats — not tracked
 *.xlsm
 *.xlsx
 *.pdf
+*.docx
+*.rtf
+*.zip
+~$*
 
 # CSV — ignore all except the results template
 *.csv
 !results/results_template.csv
 *.html
 *.textClipping
+
+# Results HTML companion folders and legacy results
+Results/2025/
+Results/**/*_files/
+
+# Legacy / auxiliary directories — not part of R5 codebase
+Bris Schema XLSX/
+database/
+sqlfiles/
+PythonCode/
+
+# Prompts — track .txt only, ignore binaries
+Prompts/*.zip
+Prompts/*.rtf
+Prompts/*.docx
 
 # IDE / editor
 .vscode/
@@ -48,4 +67,4 @@ files/*.DRF
 .claude/
 
 # Misc
-untitled folder/
+"untitled folder/"

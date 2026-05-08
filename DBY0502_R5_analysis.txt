@@ -1,0 +1,72 @@
+========================================================================================================
+  🏇  R5 v2.1 — DBY  Race 12  |  20260502  |  10.0f  D  |  Purse $5,000,000  |  NORMAL PACE (2 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+15   EMERGING MARKET         15-1            102 99 -- --  100.7  +1.5  102.2   -1.3   8.6   8.5   CLO   8.5   7.05  FAIR
+14   POTENTE                 20-1            100 97 90 --   96.8  +3.2  100.0   -5.2   8.6   8.5   MID   9.2   6.83  FAIR
+6    COMMANDMENT              6-1           100 103 96 86   98.7  +2.5  101.2   -3.3   8.6   8.0   CLO   5.7   6.70  FAIR
+12   CHIEF WALLABEE           8-1           100 103 96 --  100.1  +0.2  100.3   -1.9   8.6   6.0   CLO   5.0   6.39  SPEC
+19   GOLDEN TEMPO            30-1            100 91 88 84   93.3  +5.0   98.3   -8.7   8.7   6.0   CLO   9.9   6.30  SPEC
+18   FURTHER ADO              6-1            105 92 92 98   97.8  +5.0  102.8   -4.2   8.7   8.0   MID   2.9   6.28  SPEC
+1    RENEGADE                 4-1             97 97 96 91   96.2  +1.2   97.4   -5.8   8.5   8.5   CLO   3.6   6.16  SPEC
+8    SO HAPPY                15-1           103 94 101 90   98.6  +4.0  102.6   -3.4   8.4   3.5   MID   4.3   6.14  SPEC
+20   FULLEFFORT              20-1             99 92 83 84   93.1  +5.0   98.1   -8.9   8.6   8.0   CLO   7.1   6.09  SPEC
+16   PAVLOVIAN               30-1            101 95 84 85   94.2  +5.0   99.2   -7.8   6.6   3.0   CLO   8.5   5.74  SPEC
+9    THE PUMA                10-1            100 93 90 94   95.3  +3.8   99.1   -6.7   6.7   6.0   CLO   2.9   5.71  SPEC
+3    INTREPIDO               50-1             92 93 92 99   93.0  -1.3   91.7   -9.0   6.5   3.0   CLO   7.8   5.23  SPEC
+2    ALBUS                   30-1             91 87 85 79   87.4  +3.7   91.1  -14.6   6.8   8.0   CLO   5.7   5.15  SPEC
+11   INCREDIBOLT             20-1            100 69 93 85   87.8  +5.0   92.8  -14.2   8.4   6.0   CLO   2.2   4.96  SPEC
+5    RIGHT TO PARTY          30-1             90 86 82 84   86.6  +3.0   89.6  -15.4   8.6   5.5   CLO   4.3   4.85  SPEC
+24   CORONA DE ORO           50-1             86 91 88 84   87.7  -0.8   86.9  -14.3   8.4   5.5   CLO   7.1   4.74  SPEC
+17   SIX SPEED               50-1             -- -- -- --    N/A  +0.0    N/A      ?   8.6   5.5   UNK   6.4   4.70  SPEC
+4    LITMUS TEST             50-1            83 87 90 102   87.5  -5.0   82.5  -14.5   8.6   5.5   MID   6.4   4.60  SPEC
+22   OCELLI                  50-1             90 92 86 85   89.3  +1.2   90.5  -12.7   6.5   3.0   CLO   5.0   4.44  SPEC
+13   SILENT TACTIC           20-1             93 93 92 80   91.5  +2.3   93.8  -10.5   6.6   3.0   CLO   1.0   4.40  SPEC
+10   WONDER DEAN             30-1             -- -- -- --    N/A  +0.0    N/A      ?   5.0   3.0   UNK   2.2   4.14  SPEC
+23   ROBUSTA                 50-1             85 97 84 88   88.7  -2.3   86.4  -13.3   6.4   3.5   SPE   5.0   4.13  SPEC
+7    DANON BOURBON           20-1             -- -- -- --    N/A  +0.0    N/A      ?   6.6   3.0   UNK   1.0   3.86  SPEC
+21   GREAT WHITE             50-1             80 92 79 81   83.5  -2.0   81.5  -18.5   6.6   3.0   SPE   2.9   3.47  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #15 EMERGING MARKET  [15-1 ML]  |  Composite 7.05  |  FAIR
+    Trainer: BROWN CHAD C  |  Jockey: PRAT FLAVIEN
+    BRIS Speeds (last 4): [102.0, 99.0, None, None]  |  WS4: 100.7  Trend: +1.5  FCI: 102.2
+    Speed Par for class: 102  →  WS4 vs Par: -1.3
+    Prime Power Rating: 142.5
+    Best BRIS @ distance: 102
+    Sire: CANDY RIDE  |  Dist Ped: 116.0  |  Dirt Ped: 111.0
+    Pace style: CLOSER  |  Pace fit score: 6.5  |  Value score: 8.5
+    Key Trainer Situations:
+      • Shipper: 814 starts  22.4% win  ROI $-0.34
+      • Graded Stakes: 569 starts  21.1% win  ROI $-0.04
+      • Wnr last race: 587 starts  23.5% win  ROI $-0.38
+    Last race: Twinspires.com Louisiana Derby  (20260321)
+    Trip note: 03-21-26 Never far back; loomed 4wd to 1/4; dueled stretch; prevailed
+    Min acceptable odds: 14-1
+
+💰  VALUE ALT:  #14 POTENTE  [20-1 ML]  |  Composite 6.83  |  FAIR
+    Trainer: BAFFERT BOB  |  Jockey: HERNANDEZ JUAN J
+    Angle: 20-1 ML with FCI 100.0 vs par 102.0 | Pace: MID | Val: 9.2
+    Prime Power: 145.0
+    Key stat: Shipper — 29.6% win rate
+    Trip: 04-04-26 Dueled inside; fought to midstretch; yielded
+
+  FAIR  : #15EMERGING M  #14POTENTE  #6COMMANDMEN
+  SPEC  : #12CHIEF WALL  #19GOLDEN TEM  #18FURTHER AD  #1RENEGADE  #8SO HAPPY  #20FULLEFFORT  #16PAVLOVIAN  #9THE PUMA  #3INTREPIDO  #2ALBUS  #11INCREDIBOL  #5RIGHT TO P  #24CORONA DE   #17SIX SPEED  #4LITMUS TES  #22OCELLI  #13SILENT TAC  #10WONDER DEA  #23ROBUSTA  #7DANON BOUR  #21GREAT WHIT
+
+  PRIME POWER TOP 5:
+    #18 FURTHER ADO            PP=150.7  Comp=6.28  Style=MID
+    #20 FULLEFFORT             PP=145.8  Comp=6.09  Style=CLOSER
+    #14 POTENTE                PP=145.0  Comp=6.83  Style=MID
+    #1 RENEGADE               PP=144.5  Comp=6.16  Style=CLOSER
+    #6 COMMANDMENT            PP=144.3  Comp=6.70  Style=CLOSER
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #15 EMERGING MARKET
+    EXACTA:     #15 / #14
+    TRIFECTA:   #15 / #14 / #6
+    SUPERFECTA: #15 / #14 / #6 / #12  #19  #18
+========================================================================================================

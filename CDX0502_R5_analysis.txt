@@ -1,0 +1,818 @@
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 1  |  20260502  |  8.5f  D  |  Purse $120,000  |  NORMAL PACE (2 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+9    WINSTON AVE              4-1             91 90 81 89   88.5  +2.2   90.7   -1.5   8.4   8.5   SPE   6.4   6.19  SPEC
+3    SILENT WAY               4-1             90 86 85 --   87.6  +2.2   89.8   -2.4   8.2   5.5   MID   5.0   5.73  SPEC
+8    BOURBON DREAM            5-1             89 -- -- --   89.0  +0.0   89.0   -1.0   8.5   5.5   MID   5.7   5.73  SPEC
+11   POWERSHIFT               3-1             82 98 -- --   88.9  -5.0   83.9   -1.1   8.4   8.5   MID   2.9   5.33  SPEC
+6    CROMWELL                 6-1             86 74 80 77   82.7  +2.0   84.7   -7.3   8.4   6.0   CLO   5.0   5.10  SPEC
+2    STAKEHOLDER             20-1             82 80 77 62   78.4  +4.5   82.9  -11.6   8.3   6.0   MID   6.4   4.83  SPEC
+5    GET THEM ROSES          15-1             81 72 74 --   76.4  +4.0   80.4  -13.6   8.4   8.5   MID   5.7   4.79  SPEC
+10   MIDNIGHT PLAYBOY        15-1             -- -- -- --    N/A  +0.0    N/A      ?   8.5   5.5   UNK   5.0   4.62  SPEC
+1    BHATIA                  15-1             76 81 76 68   74.7  +5.0   79.7  -15.3   8.5   6.0   MID   2.9   4.14  SPEC
+4    INGLEBOROUGH            20-1             77 -- -- --   77.0  +0.0   77.0  -13.0   8.1   3.0   CLO   5.0   4.03  SPEC
+7    TIME TO STRIKE          20-1             73 49 70 --   64.3  +5.0   69.3  -25.7   8.4   5.5   SPE   5.0   3.75  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #9 WINSTON AVE  [4-1 ML]  |  Composite 6.19  |  SPEC
+    Trainer: BAFFERT BOB  |  Jockey: HERNANDEZ JUAN J
+    BRIS Speeds (last 4): [91.0, 90.0, 81.0, 89.0]  |  WS4: 88.5  Trend: +2.2  FCI: 90.7
+    Speed Par for class: 90  →  WS4 vs Par: -1.5
+    Prime Power Rating: 132.6
+    Sire: QUALITY ROAD  |  Dist Ped: 111.0  |  Dirt Ped: 111.0
+    Pace style: SPEED  |  Pace fit score: 6.0  |  Value score: 6.4
+    Key Trainer Situations:
+      • Blnkr back on: 24 starts  16.7% win  ROI $-0.80
+      • Shipper: 98 starts  29.6% win  ROI $-0.54
+      • 3rd off layoff: 52 starts  38.5% win  ROI $-0.07
+    Trip note: 04-04-26 Stalked inside; bumped upper; rail rally; missed
+    Min acceptable odds: 4-1
+
+💰  VALUE ALT:  #6 CROMWELL  [6-1 ML]  |  Composite 5.1  |  SPEC
+    Trainer: DEVAUX CHERIE  |  Jockey: ORTIZ JOSE L
+    Angle: 6-1 ML with FCI 84.7 vs par 90.0 | Pace: CLOSER | Val: 5.0
+    Prime Power: 121.5
+    Key stat: 46-90daysAway — 15.9% win rate
+    Trip: 03-07-26 Settled; tracked to half; angled three wide upper; second best
+
+  SPEC  : #9WINSTON AV  #3SILENT WAY  #8BOURBON DR  #11POWERSHIFT  #6CROMWELL  #2STAKEHOLDE  #5GET THEM R  #10MIDNIGHT P  #1BHATIA  #4INGLEBOROU  #7TIME TO ST
+
+  PRIME POWER TOP 5:
+    #11 POWERSHIFT             PP=133.3  Comp=5.33  Style=MID
+    #9 WINSTON AVE            PP=132.6  Comp=6.19  Style=SPEED
+    #3 SILENT WAY             PP=128.2  Comp=5.73  Style=MID
+    #8 BOURBON DREAM          PP=123.3  Comp=5.73  Style=MID
+    #6 CROMWELL               PP=121.5  Comp=5.10  Style=CLOSER
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #9 WINSTON AVE
+    EXACTA:     #9 / #3
+    TRIFECTA:   #9 / #3 / #8
+    SUPERFECTA: #9 / #3 / #8 / #11  #6  #2
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 2  |  20260502  |  8.5f  D  |  Purse $127,000  |  NORMAL PACE (4 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+6    MAKE MY DAY              8-1             97 82 -- --   90.6  +5.0   95.6   -0.4   8.6   8.0   CLO   8.5   6.83  FAIR
+8    TAPTASTIC                3-1             91 84 -- --   88.0  +3.5   91.5   -3.0   8.6   8.0   CLO   4.3   5.92  SPEC
+2    SOVEREIGN LAW            8-1             91 75 -- --   84.1  +5.0   89.1   -6.9   8.4   8.5   CLO   6.4   5.87  SPEC
+4    MEMORY                   4-1             91 74 -- --   83.7  +5.0   88.7   -7.3   8.5   8.5   MID   3.6   5.55  SPEC
+11   LINCOLN'S LAW           10-1             86 95 -- --   89.9  -4.5   85.4   -1.1   8.4   5.5   SPE   5.7   5.44  SPEC
+9    OUR MONEYMAN             6-1             92 80 90 84   87.2  +3.7   90.9   -3.8   8.0   3.0   CLO   4.3   5.28  SPEC
+3    STEEL                   20-1             82 83 -- --   82.4  -0.5   81.9   -8.6   8.6   6.0   CLO   6.4   5.02  SPEC
+12   SPIRIT OF ROYAL         30-1             86 84 82 78   83.8  +2.3   86.1   -7.2   8.1   3.0   CLO   6.4   4.89  SPEC
+7    VERY CONNECTED          12-1             84 -- 82 88   84.6  -1.0   83.6   -6.4   8.2   5.5   CLO   4.3   4.88  SPEC
+1    OUT OF THE WOODS         6-1             94 82 80 83   80.8  +5.0   85.8  -10.2   8.4   5.5   SPE   2.2   4.75  SPEC
+5    SEAL BAY                30-1             82 77 52 76   73.9  +5.0   78.9  -17.1   8.4   3.5   SPE   5.0   4.03  SPEC
+10   J J GREY                15-1             77 73 87 70   77.0  -2.8   74.2  -14.0   8.1   8.0   SPE   2.9   3.96  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #6 MAKE MY DAY  [8-1 ML]  |  Composite 6.83  |  FAIR
+    Trainer: PLETCHER TODD A  |  Jockey: SAEZ LUIS
+    BRIS Speeds (last 4): [97.0, 82.0, None, None]  |  WS4: 90.6  Trend: +5.0  FCI: 95.6
+    Speed Par for class: 91  →  WS4 vs Par: -0.4
+    Prime Power Rating: 128.0
+    Best BRIS @ distance: 97
+    Sire: GUN RUNNER  |  Dist Ped: 116.0  |  Dirt Ped: 115.0
+    Pace style: CLOSER  |  Pace fit score: 6.5  |  Value score: 8.5
+    Key Trainer Situations:
+      • Shipper: 738 starts  19.4% win  ROI $-0.55
+      • Mdn win L/R: 215 starts  23.3% win  ROI $-0.37
+      • Allowance: 601 starts  22.5% win  ROI $-0.29
+    Trip note: 03-20-26 Pace 2path; drew off far turn; drifted out stretch; driving
+    Min acceptable odds: 7-1
+
+💰  VALUE ALT:  #2 SOVEREIGN LAW  [8-1 ML]  |  Composite 5.87  |  SPEC
+    Trainer: COX BRAD H  |  Jockey: FRANCO MANUEL
+    Angle: 8-1 ML with FCI 89.1 vs par 91.0 | Pace: CLOSER | Val: 6.4
+    Prime Power: 126.2
+    Key stat: Shipper — 26.2% win rate
+    Trip: 03-28-26 Settled 3wd; 5wd upper; closed outside; up late
+
+  FAIR  : #6MAKE MY DA
+  SPEC  : #8TAPTASTIC  #2SOVEREIGN   #4MEMORY  #11LINCOLN'S   #9OUR MONEYM  #3STEEL  #12SPIRIT OF   #7VERY CONNE  #1OUT OF THE  #5SEAL BAY  #10J J GREY
+
+  PRIME POWER TOP 5:
+    #9 OUR MONEYMAN           PP=134.0  Comp=5.28  Style=CLOSER
+    #8 TAPTASTIC              PP=134.0  Comp=5.92  Style=CLOSER
+    #11 LINCOLN'S LAW          PP=132.3  Comp=5.44  Style=SPEED
+    #12 SPIRIT OF ROYAL        PP=130.4  Comp=4.89  Style=CLOSER
+    #3 STEEL                  PP=129.1  Comp=5.02  Style=CLOSER
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #6 MAKE MY DAY
+    EXACTA:     #6 / #8
+    TRIFECTA:   #6 / #8 / #2
+    SUPERFECTA: #6 / #8 / #2 / #4  #11  #9
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 3  |  20260502  |  8.0f  D  |  Purse $134,000  |  HOT PACE (5 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+12   PRAETOR                  3-1            95 103 87 87   95.0  +1.3   96.3   +3.0   8.5   8.5   MID   5.0   6.66  FAIR
+5    JOHN HANCOCK             6-1             93 97 88 --   93.2  +0.2   93.4   +1.2   8.4   8.5   SPE   5.7   6.26  SPEC
+6    WHO DEY                  4-1             95 90 91 75   90.7  +4.8   95.5   -1.3   8.4   5.5   CLO   4.3   6.26  SPEC
+1    ARRO SMASH              15-1             87 91 93 97   90.4  -3.3   87.1   -1.6   8.6   3.0   CLO   5.0   5.56  SPEC
+2    VAMOS CARLITOS          15-1             93 83 78 73   85.2  +5.0   90.2   -6.8   8.1   5.5   MID   6.4   5.55  SPEC
+14   BULLARD                 12-1             89 92 86 86   89.0  +0.5   89.5   -3.0   8.6   5.5   CLO   3.6   5.53  SPEC
+9    KEEWAYDIN                8-1             95 81 89 79   88.0  +5.0   93.0   -4.0   8.1   3.5   SPE   5.7   5.44  SPEC
+8    RACING DRIVER           20-1             87 90 92 71   87.3  +1.3   88.6   -4.7   8.0   3.0   CLO   5.7   5.35  SPEC
+10   VIBE                     6-1             90 89 74 --   86.1  +4.2   90.3   -5.9   8.5   8.0   SPE   4.3   5.33  SPEC
+13   ATTACHE                 20-1             84 87 93 87   86.6  -1.8   84.8   -5.4   8.3   5.5   CLO   5.7   5.25  SPEC
+7    MITOCHONDRIA            30-1             78 78 70 61   74.7  +4.2   78.9  -17.3   8.4   5.5   CLO   5.0   4.38  SPEC
+4    COMPORT                 15-1             76 88 89 92   83.8  -5.0   78.8   -8.2   8.1   6.0   SPE   3.6   4.33  SPEC
+3    SPECIAL CALIBER         30-1             82 81 84 78   80.5  +1.3   81.8  -11.5   8.1   3.0   MID   5.0   4.30  SPEC
+11   ALEMAN                  30-1             74 75 75 82   75.3  -1.7   73.6  -16.7   8.2   3.0   SPE   5.0   3.36  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #12 PRAETOR  [3-1 ML]  |  Composite 6.66  |  FAIR
+    Trainer: BROWN CHAD C  |  Jockey: PRAT FLAVIEN
+    BRIS Speeds (last 4): [95.0, 103.0, 87.0, 87.0]  |  WS4: 95.0  Trend: +1.3  FCI: 96.3
+    Speed Par for class: 92  →  WS4 vs Par: +3.0
+    Prime Power Rating: 143.9
+    Best BRIS @ distance: 103
+    Sire: INTO MISCHIEF  |  Dist Ped: 112.0  |  Dirt Ped: 112.0
+    Pace style: MID  |  Pace fit score: 6.0  |  Value score: 5.0
+    Key Trainer Situations:
+      • Sprint to Rte: 111 starts  25.2% win  ROI $-0.41
+      • Btn favorite: 235 starts  28.5% win  ROI ?
+      • Allowance: 756 starts  22.6% win  ROI $-0.60
+    Trip note: 04-04-26 Bump start;prompted 2wd-3p btwn;led 7/16;collared 1/8;lasted show
+    Min acceptable odds: 2-1
+
+💰  VALUE ALT:  #5 JOHN HANCOCK  [6-1 ML]  |  Composite 6.26  |  SPEC
+    Trainer: COX BRAD H  |  Jockey: ORTIZ IRAD JR
+    Angle: 6-1 ML with FCI 93.4 vs par 92.0 | Pace: SPEED | Val: 5.7
+    Prime Power: 144.0
+    Key stat: 90+ days away — 28.1% win rate
+    Trip: 03-22-25 Set pace ins foe;led;met bid 3/8;headed 5/16;gave way;reclaim 4th
+
+  FAIR  : #12PRAETOR
+  SPEC  : #5JOHN HANCO  #6WHO DEY  #1ARRO SMASH  #2VAMOS CARL  #14BULLARD  #9KEEWAYDIN  #8RACING DRI  #10VIBE  #13ATTACHE  #7MITOCHONDR  #4COMPORT  #3SPECIAL CA  #11ALEMAN
+
+  PRIME POWER TOP 5:
+    #5 JOHN HANCOCK           PP=144.0  Comp=6.26  Style=SPEED
+    #12 PRAETOR                PP=143.9  Comp=6.66  Style=MID
+    #6 WHO DEY                PP=137.4  Comp=6.26  Style=CLOSER
+    #4 COMPORT                PP=134.9  Comp=4.33  Style=SPEED
+    #14 BULLARD                PP=134.8  Comp=5.53  Style=CLOSER
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #12 PRAETOR
+    EXACTA:     #12 / #5
+    TRIFECTA:   #12 / #5 / #6
+    SUPERFECTA: #12 / #5 / #6 / #1  #2  #14
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 4  |  20260502  |  7.0f  D  |  Purse $1,000,000  |  SLOW PACE (1 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+4    WAYS AND MEANS           2-1         107 101 102 101  103.6  +2.8  106.4   +2.6   8.5   8.0   CLO   5.0   7.11  FAIR
+5    SPLENDORA                2-1          99 105 100 102  101.3  -1.7   99.6   +0.3   8.2   8.5   CLO   5.0   6.59  FAIR
+1    USHA                     4-1           102 83 100 99   95.6  +4.0   99.6   -5.4   8.2   8.5   MID   5.7   6.56  FAIR
+6    R DISASTER               6-1             98 99 92 99   97.2  +0.7   97.9   -3.8   8.2   6.0   SPE   5.7   6.37  SPEC
+2    HAULIN ICE               4-1            98 102 85 79   95.1  +3.0   98.1   -5.9   8.2   3.0   MID   3.6   5.60  SPEC
+3    AUTUMN EVENING          20-1             89 93 90 90   90.7  +2.3   93.0  -10.3   8.4   5.5   MID   5.0   5.36  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #4 WAYS AND MEANS  [2-1 ML]  |  Composite 7.11  |  FAIR
+    Trainer: BROWN CHAD C  |  Jockey: ORTIZ JOSE L
+    BRIS Speeds (last 4): [107.0, 101.0, 102.0, 101.0]  |  WS4: 103.6  Trend: +2.8  FCI: 106.4
+    Speed Par for class: 101  →  WS4 vs Par: +2.6
+    Prime Power Rating: 150.9
+    Best BRIS @ distance: 107
+    Sire: PRACTICAL JOKE  |  Dist Ped: 112.0  |  Dirt Ped: 111.0
+    Pace style: CLOSER  |  Pace fit score: 4.0  |  Value score: 5.0
+    Key Trainer Situations:
+      • 90+ days away: 544 starts  23.7% win  ROI $-0.30
+      • Graded Stakes: 569 starts  21.1% win  ROI $-0.04
+      • Wnr last race: 587 starts  23.5% win  ROI $-0.38
+    Last race: Bed o' Roses S.  (20250606)
+    Trip note: 06-06-25 Stalked pace;3path turn;asked1/4;lead3/16;powered away
+    Min acceptable odds: 1-1
+
+💰  VALUE ALT:  #6 R DISASTER  [6-1 ML]  |  Composite 6.37  |  SPEC
+    Trainer: JOSEPH SAFFIE A JR  |  Jockey: GAFFALIONE TYLER
+    Angle: 6-1 ML with FCI 97.9 vs par 101.0 | Pace: SPEED | Val: 5.7
+    Prime Power: 148.8
+    Key stat: Graded Stakes — 12.9% win rate
+    Trip: 04-04-26 Set pace 2p; headed ins pair upper; gave way
+
+  FAIR  : #4WAYS AND M  #5SPLENDORA  #1USHA
+  SPEC  : #6R DISASTER  #2HAULIN ICE  #3AUTUMN EVE
+
+  PRIME POWER TOP 5:
+    #4 WAYS AND MEANS         PP=150.9  Comp=7.11  Style=CLOSER
+    #5 SPLENDORA              PP=149.6  Comp=6.59  Style=CLOSER
+    #6 R DISASTER             PP=148.8  Comp=6.37  Style=SPEED
+    #2 HAULIN ICE             PP=148.1  Comp=5.60  Style=MID
+    #1 USHA                   PP=141.3  Comp=6.56  Style=MID
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #4 WAYS AND MEANS
+    EXACTA:     #4 / #5
+    TRIFECTA:   #4 / #5 / #1
+    SUPERFECTA: #4 / #5 / #1 / #6  #2  #3
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 5  |  20260502  |  5.5f  T  |  Purse $600,000  |  HOT PACE (6 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+5    POSSIBLEMENTE           10-1             94 99 90 78   93.1  +2.5   95.6   -3.9   8.2   6.0   MID   8.5   6.24  SPEC
+9    LITIGATION               3-1            92 102 95 90   95.4  -1.8   93.6   -1.6   8.4   6.0   MID   5.0   5.91  SPEC
+3    MY BOY PRINCE            2-1             95 94 94 33   88.3  +5.0   93.3   -8.7   8.2   6.0   MID   3.6   5.49  SPEC
+8    MONDOGETSBUCKETS         8-1             93 89 92 91   91.4  +1.2   92.6   -5.6   8.5   5.5   SPE   5.7   5.40  SPEC
+7    YELLOW CARD              4-1             93 96 91 98   94.0  -1.0   93.0   -3.0   6.3   5.5   SPE   3.6   5.17  SPEC
+1    WENDELSSOHN             15-1             89 90 96 88   88.9  -1.0   87.9   -8.1   8.2   5.5   SPE   5.7   4.98  SPEC
+4    FULL DISCLOSURE         30-1             87 94 86 91   88.9  -1.0   87.9   -8.1   8.4   3.0   SPE   6.4   4.83  SPEC
+6    ITS BOURBON THIRTY      15-1             88 93 91 92   89.7  -0.7   89.0   -7.3   8.1   3.0   MID   3.6   4.77  SPEC
+10   JOE SHIESTY              6-1             92 90 97 87   90.2  +1.7   91.9   -6.8   8.1   3.5   SPE   2.9   4.70  SPEC
+2    BEAR RIVER              30-1             88 87 91 82   87.9  +0.3   88.2   -9.1   8.2   3.0   SPE   5.0   4.61  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #5 POSSIBLEMENTE  [10-1 ML]  |  Composite 6.24  |  SPEC
+    Trainer: SHARP JOE  |  Jockey: FRANCO MANUEL
+    BRIS Speeds (last 4): [94.0, 99.0, 90.0, 78.0]  |  WS4: 93.1  Trend: +2.5  FCI: 95.6
+    Speed Par for class: 97  →  WS4 vs Par: -3.9
+    Prime Power Rating: 148.0
+    Sire: TALE OF EKATI  |  Dist Ped: 105.0  |  Dirt Ped: 102.0
+    Pace style: MID  |  Pace fit score: 6.0  |  Value score: 8.5
+    Key Trainer Situations:
+      • 46-90daysAway: 348 starts  16.1% win  ROI $-0.62
+      • Graded Stakes: 31 starts  6.5% win  ROI $-1.03
+      • Wnr last race: 351 starts  21.4% win  ROI $-0.19
+    Trip note: 03-12-26 Stalked 2p-ins; tipped out 3-4p1/8; bid 1/16; drove past
+    Min acceptable odds: 9-1
+
+💰  VALUE ALT:  #8 MONDOGETSBUCKETS  [8-1 ML]  |  Composite 5.4  |  SPEC
+    Trainer: BLOCK CHRIS  |  Jockey: GAFFALIONE TYLER
+    Angle: 8-1 ML with FCI 92.6 vs par 97.0 | Pace: SPEED | Val: 5.7
+    Prime Power: 140.6
+    Key stat: Graded Stakes — ? win rate
+    Trip: 04-04-26 Tracked 2p-ins; rail rally; bid; up place 1/16; nailed
+
+  SPEC  : #5POSSIBLEME  #9LITIGATION  #3MY BOY PRI  #8MONDOGETSB  #7YELLOW CAR  #1WENDELSSOH  #4FULL DISCL  #6ITS BOURBO  #10JOE SHIEST  #2BEAR RIVER
+
+  PRIME POWER TOP 5:
+    #9 LITIGATION             PP=160.7  Comp=5.91  Style=MID
+    #3 MY BOY PRINCE          PP=157.8  Comp=5.49  Style=MID
+    #7 YELLOW CARD            PP=155.8  Comp=5.17  Style=SPEED
+    #5 POSSIBLEMENTE          PP=148.0  Comp=6.24  Style=MID
+    #10 JOE SHIESTY            PP=147.4  Comp=4.70  Style=SPEED
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #5 POSSIBLEMENTE
+    EXACTA:     #5 / #9
+    TRIFECTA:   #5 / #9 / #3
+    SUPERFECTA: #5 / #9 / #3 / #8  #7  #1
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 6  |  20260502  |  8.0f  D  |  Purse $200,000  |  NORMAL PACE (3 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+4    BE YOU                   4-1            98 97 95 100   97.3  +0.3   97.6   -1.7   8.4   8.5   CLO   5.7   6.64  FAIR
+2    DRAGOON GUARD            3-1             96 99 96 95   96.8  -0.3   96.5   -2.2   8.6   8.5   SPE   4.3   6.41  SPEC
+6    TOUR PLAYER              4-1             98 90 91 90   93.4  +3.8   97.2   -5.6   8.4   5.5   MID   5.0   5.94  SPEC
+10   CAPITAL IDEA             5-1             96 90 96 91   93.7  +1.8   95.5   -5.3   8.3   6.0   CLO   5.0   5.84  SPEC
+3    BANJO CHRIS             20-1             88 94 94 86   90.8  -1.7   89.1   -8.2   8.4   3.0   MID   7.1   5.20  SPEC
+5    PRINCE OF POWER         30-1             87 86 90 81   86.7  +0.7   87.4  -12.3   8.2   5.5   SPE   7.8   5.12  SPEC
+7    WILL TAKE IT             8-1             84 92 89 90   88.0  -3.2   84.8  -11.0   8.5   5.5   MID   3.6   4.58  SPEC
+9    SCOTLAND                20-1             74 84 93 95   82.9  -5.0   77.9  -16.1   8.4   8.5   MID   5.0   4.46  SPEC
+1    BROTHA KENY             15-1             92 75 97 91   86.6  -5.0   81.6  -12.4   8.1   5.5   MID   4.3   4.44  SPEC
+11   MOONLIGHT                8-1            76 90 101 97   87.3  -5.0   82.3  -11.7   8.3   6.0   CLO   2.2   4.23  SPEC
+8    BERNIN HOT              30-1             45 81 96 97   71.2  -5.0   66.2  -27.8   8.3   3.5   SPE   5.0   3.41  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #4 BE YOU  [4-1 ML]  |  Composite 6.64  |  FAIR
+    Trainer: PLETCHER TODD A  |  Jockey: VELAZQUEZ J R
+    BRIS Speeds (last 4): [98.0, 97.0, 95.0, 100.0]  |  WS4: 97.3  Trend: +0.3  FCI: 97.6
+    Speed Par for class: 99  →  WS4 vs Par: -1.7
+    Prime Power Rating: 140.6
+    Best BRIS @ distance: 95
+    Sire: CURLIN  |  Dist Ped: 111.0  |  Dirt Ped: 111.0
+    Pace style: CLOSER  |  Pace fit score: 6.5  |  Value score: 5.7
+    Key Trainer Situations:
+      • Shipper: 738 starts  19.4% win  ROI $-0.55
+      • NonGraded Stk: 253 starts  16.2% win  ROI $-0.82
+      • Sprint to Rte: 214 starts  18.7% win  ROI $-0.82
+    Last race: Carter S. Presented by NYRA Bets  (20260404)
+    Trip note: 04-04-26 Settled at rear;ask1/2;chsd 2-5path turn;6p1/4;chsd;earned show
+    Min acceptable odds: 2-1
+
+💰  VALUE ALT:  #3 BANJO CHRIS  [20-1 ML]  |  Composite 5.2  |  SPEC
+    Trainer: WISMER TROY S  |  Jockey: MORALES EDGAR
+    Angle: 20-1 ML with FCI 89.1 vs par 99.0 | Pace: MID | Val: 7.1
+    Prime Power: 131.5
+    Key stat: 46-90daysAway — 14.3% win rate
+    Trip: 02-13-26 Stalked inside; chased 2p upper; no gain; saved show
+
+  FAIR  : #4BE YOU
+  SPEC  : #2DRAGOON GU  #6TOUR PLAYE  #10CAPITAL ID  #3BANJO CHRI  #5PRINCE OF   #7WILL TAKE   #9SCOTLAND  #1BROTHA KEN  #11MOONLIGHT  #8BERNIN HOT
+
+  PRIME POWER TOP 5:
+    #2 DRAGOON GUARD          PP=144.8  Comp=6.41  Style=SPEED
+    #4 BE YOU                 PP=140.6  Comp=6.64  Style=CLOSER
+    #6 TOUR PLAYER            PP=138.7  Comp=5.94  Style=MID
+    #1 BROTHA KENY            PP=135.2  Comp=4.44  Style=MID
+    #7 WILL TAKE IT           PP=134.5  Comp=4.58  Style=MID
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #4 BE YOU
+    EXACTA:     #4 / #2
+    TRIFECTA:   #4 / #2 / #6
+    SUPERFECTA: #4 / #2 / #6 / #10  #3  #5
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 7  |  20260502  |  8.0f  T  |  Purse $1,000,000  |  NORMAL PACE (3 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+2    SWEET REBECCA            2-1             90 97 85 95   91.6  -1.2   90.4   -2.4   8.4   8.5   SPE   5.0   6.05  SPEC
+7    MOVIN' ON UP            12-1             91 79 95 93   88.4  +1.0   89.4   -5.6   8.1   5.5   MID   7.8   5.71  SPEC
+4    TEMPTABLE                8-1             89 -- -- --   89.0  +0.0   89.0   -5.0   8.0   6.0   CLO   7.1   5.66  SPEC
+8    PIN UP BETTY             4-1             89 91 92 90   90.3  -1.0   89.3   -3.7   8.4   5.5   CLO   4.3   5.41  SPEC
+1    ITALIAN SOIREE          10-1             86 88 72 89   84.1  +1.5   85.6   -9.9   8.5   8.0   SPE   6.4   5.35  SPEC
+9    MAGGIE GO                8-1             89 85 73 88   87.2  +1.5   88.7   -6.8   5.0   8.5   MID   5.0   5.21  SPEC
+3    PORTFOLIO DURATION       4-1             88 83 83 --   85.2  +2.5   87.7   -8.8   5.0   8.5   CLO   2.2   4.82  SPEC
+6    VINA ARANA              20-1             89 73 85 81   86.4  +1.7   88.1   -7.6   5.0   3.0   MID   5.0   4.58  SPEC
+5    CLASSIC Q                6-1             83 83 92 89   85.4  -2.5   82.9   -8.6   8.3   5.5   SPE   2.2   4.53  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #2 SWEET REBECCA  [2-1 ML]  |  Composite 6.05  |  SPEC
+    Trainer: WALSH BRENDAN P  |  Jockey: GAFFALIONE TYLER
+    BRIS Speeds (last 4): [90.0, 97.0, 85.0, 95.0]  |  WS4: 91.6  Trend: -1.2  FCI: 90.4
+    Speed Par for class: 94  →  WS4 vs Par: -2.4
+    Prime Power Rating: 150.0
+    Best BRIS @ distance: 95
+    Sire: AMERICAN PHAROAH  |  Dist Ped: 109.0  |  Dirt Ped: 109.0
+    Pace style: SPEED  |  Pace fit score: 6.0  |  Value score: 5.0
+    Key Trainer Situations:
+      • Shipper: 638 starts  17.2% win  ROI $-0.31
+      • Graded Stakes: 275 starts  13.4% win  ROI $0.01
+      • Wnr last race: 342 starts  19.3% win  ROI $-0.25
+    Last race: Sand Springs S.  (20260328)
+    Trip note: 03-28-26 Rated back inside; hard held; got through 3/16; cleared; held
+    Min acceptable odds: 2-1
+
+💰  VALUE ALT:  #7 MOVIN' ON UP  [12-1 ML]  |  Composite 5.71  |  SPEC
+    Trainer: JOSEPH SAFFIE A JR  |  Jockey: ORTIZ JOSE L
+    Angle: 12-1 ML with FCI 89.4 vs par 94.0 | Pace: MID | Val: 7.8
+    Prime Power: 150.4
+    Key stat: Graded Stakes — 12.9% win rate
+    Trip: 04-12-26 Midpack ins; 3-4p btwn 3/16; ran on; dueled show late; prevailed
+
+  SPEC  : #2SWEET REBE  #7MOVIN' ON   #4TEMPTABLE  #8PIN UP BET  #1ITALIAN SO  #9MAGGIE GO  #3PORTFOLIO   #6VINA ARANA  #5CLASSIC Q
+
+  PRIME POWER TOP 5:
+    #3 PORTFOLIO DURATION     PP=154.2  Comp=4.82  Style=CLOSER
+    #8 PIN UP BETTY           PP=150.9  Comp=5.41  Style=CLOSER
+    #7 MOVIN' ON UP           PP=150.4  Comp=5.71  Style=MID
+    #2 SWEET REBECCA          PP=150.0  Comp=6.05  Style=SPEED
+    #9 MAGGIE GO              PP=144.7  Comp=5.21  Style=MID
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #2 SWEET REBECCA
+    EXACTA:     #2 / #7
+    TRIFECTA:   #2 / #7 / #4
+    SUPERFECTA: #2 / #7 / #4 / #8  #1  #9
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 8  |  20260502  |  8.0f  D  |  Purse $750,000  |  HOT PACE (6 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+6    CRUDE VELOCITY           2-1            103 94 -- --   99.1  +4.5  103.6   +2.1   8.2   8.5   CLO   5.0   7.28  FAIR
+2    TROUBLE CALLING          5-1             95 93 94 68   91.5  +5.0   96.5   -5.5   8.2   5.5   CLO   5.7   6.22  SPEC
+5    STOP THE CAR            20-1             90 81 92 79   86.6  +3.0   89.6  -10.4   8.2   8.5   MID   7.8   5.74  SPEC
+4    SECURED FREEDOM         20-1             93 89 95 82   91.1  +2.2   93.3   -5.9   8.4   5.5   SPE   7.8   5.69  SPEC
+11   ONE MORE FREUD          15-1             91 90 -- --   90.6  +0.5   91.1   -6.4   8.4   6.0   CLO   5.0   5.63  SPEC
+1    ENGLISHMAN               3-1             93 97 -- --   94.7  -2.0   92.7   -2.3   8.5   6.0   SPE   4.3   5.62  SPEC
+8    CREOLE CHROME            8-1             90 91 91 88   90.3  +0.0   90.3   -6.7   8.3   6.0   MID   4.3   5.35  SPEC
+9    LOCKSTOCKNPHAROAH       20-1             92 92 80 --   89.3  +3.0   92.3   -7.7   8.6   3.0   MID   5.7   5.24  SPEC
+7    CROWN THE BUCKEYE        6-1             94 78 84 90   86.8  +5.0   91.8  -10.2   8.5   6.0   SPE   2.2   4.76  SPEC
+10   GREAT WHITE             12-1             80 92 79 81   83.5  -2.0   81.5  -13.5   8.4   3.0   SPE   2.2   3.53  SPEC
+3    WORK                    50-1             76 79 82 70   66.3  +5.0   71.3  -30.7   8.4   3.0   SPE   5.0   3.44  SPEC
+12   BAYTOWN DREAMER         50-1             74 88 58 79   75.5  -0.5   75.0  -21.5   8.2   3.0   SPE   5.0   3.42  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #6 CRUDE VELOCITY  [2-1 ML]  |  Composite 7.28  |  FAIR
+    Trainer: BAFFERT BOB  |  Jockey: GEROUX FLORENT
+    BRIS Speeds (last 4): [103.0, 94.0, None, None]  |  WS4: 99.1  Trend: +4.5  FCI: 103.6
+    Speed Par for class: 97  →  WS4 vs Par: +2.1
+    Prime Power Rating: 139.0
+    Sire: BEAU LIAM  |  Dist Ped: 106.0  |  Dirt Ped: 107.0
+    Pace style: CLOSER  |  Pace fit score: 9.0  |  Value score: 5.0
+    Key Trainer Situations:
+      • 1st at route: 107 starts  28.0% win  ROI $-0.21
+      • Shipper: 98 starts  29.6% win  ROI $-0.54
+      • Graded Stakes: 376 starts  27.1% win  ROI $-0.34
+    Trip note: 04-04-26 Bumped 2x early; stalked; bid 4-3wide; cleared; drifted in; widen
+    Min acceptable odds: 2-1
+
+💰  VALUE ALT:  #5 STOP THE CAR  [20-1 ML]  |  Composite 5.74  |  SPEC
+    Trainer: WALSH BRENDAN P  |  Jockey: GAFFALIONE TYLER
+    Angle: 20-1 ML with FCI 89.6 vs par 97.0 | Pace: MID | Val: 7.8
+    Prime Power: 136.4
+    Key stat: Graded Stakes — 13.4% win rate
+    Trip: 03-21-26 Off pace 4-5p1st; 4p2nd; 5p upper; moved up willingly
+
+  FAIR  : #6CRUDE VELO
+  SPEC  : #2TROUBLE CA  #5STOP THE C  #4SECURED FR  #11ONE MORE F  #1ENGLISHMAN  #8CREOLE CHR  #9LOCKSTOCKN  #7CROWN THE   #10GREAT WHIT  #3WORK  #12BAYTOWN DR
+
+  PRIME POWER TOP 5:
+    #8 CREOLE CHROME          PP=140.3  Comp=5.35  Style=MID
+    #6 CRUDE VELOCITY         PP=139.0  Comp=7.28  Style=CLOSER
+    #1 ENGLISHMAN             PP=137.7  Comp=5.62  Style=SPEED
+    #5 STOP THE CAR           PP=136.4  Comp=5.74  Style=MID
+    #10 GREAT WHITE            PP=135.8  Comp=3.53  Style=SPEED
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #6 CRUDE VELOCITY
+    EXACTA:     #6 / #2
+    TRIFECTA:   #6 / #2 / #5
+    SUPERFECTA: #6 / #2 / #5 / #4  #11  #1
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 9  |  20260502  |  8.5f  T  |  Purse $1,000,000  |  NORMAL PACE (3 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+8    GREENWICH VILLAGE        6-1             90 87 79 91   88.7  +1.5   90.2   -8.3   8.6   8.5   SPE   6.4   5.73  SPEC
+7    ALPYLAND                 8-1             90 90 90 84   89.4  +1.0   90.4   -7.6   8.3   6.0   MID   5.7   5.48  SPEC
+4    STARK CONTRAST           4-1             96 91 93 87   89.9  +1.8   91.7   -7.1   8.3   5.5   CLO   4.3   5.44  SPEC
+2    LET'S BE FRANK          30-1             89 81 82 84   84.7  +3.3   88.0  -12.3   8.3   5.5   CLO   9.9   5.40  SPEC
+5    BLACKOUT TIME           10-1             85 84 93 92   87.0  -2.3   84.7  -10.0   8.4   8.0   MID   6.4   5.32  SPEC
+9    HONEY DUTCH             12-1             87 83 88 84   85.7  +1.0   86.7  -11.3   8.2   5.5   SPE   6.4   4.94  SPEC
+6    BLACK HORNET            20-1             79 87 75 74   81.9  +5.0   86.9  -15.1   8.4   5.5   CLO   7.1   4.84  SPEC
+1    STREET BEAST            15-1             87 46 85 88   86.1  +0.7   86.8  -10.9   8.1   3.0   SPE   6.4   4.79  SPEC
+3    BLINGING IT BACK        30-1             89 76 74 60   81.3  +5.0   86.3  -15.7   8.2   3.0   CLO   5.7   4.47  SPEC
+10   VASY                    10-1             87 83 81 77   83.6  +3.3   86.9  -13.4   5.0   8.5   MID   2.9   4.40  SPEC
+11   STEEL IMPERIUM          30-1             85 84 80 --   83.6  +1.5   85.1  -13.4   8.5   3.5   MID   5.0   4.38  SPEC
+12   REMEMBER MAMBA           4-1             88 80 77 --   82.9  +4.8   87.7  -14.1   8.2   6.0   CLO   1.0   4.26  SPEC
+13   THOUSANDSTICKS          15-1             80 91 86 88   85.3  -4.2   81.1  -11.7   8.3   6.0   MID   2.9   4.25  SPEC
+14   FINAL SCORE              8-1             82 84 62 69   78.2  +4.5   82.7  -18.8   8.5   8.5   MID   1.0   4.18  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #8 GREENWICH VILLAGE  [6-1 ML]  |  Composite 5.73  |  SPEC
+    Trainer: BAFFERT BOB  |  Jockey: HERNANDEZ JUAN J
+    BRIS Speeds (last 4): [90.0, 87.0, 79.0, 91.0]  |  WS4: 88.7  Trend: +1.5  FCI: 90.2
+    Speed Par for class: 97  →  WS4 vs Par: -8.3
+    Prime Power Rating: 147.8
+    Sire: QUALITY ROAD  |  Dist Ped: 114.0  |  Dirt Ped: 114.0
+    Pace style: SPEED  |  Pace fit score: 6.0  |  Value score: 6.4
+    Key Trainer Situations:
+      • 46-90daysAway: 232 starts  30.2% win  ROI $-0.37
+      • Shipper: 98 starts  29.6% win  ROI $-0.54
+      • Graded Stakes: 376 starts  27.1% win  ROI $-0.34
+    Last race: Pasadena S.  (20260222)
+    Trip note: 02-22-26 On heels/steadied 1st; gained 3deep; rallied; up at wire
+    Min acceptable odds: 5-1
+
+💰  VALUE ALT:  #7 ALPYLAND  [8-1 ML]  |  Composite 5.48  |  SPEC
+    Trainer: CASSE MARK  |  Jockey: CASTELLANO J J
+    Angle: 8-1 ML with FCI 90.4 vs par 97.0 | Pace: MID | Val: 5.7
+    Prime Power: 149.6
+    Key stat: 46-90daysAway — 17.0% win rate
+    Trip: 03-07-26 3p1st;track outside;3p2nd;kick clear
+
+  SPEC  : #8GREENWICH   #7ALPYLAND  #4STARK CONT  #2LET'S BE F  #5BLACKOUT T  #9HONEY DUTC  #6BLACK HORN  #1STREET BEA  #3BLINGING I  #10VASY  #11STEEL IMPE  #12REMEMBER M  #13THOUSANDST  #14FINAL SCOR
+
+  PRIME POWER TOP 5:
+    #4 STARK CONTRAST         PP=163.7  Comp=5.44  Style=CLOSER
+    #12 REMEMBER MAMBA         PP=151.5  Comp=4.26  Style=CLOSER
+    #7 ALPYLAND               PP=149.6  Comp=5.48  Style=MID
+    #8 GREENWICH VILLAGE      PP=147.8  Comp=5.73  Style=SPEED
+    #5 BLACKOUT TIME          PP=147.2  Comp=5.32  Style=MID
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #8 GREENWICH VILLAGE
+    EXACTA:     #8 / #7
+    TRIFECTA:   #8 / #7 / #4
+    SUPERFECTA: #8 / #7 / #4 / #2  #5  #9
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 10  |  20260502  |  7.0f  D  |  Purse $1,000,000  |  NORMAL PACE (3 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+2    CORNUCOPIAN              4-1            107 96 93 91   99.3  +5.0  104.3   -4.7   8.5   8.5   MID   5.7   6.83  FAIR
+7    IMAGINATION              6-1           -- 103 101 90   99.6  +2.8  102.4   -4.4   8.5   8.5   CLO   5.7   6.71  FAIR
+6    KNIGHTSBRIDGE            2-1         105 103 100 104  103.3  +1.3  104.6   -0.7   8.4   6.0   MID   4.3   6.65  FAIR
+4    HALL OF FAME            20-1          96 100 102 104   99.2  -3.0   96.2   -4.8   8.5   8.5   CLO   7.8   6.60  FAIR
+5    DISRUPTOR                8-1            103 94 83 94   95.4  +5.0  100.4   -8.6   8.6   8.5   CLO   5.7   6.42  SPEC
+11   POINT DUME              15-1         101 105 103 104  102.9  -1.5  101.4   -1.1   8.5   3.0   MID   5.7   6.25  SPEC
+1    DISCO TIME               6-1           102 87 91 103   95.4  +4.2   99.6   -8.6   8.4   8.0   SPE   2.9   6.01  SPEC
+9    CRAZY MASON             15-1             98 96 96 97   96.9  +0.8   97.7   -7.1   8.2   5.5   CLO   4.3   5.77  SPEC
+3    MACHO MUSIC             30-1            89 88 94 100   90.8  -2.5   88.3  -13.2   8.4   6.0   SPE   5.7   4.96  SPEC
+10   BANISHING               12-1             -- -- 87 97   91.4  -3.8   87.6  -12.6   8.4   6.0   SPE   2.2   4.47  SPEC
+8    T O ELVIS               30-1             -- -- -- --    N/A  +0.0    N/A      ?   8.3   3.0   UNK   5.0   4.43  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #2 CORNUCOPIAN  [4-1 ML]  |  Composite 6.83  |  FAIR
+    Trainer: BAFFERT BOB  |  Jockey: HERNANDEZ JUAN J
+    BRIS Speeds (last 4): [107.0, 96.0, 93.0, 91.0]  |  WS4: 99.3  Trend: +5.0  FCI: 104.3
+    Speed Par for class: 104  →  WS4 vs Par: -4.7
+    Prime Power Rating: 147.6
+    Best BRIS @ distance: 107
+    Sire: INTO MISCHIEF  |  Dist Ped: 113.0  |  Dirt Ped: 113.0
+    Pace style: MID  |  Pace fit score: 6.5  |  Value score: 5.7
+    Key Trainer Situations:
+      • Shipper: 98 starts  29.6% win  ROI $-0.54
+      • Graded Stakes: 376 starts  27.1% win  ROI $-0.34
+      • Wnr last race: 269 starts  37.2% win  ROI $0.12
+    Last race: San Carlos S.  (20260329)
+    Trip note: 03-29-26 Broke well; stalked 3deep; bid 3deep; proved best
+    Min acceptable odds: 2-1
+
+💰  VALUE ALT:  #7 IMAGINATION  [6-1 ML]  |  Composite 6.71  |  FAIR
+    Trainer: BAFFERT BOB  |  Jockey: PRAT FLAVIEN
+    Angle: 6-1 ML with FCI 102.4 vs par 104.0 | Pace: CLOSER | Val: 5.7
+    Prime Power: 151.1
+    Key stat: 46-90daysAway — 30.2% win rate
+
+  FAIR  : #2CORNUCOPIA  #7IMAGINATIO  #6KNIGHTSBRI  #4HALL OF FA
+  SPEC  : #5DISRUPTOR  #11POINT DUME  #1DISCO TIME  #9CRAZY MASO  #3MACHO MUSI  #10BANISHING  #8T O ELVIS
+
+  PRIME POWER TOP 5:
+    #6 KNIGHTSBRIDGE          PP=151.5  Comp=6.65  Style=MID
+    #7 IMAGINATION            PP=151.1  Comp=6.71  Style=CLOSER
+    #1 DISCO TIME             PP=148.6  Comp=6.01  Style=SPEED
+    #2 CORNUCOPIAN            PP=147.6  Comp=6.83  Style=MID
+    #11 POINT DUME             PP=145.1  Comp=6.25  Style=MID
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #2 CORNUCOPIAN
+    EXACTA:     #2 / #7
+    TRIFECTA:   #2 / #7 / #6
+    SUPERFECTA: #2 / #7 / #6 / #4  #5  #11
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 11  |  20260502  |  9.0f  T  |  Purse $1,500,000  |  SLOW PACE (0 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+1    CORRUPTION              15-1            105 95 93 94   98.5  +5.0  103.5   -0.5   8.4   5.5   MID   9.9   7.19  FAIR
+2    DASHMAN                 20-1            101 88 95 88   94.6  +5.0   99.6   -4.4   8.2   6.0   MID   9.2   6.73  FAIR
+4    PROGRAM TRADING          4-1           101 91 89 100   95.5  +3.8   99.3   -3.5   8.0   8.5   CLO   5.7   6.47  SPEC
+5    MERCANTE                12-1             93 98 94 92   95.7  +1.5   97.2   -3.3   8.5   3.5   MID   6.4   6.10  SPEC
+7    GOLD PHOENIX            10-1           104 91 101 94   98.5  +4.3  102.8   -0.5   5.0   3.5   CLO   6.4   6.01  SPEC
+6    RHETORICAL               2-1            94 93 101 96   95.3  -1.3   94.0   -3.7   8.5   6.0   MID   1.5   5.49  SPEC
+3    ASBURY PARK              8-1             93 86 89 83   89.1  +3.5   92.6   -9.9   8.4   8.5   CLO   3.6   5.35  SPEC
+8    ASTRONOMER              30-1             91 89 91 95   90.8  -0.3   90.5   -8.2   8.1   5.5   CLO   5.7   5.18  SPEC
+9    TEST SCORE               4-1             93 85 93 93   90.6  +1.3   91.9   -8.4   8.2   8.0   CLO   1.0   5.01  SPEC
+10   MAKE ME KING             6-1             -- -- -- --    N/A  +0.0    N/A      ?   8.1   5.5   UNK   1.0   4.19  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #1 CORRUPTION  [15-1 ML]  |  Composite 7.19  |  FAIR
+    Trainer: CASSE MARK  |  Jockey: VELAZQUEZ J R
+    BRIS Speeds (last 4): [105.0, 95.0, 93.0, 94.0]  |  WS4: 98.5  Trend: +5.0  FCI: 103.5
+    Speed Par for class: 99  →  WS4 vs Par: -0.5
+    Prime Power Rating: 158.0
+    Best BRIS @ distance: 95
+    Sire: MEDAGLIA D'ORO  |  Dist Ped: 111.0  |  Dirt Ped: 112.0
+    Pace style: MID  |  Pace fit score: 6.5  |  Value score: 9.9
+    Key Trainer Situations:
+      • Graded Stakes: 471 starts  12.5% win  ROI $-0.23
+      • 2nd off layoff: 581 starts  16.0% win  ROI $-0.43
+      • Turf starts: 2079 starts  16.0% win  ROI $-0.25
+    Last race: Pan American S. presented by Rood & Riddle  (20260328)
+    Trip note: 03-28-26 Set pressured pace inside; shook clear upper; caught
+    Min acceptable odds: 14-1
+
+💰  VALUE ALT:  #2 DASHMAN  [20-1 ML]  |  Composite 6.73  |  FAIR
+    Trainer: LYNCH BRIAN A  |  Jockey: ROSARIO JOEL
+    Angle: 20-1 ML with FCI 99.6 vs par 99.0 | Pace: MID | Val: 9.2
+    Prime Power: 150.3
+    Key stat: Graded Stakes — 12.8% win rate
+    Trip: 03-28-26 Pressed pace 2-3 wide; weakened 1/8
+
+  FAIR  : #1CORRUPTION  #2DASHMAN
+  SPEC  : #4PROGRAM TR  #5MERCANTE  #7GOLD PHOEN  #6RHETORICAL  #3ASBURY PAR  #8ASTRONOMER  #9TEST SCORE  #10MAKE ME KI
+
+  PRIME POWER TOP 5:
+    #6 RHETORICAL             PP=166.9  Comp=5.49  Style=MID
+    #4 PROGRAM TRADING        PP=164.6  Comp=6.47  Style=CLOSER
+    #9 TEST SCORE             PP=158.5  Comp=5.01  Style=CLOSER
+    #1 CORRUPTION             PP=158.0  Comp=7.19  Style=MID
+    #7 GOLD PHOENIX           PP=157.0  Comp=6.01  Style=CLOSER
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #1 CORRUPTION
+    EXACTA:     #1 / #2
+    TRIFECTA:   #1 / #2 / #4
+    SUPERFECTA: #1 / #2 / #4 / #5  #7  #6
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 12  |  20260502  |  10.0f  D  |  Purse $5,000,000  |  NORMAL PACE (2 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+15   EMERGING MARKET         15-1            102 99 -- --  100.7  +1.5  102.2   -1.3   8.6   8.5   CLO   8.5   7.05  FAIR
+14   POTENTE                 20-1            100 97 90 --   96.8  +3.2  100.0   -5.2   8.6   8.5   MID   9.2   6.83  FAIR
+6    COMMANDMENT              6-1           100 103 96 86   98.7  +2.5  101.2   -3.3   8.6   8.0   CLO   5.7   6.70  FAIR
+12   CHIEF WALLABEE           8-1           100 103 96 --  100.1  +0.2  100.3   -1.9   8.6   6.0   CLO   5.0   6.39  SPEC
+19   GOLDEN TEMPO            30-1            100 91 88 84   93.3  +5.0   98.3   -8.7   8.7   6.0   CLO   9.9   6.30  SPEC
+18   FURTHER ADO              6-1            105 92 92 98   97.8  +5.0  102.8   -4.2   8.7   8.0   MID   2.9   6.28  SPEC
+1    RENEGADE                 4-1             97 97 96 91   96.2  +1.2   97.4   -5.8   8.5   8.5   CLO   3.6   6.16  SPEC
+8    SO HAPPY                15-1           103 94 101 90   98.6  +4.0  102.6   -3.4   8.4   3.5   MID   4.3   6.14  SPEC
+20   FULLEFFORT              20-1             99 92 83 84   93.1  +5.0   98.1   -8.9   8.6   8.0   CLO   7.1   6.09  SPEC
+16   PAVLOVIAN               30-1            101 95 84 85   94.2  +5.0   99.2   -7.8   6.6   3.0   CLO   8.5   5.74  SPEC
+9    THE PUMA                10-1            100 93 90 94   95.3  +3.8   99.1   -6.7   6.7   6.0   CLO   2.9   5.71  SPEC
+3    INTREPIDO               50-1             92 93 92 99   93.0  -1.3   91.7   -9.0   6.5   3.0   CLO   7.8   5.23  SPEC
+2    ALBUS                   30-1             91 87 85 79   87.4  +3.7   91.1  -14.6   6.8   8.0   CLO   5.7   5.15  SPEC
+11   INCREDIBOLT             20-1            100 69 93 85   87.8  +5.0   92.8  -14.2   8.4   6.0   CLO   2.2   4.96  SPEC
+5    RIGHT TO PARTY          30-1             90 86 82 84   86.6  +3.0   89.6  -15.4   8.6   5.5   CLO   4.3   4.85  SPEC
+24   CORONA DE ORO           50-1             86 91 88 84   87.7  -0.8   86.9  -14.3   8.4   5.5   CLO   7.1   4.74  SPEC
+17   SIX SPEED               50-1             -- -- -- --    N/A  +0.0    N/A      ?   8.6   5.5   UNK   6.4   4.70  SPEC
+4    LITMUS TEST             50-1            83 87 90 102   87.5  -5.0   82.5  -14.5   8.6   5.5   MID   6.4   4.60  SPEC
+22   OCELLI                  50-1             90 92 86 85   89.3  +1.2   90.5  -12.7   6.5   3.0   CLO   5.0   4.44  SPEC
+13   SILENT TACTIC           20-1             93 93 92 80   91.5  +2.3   93.8  -10.5   6.6   3.0   CLO   1.0   4.40  SPEC
+10   WONDER DEAN             30-1             -- -- -- --    N/A  +0.0    N/A      ?   5.0   3.0   UNK   2.2   4.14  SPEC
+23   ROBUSTA                 50-1             85 97 84 88   88.7  -2.3   86.4  -13.3   6.4   3.5   SPE   5.0   4.13  SPEC
+7    DANON BOURBON           20-1             -- -- -- --    N/A  +0.0    N/A      ?   6.6   3.0   UNK   1.0   3.86  SPEC
+21   GREAT WHITE             50-1             80 92 79 81   83.5  -2.0   81.5  -18.5   6.6   3.0   SPE   2.9   3.47  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #15 EMERGING MARKET  [15-1 ML]  |  Composite 7.05  |  FAIR
+    Trainer: BROWN CHAD C  |  Jockey: PRAT FLAVIEN
+    BRIS Speeds (last 4): [102.0, 99.0, None, None]  |  WS4: 100.7  Trend: +1.5  FCI: 102.2
+    Speed Par for class: 102  →  WS4 vs Par: -1.3
+    Prime Power Rating: 142.5
+    Best BRIS @ distance: 102
+    Sire: CANDY RIDE  |  Dist Ped: 116.0  |  Dirt Ped: 111.0
+    Pace style: CLOSER  |  Pace fit score: 6.5  |  Value score: 8.5
+    Key Trainer Situations:
+      • Shipper: 814 starts  22.4% win  ROI $-0.34
+      • Graded Stakes: 569 starts  21.1% win  ROI $-0.04
+      • Wnr last race: 587 starts  23.5% win  ROI $-0.38
+    Last race: Twinspires.com Louisiana Derby  (20260321)
+    Trip note: 03-21-26 Never far back; loomed 4wd to 1/4; dueled stretch; prevailed
+    Min acceptable odds: 14-1
+
+💰  VALUE ALT:  #14 POTENTE  [20-1 ML]  |  Composite 6.83  |  FAIR
+    Trainer: BAFFERT BOB  |  Jockey: HERNANDEZ JUAN J
+    Angle: 20-1 ML with FCI 100.0 vs par 102.0 | Pace: MID | Val: 9.2
+    Prime Power: 145.0
+    Key stat: Shipper — 29.6% win rate
+    Trip: 04-04-26 Dueled inside; fought to midstretch; yielded
+
+  FAIR  : #15EMERGING M  #14POTENTE  #6COMMANDMEN
+  SPEC  : #12CHIEF WALL  #19GOLDEN TEM  #18FURTHER AD  #1RENEGADE  #8SO HAPPY  #20FULLEFFORT  #16PAVLOVIAN  #9THE PUMA  #3INTREPIDO  #2ALBUS  #11INCREDIBOL  #5RIGHT TO P  #24CORONA DE   #17SIX SPEED  #4LITMUS TES  #22OCELLI  #13SILENT TAC  #10WONDER DEA  #23ROBUSTA  #7DANON BOUR  #21GREAT WHIT
+
+  PRIME POWER TOP 5:
+    #18 FURTHER ADO            PP=150.7  Comp=6.28  Style=MID
+    #20 FULLEFFORT             PP=145.8  Comp=6.09  Style=CLOSER
+    #14 POTENTE                PP=145.0  Comp=6.83  Style=MID
+    #1 RENEGADE               PP=144.5  Comp=6.16  Style=CLOSER
+    #6 COMMANDMENT            PP=144.3  Comp=6.70  Style=CLOSER
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #15 EMERGING MARKET
+    EXACTA:     #15 / #14
+    TRIFECTA:   #15 / #14 / #6
+    SUPERFECTA: #15 / #14 / #6 / #12  #19  #18
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 13  |  20260502  |  6.5f  D  |  Purse $127,000  |  HOT PACE (7 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+8    GILDED BANDIT            3-1             99 90 -- --   95.1  +4.5   99.6   +5.1   8.5   6.0   CLO   5.7   7.06  FAIR
+11   NOBLE AFFAIR             4-1             93 89 80 --   91.3  +2.0   93.3   +1.3   8.4   8.5   MID   5.7   6.33  SPEC
+10   BUETANE                  2-1             74 92 88 98   84.6  -5.0   79.6   -5.4   8.4   8.0   SPE   3.6   4.63  SPEC
+7    SAV'N MONEY             20-1             81 65 75 68   76.7  +5.0   81.7  -13.3   8.6   5.5   MID   7.1   4.61  SPEC
+9    THUNDER BUCK            15-1             78 73 85 79   78.0  -0.5   77.5  -12.0   8.4   8.0   SPE   7.1   4.53  SPEC
+1    SMALL TOWN               8-1             81 79 82 --   80.6  +0.2   80.8   -9.4   8.5   5.5   SPE   5.0   4.46  SPEC
+5    HULKAMANIA               8-1             77 87 -- --   81.3  -5.0   76.3   -8.7   8.4   5.5   SPE   5.0   4.31  SPEC
+6    CRUISIN CHUCK           15-1             77 81 79 76   78.5  -0.8   77.7  -11.5   8.0   3.0   MID   4.3   3.98  SPEC
+4    RING CURL               15-1             87 52 61 73   69.9  +5.0   74.9  -20.1   8.6   3.5   SPE   4.3   3.69  SPEC
+2    HEARTILY                12-1             70 51 88 --   67.7  +0.2   67.9  -22.3   8.3   6.0   SPE   2.2   3.30  SPEC
+3    RED LAD                 30-1             54 66 59 72   64.4  -4.5   59.9  -25.6   8.4   3.0   SPE   5.0   2.96  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #8 GILDED BANDIT  [3-1 ML]  |  Composite 7.06  |  FAIR
+    Trainer: MOTT WILLIAM I  |  Jockey: ALVARADO JUNIOR
+    BRIS Speeds (last 4): [99.0, 90.0, None, None]  |  WS4: 95.1  Trend: +4.5  FCI: 99.6
+    Speed Par for class: 90  →  WS4 vs Par: +5.1
+    Prime Power Rating: 135.0
+    Best BRIS @ distance: 99
+    Sire: CHARLATAN  |  Dist Ped: 112.0  |  Dirt Ped: 110.0
+    Pace style: CLOSER  |  Pace fit score: 9.0  |  Value score: 5.7
+    Key Trainer Situations:
+      • Mdn win L/R: 124 starts  21.8% win  ROI $-0.10
+      • Allowance: 675 starts  16.4% win  ROI $-0.49
+      • Sprints: 920 starts  17.2% win  ROI $-0.45
+    Trip note: 04-04-26 Step slw st;adv btw;chck close up 3p7/16;stalk 2wbtw;aim upr;duel
+    Min acceptable odds: 2-1
+
+💰  VALUE ALT:  #7 SAV'N MONEY  [20-1 ML]  |  Composite 4.61  |  SPEC
+    Trainer: CATALANO WAYNE M  |  Jockey: HERNANDEZ B J JR
+    Angle: 20-1 ML with FCI 81.7 vs par 90.0 | Pace: MID | Val: 7.1
+    Prime Power: 116.3
+    Key stat: Shipper — 21.1% win rate
+    Trip: 03-19-26 Lacked speed to turn; angled widest 1/8; mild rally; up for 2nd
+
+  FAIR  : #8GILDED BAN
+  SPEC  : #11NOBLE AFFA  #10BUETANE  #7SAV'N MONE  #9THUNDER BU  #1SMALL TOWN  #5HULKAMANIA  #6CRUISIN CH  #4RING CURL  #2HEARTILY  #3RED LAD
+
+  PRIME POWER TOP 5:
+    #10 BUETANE                PP=137.1  Comp=4.63  Style=SPEED
+    #8 GILDED BANDIT          PP=135.0  Comp=7.06  Style=CLOSER
+    #11 NOBLE AFFAIR           PP=132.3  Comp=6.33  Style=MID
+    #1 SMALL TOWN             PP=128.6  Comp=4.46  Style=SPEED
+    #5 HULKAMANIA             PP=126.0  Comp=4.31  Style=SPEED
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #8 GILDED BANDIT
+    EXACTA:     #8 / #11
+    TRIFECTA:   #8 / #11 / #10
+    SUPERFECTA: #8 / #11 / #10 / #7  #9  #1
+========================================================================================================
+========================================================================================================
+  🏇  R5 v2.1 — CD  Race 14  |  20260502  |  7.0f  D  |  Purse $120,000  |  NORMAL PACE (4 speed)
+========================================================================================================
+
+#    Horse                     ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Val   Comp  Tier
+--------------------------------------------------------------------------------------------------------
+9    BIG JAKE                 8-1             -- -- -- --    N/A  +0.0    N/A      ?   8.4   8.5   UNK   7.1   5.20  SPEC
+3    INTERROGATOR             6-1             -- -- -- --    N/A  +0.0    N/A      ?   8.5   8.0   UNK   5.7   5.10  SPEC
+1    BOYLSTON                10-1             -- -- -- --    N/A  +0.0    N/A      ?   8.4   5.5   UNK   7.1   4.97  SPEC
+7    ACT OF PARLIAMENT        6-1             -- -- -- --    N/A  +0.0    N/A      ?   8.4   8.0   UNK   5.0   4.94  SPEC
+4    SLEEPING WARRIOR        15-1             -- -- -- --    N/A  +0.0    N/A      ?   8.3   3.0   UNK   7.8   4.79  SPEC
+5    DON'S WINNER             8-1             -- -- -- --    N/A  +0.0    N/A      ?   8.2   5.5   UNK   4.3   4.67  SPEC
+14   BRAVE PILOT              8-1             -- -- -- --    N/A  +0.0    N/A      ?   8.4   5.5   UNK   4.3   4.54  SPEC
+11   GREAT MOMENT            12-1             84 86 68 68   80.6  +3.7   84.3   -8.4   8.4   3.0   MID   5.0   4.52  SPEC
+8    FIND NO FAULT            4-1             79 -- -- --   79.0  +0.0   79.0  -10.0   8.4   5.5   SPE   1.0   4.09  SPEC
+10   CHIANTI TOWN            20-1             77 80 -- --   78.3  -1.5   76.8  -10.7   8.5   3.0   MID   5.0   4.07  SPEC
+6    PRIZE PICK              12-1             79 81 76 73   74.3  +1.5   75.8  -14.7   8.4   6.0   SPE   3.6   3.96  SPEC
+13   NOBLE ANTHEM            20-1             70 77 -- --   73.0  -3.5   69.5  -16.0   8.3   5.5   SPE   5.0   3.67  SPEC
+12   BIG BRACIOLE            30-1             68 -- -- --   68.0  +0.0   68.0  -21.0   8.4   5.5   CLO   5.0   3.65  SPEC
+2    BESTBALL                30-1             80 39 68 69   62.4  +5.0   67.4  -26.6   8.5   3.0   SPE   5.0   3.51  SPEC
+
+========================================================================================================
+🏆  TOP WIN PICK:  #9 BIG JAKE  [8-1 ML]  |  Composite 5.2  |  SPEC
+    Trainer: BAFFERT BOB  |  Jockey: PRAT FLAVIEN
+    BRIS Speeds (last 4): [None, None, None, None]  |  WS4: None  Trend: +0.0  FCI: None
+    Sire: ARMY MULE  |  Dist Ped: 111.0  |  Dirt Ped: 110.0
+    Pace style: UNKNOWN  |  Pace fit score: 5.0  |  Value score: 7.1
+    Key Trainer Situations:
+      • 1st time str: 182 starts  33.0% win  ROI $-0.17
+      • Debut MdnSpWt: 176 starts  33.5% win  ROI $-0.16
+      • Maiden Sp Wt: 415 starts  27.5% win  ROI $-0.43
+    Min acceptable odds: 7-1
+
+💰  VALUE ALT:  #3 INTERROGATOR  [6-1 ML]  |  Composite 5.1  |  SPEC
+    Trainer: ASMUSSEN STEVEN M  |  Jockey: ORTIZ IRAD JR
+    Angle: 6-1 ML with FCI None vs par 89.0 | Pace: UNKNOWN | Val: 5.7
+    Key stat: 1st time str — 11.6% win rate
+
+  SPEC  : #9BIG JAKE  #3INTERROGAT  #1BOYLSTON  #7ACT OF PAR  #4SLEEPING W  #5DON'S WINN  #14BRAVE PILO  #11GREAT MOME  #8FIND NO FA  #10CHIANTI TO  #6PRIZE PICK  #13NOBLE ANTH  #12BIG BRACIO  #2BESTBALL
+
+  PRIME POWER TOP 5:
+    #6 PRIZE PICK             PP=123.7  Comp=3.96  Style=SPEED
+    #11 GREAT MOMENT           PP=122.3  Comp=4.52  Style=MID
+    #8 FIND NO FAULT          PP=121.0  Comp=4.09  Style=SPEED
+    #10 CHIANTI TOWN           PP=116.0  Comp=4.07  Style=MID
+    #13 NOBLE ANTHEM           PP=116.0  Comp=3.67  Style=SPEED
+
+========================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #9 BIG JAKE
+    EXACTA:     #9 / #3
+    TRIFECTA:   #9 / #3 / #1
+    SUPERFECTA: #9 / #3 / #1 / #7  #4  #5
+========================================================================================================

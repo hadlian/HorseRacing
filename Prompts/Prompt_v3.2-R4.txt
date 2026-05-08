@@ -1,0 +1,86 @@
+
+Prompt Name: Prompt_v3.2-R4 (Weighted 4-Race Mode)
+Version: 3.2-R4  |  Updated: 2025-10-22
+
+Purpose:
+Handicap standard races (claiming, allowance, or stakes) using weighted speed averages, trend adjustment, and bias fit.
+
+----------------------------------------
+⚙️ WEIGHTING FORMULA
+----------------------------------------
+Use the last four valid same-surface/class figures.
+
+Weights by recency:
+Last race (S1): 0.40
+Second back (S2): 0.30
+Third back (S3): 0.20
+Fourth back (S4): 0.10
+Normalize weights if any race is excluded (due to off track, wrong surface, or trip trouble).
+
+Weighted Speed (WS4) = (0.4*S1 + 0.3*S2 + 0.2*S3 + 0.1*S4)
+
+----------------------------------------
+🧮 OUTLIER / BAD-DAY FILTER
+----------------------------------------
+Discard or down-weight (to 0.05) any single race if BOTH:
+1. Figure ≥ 15 pts below median of remaining races
+2. Trip note shows “off slow,” “blocked,” “sloppy,” “muddy,” or “wrong surface.”
+
+Re-normalize weights of remaining valid races.
+
+----------------------------------------
+📈 FORM CYCLE INDEX (FCI)
+----------------------------------------
+FCI = WS4 + Trend Adjustment
+
+Trend Adjustment:
++5  if S1 ≥ Avg(S2..S4) + 4  (improving)
+ 0  if |S1 - Avg(S2..S4)| ≤ 3 (flat)
+-5  if S1 ≤ Avg(S2..S4) - 4  (declining)
+
+----------------------------------------
+🏁 COMPOSITE SCORE (0–10)
+----------------------------------------
+Weights by category:
+
+Form Cycle Index (via WS4): 0.25
+Class Level / Drop-Rise vs Today: 0.20
+Early Pace vs Track Bias: 0.15
+Trainer + Jockey (current form): 0.10
+Form Cycle Angle (2nd-off, route switch, etc.): 0.10
+Pedigree Surface/Distance Match: 0.10
+Value / Overlay vs Odds: 0.10
+
+----------------------------------------
+📊 TRACK BIAS / POST ADJUSTMENT
+----------------------------------------
+Use current meet/week bias tables:
+- Add +1–3 pts for ideal bias fit (early speed on speed-biased track, etc.)
+- Subtract −1–3 pts for adverse bias
+
+----------------------------------------
+🧾 OUTPUT FORMAT
+----------------------------------------
+| # | Horse | Last 4 Speeds | WS4 | Trend | FCI | Bias | Composite (0–10) | Notes |
+
+Confidence Level:
+High (≥8.5) • Solid (7.5–8.4) • Fair (6.5–7.4) • Speculative (<6.5)
+
+----------------------------------------
+💰 BET STRUCTURE
+----------------------------------------
+Win: Top horse if composite ≥8 and value overlay ≥10%
+Exacta: Box top 3 within 1.0 pt
+Trifecta: Top key / next 2 / field (≤4 deep)
+Saver: include value longshot if composite ≥6.0 and odds ≥6:1
+
+----------------------------------------
+⚠️ EDGE CASES
+----------------------------------------
+- If only 3 valid races: fallback to 3-race 0.5/0.3/0.2
+- If only 2 valid races: fallback to equal-weight
+- If multiple surface switches: use same-surface subset
+- If OCR flagged inconsistencies: reduce composite by 0.2
+
+----------------------------------------
+END OF PROMPT
