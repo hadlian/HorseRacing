@@ -931,16 +931,22 @@ function buildExotics(race) {
 /* ── Bet / No Bet ──────────────────────────────────────────────────────── */
 
 /*
- * Scoring model (0–10 pts):
- *   Tier confidence   HIGH=3  SOLID=2  FAIR=1  SPEC=0
- *   Value score       ≥7.5=3  ≥6.0=2  ≥5.0=1  else=0
- *   Odds adequacy     ML > minOdds+1 = +2 | meets = +1 | below = -2
- *   Speed fig (FCI)   present = +1
- *   vPar position     ≥0 = +1 | ≤-20 = -1
+ * Primary gate:  composite score
+ *   comp >= 6.0  → PLAY eligible
+ *   comp 5.5–5.99 → NEAR (capped — cannot upgrade to PLAY regardless of factors)
+ *   comp < 5.5   → SKIP (hard stop — no further analysis)
  *
- * minOdds = max(mlOdds − 1, 1)  [same formula as R5 "Min acceptable odds"]
+ * Secondary scoring (determines PLAY vs NEAR within comp >= 6.0):
+ *   Tier           HIGH=+2  SOLID=+1  FAIR/SPEC=0
+ *   Value score    >=7.5=+2  >=6.0=+1  <5.0 flag only
+ *   Odds adequacy  ML > minOdds+1=+2 | meets=+1 | below=-2
+ *   FCI present    +1
+ *   vPar           >=0=+1 | <=-20=-1
+ *   Pace scenario  HOT+SPEED=-1 | HOT+CLOSER=+1 | NML+CLOSER=+1
  *
- * Verdict:  ≥7 STRONG BET | ≥5 BET | ≥3 MARGINAL | <3 NO BET
+ * minOdds = max(mlOdds − 1, 1)  [R5 "min acceptable odds" formula]
+ *
+ * Verdict (within PLAY-eligible bracket, pts >= 3 → PLAY, else NEAR)
  */
 function parseMl(ml) {
   if (!ml) return null;
@@ -953,79 +959,131 @@ function calcBetRec(race) {
   const top = race.top_pick;
   if (!top) return null;
 
-  const horse   = (race.horses || []).find(h => h.pgm === top.pgm);
-  const tier    = (top.tier || '').toUpperCase().replace('SPECULATIVE', 'SPEC');
-  const comp    = parseFloat(top.composite) || 0;
-  const mlOdds  = parseMl(top.ml);
-  const val     = parseFloat(horse?.val) || 0;
-  const fci     = horse?.fci;
-  const vpar    = parseFloat(horse?.vpar);
-  const hasFci  = fci && fci !== 'N/A';
-  const minOdds = mlOdds != null ? Math.max(mlOdds - 1, 1) : 1;
+  const horse    = (race.horses || []).find(h => h.pgm === top.pgm);
+  const tier     = (top.tier || '').toUpperCase().replace('SPECULATIVE', 'SPEC');
+  const comp     = parseFloat(top.composite) || 0;
+  const mlOdds   = parseMl(top.ml);
+  const val      = parseFloat(horse?.val) || 0;
+  const fci      = horse?.fci;
+  const vpar     = parseFloat(horse?.vpar);
+  const pce      = (horse?.pce || '').toUpperCase();
+  const hasFci   = fci && fci !== 'N/A';
+  const minOdds  = mlOdds != null ? Math.max(mlOdds - 1, 1) : 1;
+  const isHot    = /HOT/i.test(race.pace_type || '');
+  const isNml    = /NML|NORMAL/i.test(race.pace_type || '');
+  const isSpeed  = /^SPE/.test(pce);
+  const isCloser = /^CLO/.test(pce);
 
+  // Extract speed horse count from pace_type string e.g. "HOT PACE (6 speed)"
+  const speedCount = (() => {
+    const m = (race.pace_type || '').match(/(\d+)\s+speed/i);
+    return m ? parseInt(m[1], 10) : null;
+  })();
+
+  const mlStr  = top.ml.replace(' ML', '');
+  const minStr = `${minOdds % 1 === 0 ? minOdds : minOdds.toFixed(1)}-1`;
+
+  // ── Primary gate: composite ──────────────────────────────────────────────
+  if (comp < 5.5) {
+    const gap = (6.0 - comp).toFixed(2);
+    return {
+      verdict: 'SKIP', cls: 'bet-no', pts: 0,
+      pros: [],
+      cons: [
+        `comp ${comp} is ${gap} below the 6.0 play threshold`,
+        ...(val >= 7.0 ? [`high value score ${val} signals overlay at ML — but comp too low to play`] : []),
+      ],
+      valNote: null,
+    };
+  }
+
+  // ── Secondary scoring ────────────────────────────────────────────────────
   const pros = [], cons = [];
   let pts = 0;
 
-  // 1 — Tier confidence
-  if      (tier === 'HIGH')  { pts += 3; pros.push(`HIGH tier — composite ${comp}`); }
-  else if (tier === 'SOLID') { pts += 2; pros.push(`SOLID tier — composite ${comp}`); }
-  else if (tier === 'FAIR')  { pts += 1; cons.push(`FAIR tier — limited edge`); }
-  else                        {           cons.push(`SPEC tier — low confidence`); }
+  // 1 — Tier
+  if      (tier === 'HIGH')  { pts += 2; pros.push(`HIGH confidence tier`); }
+  else if (tier === 'SOLID') { pts += 1; pros.push(`SOLID confidence tier`); }
+  else                        {           cons.push(`${tier} tier — limited model confidence`); }
 
   // 2 — Value score
-  if      (val >= 7.5) { pts += 3; pros.push(`strong value score ${val} — significant overlay`); }
-  else if (val >= 6.0) { pts += 2; pros.push(`value score ${val} — model likes the price`); }
-  else if (val >= 5.0) { pts += 1; cons.push(`thin value score ${val}`); }
-  else                  {           cons.push(`poor value score ${val} — possibly underlaid`); }
+  if      (val >= 7.5) { pts += 2; pros.push(`strong value score ${val} — model sees significant overlay`); }
+  else if (val >= 6.0) { pts += 1; pros.push(`value score ${val} — model likes the price`); }
+  else if (val < 5.0)  {           cons.push(`poor value score ${val} — possibly underlaid at ML`); }
+  else                 {           cons.push(`thin value score ${val}`); }
 
-  // 3 — Odds adequacy vs R5 minimum
+  // 3 — Odds adequacy
   if (mlOdds != null) {
-    const mlStr = top.ml.replace(' ML','');
-    const minStr = `${minOdds % 1 === 0 ? minOdds : minOdds.toFixed(1)}-1`;
     if      (mlOdds >= minOdds + 1) { pts += 2; pros.push(`ML ${mlStr} exceeds min acceptable odds (${minStr})`); }
     else if (mlOdds >= minOdds)     { pts += 1; pros.push(`ML ${mlStr} meets min acceptable odds (${minStr})`); }
-    else                             { pts -= 2; cons.push(`ML ${mlStr} below min acceptable odds (${minStr}) — too short`); }
+    else                             { pts -= 2; cons.push(`ML ${mlStr} below min acceptable odds (${minStr}) — too short at this price`); }
   }
 
-  // 4 — Speed figure reliability
-  if (hasFci) { pts += 1; pros.push(`speed figure on record (FCI ${fci})`); }
-  else         {           cons.push(`no BRIS speed figure — debut or surface switch`); }
+  // 4 — FCI reliability
+  if (hasFci)  { pts += 1; pros.push(`speed figure on record (FCI ${fci})`); }
+  else          {           cons.push(`no BRIS speed figure — debut or surface switch`); }
 
   // 5 — vPar position
   if (!isNaN(vpar)) {
     const sign = vpar >= 0 ? '+' : '';
     if      (vpar >= 0)   { pts += 1; pros.push(`at or above class par (${sign}${vpar})`); }
-    else if (vpar <= -20) { pts -= 1; cons.push(`well below class par (${vpar}) — big class ask`); }
+    else if (vpar <= -20) { pts -= 1; cons.push(`well below class par (${vpar}) — significant class ask`); }
   }
 
-  let verdict, cls;
-  if      (pts >= 7) { verdict = 'STRONG BET'; cls = 'bet-strong'; }
-  else if (pts >= 5) { verdict = 'BET';         cls = 'bet-yes'; }
-  else if (pts >= 3) { verdict = 'MARGINAL';    cls = 'bet-marginal'; }
-  else               { verdict = 'NO BET';      cls = 'bet-no'; }
+  // 6 — Pace scenario
+  if (isHot) {
+    if (isSpeed) {
+      pts -= 1;
+      const detail = speedCount ? `${speedCount} speed horses in field` : 'contested pace';
+      cons.push(`speed style in HOT pace — ${detail}, early pressure likely`);
+    } else if (isCloser) {
+      pts += 1;
+      pros.push(`closer in HOT pace — pace scenario favours off-the-pace runners`);
+    } else {
+      cons.push(`HOT pace — contested early fractions, watch pace scenario`);
+    }
+  } else if (isNml && isCloser) {
+    pts += 1;
+    pros.push(`closer in NORMAL pace — clean stalking setup`);
+  }
 
-  // Value alt note — shown when top pick is marginal/no-bet and alt offers better odds
+  // ── Verdict ──────────────────────────────────────────────────────────────
+  // Composite score is the verdict — secondary factors are context, not gatekeepers.
+  //   comp >= 6.0  → PLAY  (threshold met)
+  //   comp 5.5–5.99 → NEAR (approaching threshold — watch for value angle)
+  let verdict, cls;
+  if   (comp >= 6.0) { verdict = 'PLAY'; cls = 'bet-yes'; }
+  else               { verdict = 'NEAR'; cls = 'bet-marginal'; }
+
+  // ── Value alt note ───────────────────────────────────────────────────────
   let valNote = null;
   const va = race.value_alt;
-  if (va && pts < 5) {
-    const vaOdds = parseMl(va.ml);
-    const vaVal  = parseFloat((race.horses || []).find(h => h.pgm === va.pgm)?.val) || 0;
-    if (vaOdds != null && vaOdds > (mlOdds || 0) && vaVal >= 6.0) {
-      valNote = `💰 Consider VALUE ALT #${va.pgm} ${va.name} [${va.ml.replace(' ML','')}] — higher odds with value score ${vaVal}`;
+  if (va) {
+    const vaHorse  = (race.horses || []).find(h => h.pgm === va.pgm);
+    const vaOdds   = parseMl(va.ml);
+    const vaVal    = parseFloat(vaHorse?.val) || 0;
+    const vaPce    = (vaHorse?.pce || '').toUpperCase();
+    const vaCloser = /^CLO/.test(vaPce);
+    const vaStr    = va.ml.replace(' ML', '');
+
+    if (isHot && vaCloser && vaOdds != null && vaOdds > (mlOdds || 0)) {
+      // Classic HOT-pace value angle: closer at longer odds
+      valNote = `💰 VALUE PLAY: #${va.pgm} ${va.name} [${vaStr}] — closer style in HOT pace at better odds (val ${vaVal}). Pace scenario may favour this over the ${mlStr} favourite.`;
+    } else if (vaOdds != null && vaOdds > (mlOdds || 0) && vaVal >= 6.0) {
+      valNote = `💰 Consider VALUE ALT #${va.pgm} ${va.name} [${vaStr}] — higher ML with value score ${vaVal}.`;
     }
   }
 
-  return { verdict, cls, pts, pros, cons, valNote };
+  return { verdict, cls, pts, pros, cons, valNote, comp };
 }
 
 function buildBetRec(race) {
   const rec = calcBetRec(race);
   if (!rec) return '';
 
-  const icon = rec.verdict === 'STRONG BET' ? '🟢'
-             : rec.verdict === 'BET'         ? '✅'
-             : rec.verdict === 'MARGINAL'    ? '🟡'
-             :                                 '🔴';
+  const icon = rec.verdict === 'PLAY' ? '✅'
+             : rec.verdict === 'NEAR' ? '⚠️'
+             :                          '⛔';
 
   const prosHtml = rec.pros.length
     ? `<div>
@@ -1054,7 +1112,7 @@ function buildBetRec(race) {
       <div class="bet-header">
         <span class="bet-label">Bet Recommendation</span>
         <span class="bet-verdict ${rec.cls}">${icon} ${rec.verdict}</span>
-        <span class="bet-score">Score ${rec.pts}/10</span>
+        <span class="bet-score">Comp ${rec.comp !== undefined ? rec.comp : '?'} · Score ${rec.pts}/10</span>
       </div>
       <div class="bet-body">
         ${prosHtml}
