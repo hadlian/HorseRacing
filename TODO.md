@@ -3,7 +3,7 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-08
+> **Last updated:** 2026-05-08 (evening)
 > **Current version:** 3.2-R4C
 > **Next planned session:** Saturday 2026-05-10 (post-race results review)
 
@@ -61,9 +61,27 @@ These must be resolved in order. Do not change TJ weights (Issue 3) until Issues
 
 ### Issue 8 — Data Scarcity Confidence Cap `PROPOSED`
 - **File:** `Claude/r5_parser_v2.py`
-- **Problem:** In fields where >30% of horses have fewer than 2 lifetime starts, the model has very low information quality but produces normal-looking scores.
-- **Proposed fix:** Per-horse confidence adjustment that reduces comp for individual low-data horses (preferred over a field-wide cap).
+- **Problem:** In fields where >30% of horses have fewer than 2 lifetime starts, the model produces normal-looking scores despite very low information quality. A per-horse approach is preferred — reduce comp for individual low-data horses rather than capping the whole field.
+- **Proposed fix:**
+  - Per-horse: if horse has < 2 lifetime starts, apply a confidence reduction to its individual comp score
+  - Field flag: if > 30% of field is low-data, add a `LOW INFO FIELD` warning to the race header
+  - Do NOT apply a hard 5.0 field-wide cap — too blunt, penalises well-qualified horses in the same race
+- **Note:** Resolve Issue 1 (maiden class bug) first — that fix may already address much of this problem.
+- **Status:** Proposed (Gemini advisory, 2026-05-08). Refined 2026-05-08. Not started.
+
+### Issue 9 — Tight Cluster UI Flag `PROPOSED`
+- **Files:** `Claude/r5_parser_v2.py`, `webapp/templates/index.html`
+- **Problem:** Issue 6 adds a `TIGHT CLUSTER` penalty to the engine score, but the UI currently has no way to display *why* a race was flagged. A user seeing a NEAR or SKIP verdict with no explanation will not know the cluster was the reason.
+- **Proposed fix:** Engine passes a `tight_cluster: true` flag in the race output. UI displays "Tight Speed Cluster" as an explicit bullet in the Bet Recommendation "Against" reasons box.
+- **Note:** This is a two-part task — engine side (Issue 6) must be built first, then UI side here.
 - **Status:** Proposed (Gemini advisory, 2026-05-08). Not started.
+
+### Issue 10 — Post-Saturday Surface Weighting Validation `VALIDATION TASK`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** Issue 7 proposes surface-specific WS4 weights (heavier recent-form weighting for dirt; Trend/FCI-heavy for turf) but specific values are unvalidated hypotheses, not confirmed fixes.
+- **Validation task:** After Saturday 2026-05-10 results are logged, compare actual winners against current uniform WS4 rankings on dirt vs turf races separately. Only implement split weighting if the data supports it.
+- **Do not implement Issue 7 before this validation is complete.**
+- **Status:** Pending Saturday results. Not started.
 
 ---
 
