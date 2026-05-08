@@ -1,6 +1,27 @@
 # R5 Horse Racing Handicapping System
 
+[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
+[![Version](https://img.shields.io/badge/version-3.2--R4C-gold)]()
+[![Status](https://img.shields.io/badge/status-Active%20Development-brightgreen)]()
+[![License](https://img.shields.io/badge/license-Proprietary-blue)](#-license)
+
+**Version:** 3.2-R4C
+
+**Status:** Active Development
+
 A data-driven handicapping engine built on BRIS DRF files. Combines speed figures, pace analysis, trainer/jockey stats, pedigree, and live scouting into a single composite score that ranks every horse in a field.
+
+> ⚠️ **For personal use only.** This system is a research and analysis tool. All wagering decisions are the sole responsibility of the user.
+
+---
+
+## Project Origin & Authorship
+
+The **R5 Handicapping System™** and the **R5 Composite Score™** were created by **Harry Adalian** ([@hadlian](https://github.com/hadlian)).
+
+All original algorithms, scoring formulas, pace analysis methods, and handicapping logic are the intellectual property of Harry Adalian. This project is actively developed and shared for collaboration and evaluation purposes.
+
+© 2026–Present Harry Adalian. All rights reserved.
 
 ---
 
@@ -238,3 +259,78 @@ Applied to composite score before final ranking:
 | Negative trainer signal | −0.30 |
 | Health concern | −0.30 |
 | Scratch | Removed from field |
+
+---
+
+## 🗺️ Roadmap
+
+### Current Version: v3.2-R4C (May 2026)
+- ✅ **DRF Parser** — Fixed-format BRIS DRF parsing (1496 fields per record), full 7-component scoring pipeline
+- ✅ **WS4™ Speed Formula** — Weighted 4-race speed figure with continuous trend, surface-matched
+- ✅ **Pace Scenario Engine** — HOT / NML / PRESS classification; speed horse vs closer fit scoring
+- ✅ **Web Scout** — Live pre-race intel from Horse Racing Nation, Blood-Horse, TDN via Claude API
+- ✅ **Results Tracker** — SQLite-backed logger with manual entry, CSV bulk load, and auto-fetch from Equibase/HRN
+- ✅ **Performance Analyzer** — Excel workbook with 5 sheets: Summary, Race by Race, Component Correlations, Value ROI, Scout Impact
+- ✅ **Web Frontend** — Flask upload UI with structured race cards, colour-coded horse table, pick boxes, and exotic suggestions
+- ✅ **Bet Recommendation** — PLAY / NEAR / SKIP verdict driven by R5 Composite Score™ with For/Against rationale bullets
+- ✅ **Overview Toggle** — Card-level summary table (📋 Overview) alongside full tabbed race detail (🏇 Race Detail)
+- ✅ **PDF Download** — ReportLab-generated PDF reports via `--pdf` flag or web UI checkbox
+
+### Upcoming: v3.3 — Model Fixes
+- 🔲 **Maiden Class Bug** — Maiden special weight races scored as allowance, inflating class component for first-time starters
+- 🔲 **Value Score Inversion** — Horses near morning line rank receiving artificially suppressed value scores
+- 🔲 **T/J Weight Recalibration** — 10% trainer/jockey weight over-penalises horses with limited connections data (< 20 starts)
+- 🔲 **Composite Ceiling** — Scores rarely exceed 8.5; HIGH confidence tier (≥ 8.5) is nearly unreachable under current scaling
+- 🔲 **Scratch Gate** — Scratches logged to tracker before scout runs can cause key errors in downstream pipeline
+
+### Upcoming: v4.0 — Intelligence Layer
+- 🔲 Live odds feed integration (morning line vs board divergence alerts)
+- 🔲 Multi-track batch analysis from a single ZIP
+- 🔲 Mobile-responsive web UI
+- 🔲 Historical ROI dashboard with chart visualisations
+
+---
+
+## 🙏 Acknowledgments
+
+### Contributors
+- **Dennis Jersey** — Technical advisor — handicapping domain expertise, race analysis methodology, and real-world validation
+- **[Claude AI](https://claude.ai)** (Anthropic) — AI development collaborator — code implementation, architecture, documentation, and scoring system design
+- **[ChatGPT](https://chat.openai.com)** (OpenAI) — AI research and development collaborator
+- **[Gemini](https://gemini.google.com)** (Google) — AI research and development collaborator
+
+### Built With
+- **Flask** — Web framework
+- **requests / BeautifulSoup4** — Scout web scraping
+- **Anthropic Claude API** — Scout intel extraction
+- **openpyxl** — Excel workbook generation
+- **ReportLab** — PDF report generation
+
+---
+
+## 📝 License
+
+© 2026–Present Harry Adalian. All rights reserved.
+
+This project is proprietary software created by Harry Adalian.
+
+The source code is shared for collaboration and evaluation purposes. The R5 Composite Score™ algorithms, WS4™ speed formula, pace analysis methods, and handicapping logic are original intellectual property and may not be redistributed or republished without explicit written permission from the author.
+
+Third-party dependencies used in this project (Flask, requests, BeautifulSoup4, openpyxl, ReportLab, etc.) retain their respective open-source licenses.
+
+---
+
+## 📞 Contact & Support
+
+- **Author:** Harry Adalian ([@hadlian](https://github.com/hadlian))
+- **Repository:** [github.com/hadlian/HorseRacing](https://github.com/hadlian/HorseRacing)
+- **Issues & Support:** [GitHub Issues](https://github.com/hadlian/HorseRacing/issues)
+
+## Trademark Notice
+
+R5 Handicapping System™, R5 Composite Score™, and WS4™ are trademarks of Harry Adalian.
+The R5 name, WS4 formula, and associated branding are not licensed under the software license of this project and may not be used without explicit written permission from the author.
+
+---
+
+**Created and maintained by Harry Adalian** | **R5 Handicapping System™** | **R5 Composite Score™** | 🏇
