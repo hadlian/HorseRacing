@@ -569,6 +569,54 @@
       color: #d4b560;
     }
 
+    /* ── View toggle (Overview / Race Detail) ──────────────────────────── */
+    .view-toggle {
+      display: inline-flex;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .btn-view {
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 18px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-view:hover:not(.active) { color: var(--text); }
+    .btn-view.active {
+      background: var(--gold);
+      color: var(--dark);
+      font-weight: 700;
+    }
+
+    /* ── Summary table ─────────────────────────────────────────────────── */
+    .summary-tbl td { text-align: left; }
+    .summary-tbl td:nth-child(6),
+    .summary-tbl td:nth-child(7) { text-align: right; }
+    .summary-tbl thead th { text-align: left; }
+    .summary-tbl thead th:nth-child(6),
+    .summary-tbl thead th:nth-child(7) { text-align: right; }
+    .summary-row { cursor: pointer; }
+    .summary-row:hover td { background: rgba(201,168,76,0.06) !important; }
+    .summary-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: right;
+    }
+    .val-alt-line {
+      font-size: 0.73rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .val-alt-line .va-odds { color: var(--gold); font-weight: 600; }
+
     /* ── Utility ───────────────────────────────────────────────────────── */
     .hidden { display: none !important; }
   </style>
@@ -629,14 +677,26 @@
 
     <div class="results-top">
       <h2 class="results-title" id="resultsTitle">Results</h2>
-      <div class="dl-group">
-        <button class="btn-outline" id="btnTxt" disabled>⬇ TXT</button>
-        <button class="btn-outline" id="btnPdf" disabled>⬇ PDF</button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="view-toggle">
+          <button class="btn-view" id="btnViewSummary" onclick="switchView('summary')">📋 Overview</button>
+          <button class="btn-view active" id="btnViewDetail" onclick="switchView('detail')">🏇 Race Detail</button>
+        </div>
+        <div class="dl-group">
+          <button class="btn-outline" id="btnTxt" disabled>⬇ TXT</button>
+          <button class="btn-outline" id="btnPdf" disabled>⬇ PDF</button>
+        </div>
       </div>
     </div>
 
-    <div class="race-tabs" id="raceTabs"></div>
-    <div id="raceContent"></div>
+    <!-- Summary view -->
+    <div id="summaryView" class="hidden"></div>
+
+    <!-- Detail view -->
+    <div id="detailView">
+      <div class="race-tabs" id="raceTabs"></div>
+      <div id="raceContent"></div>
+    </div>
 
     <details class="raw-details">
       <summary>Raw text output</summary>
@@ -654,6 +714,7 @@ let jobId       = null;
 let races       = [];
 let pdfOk       = false;
 let activeTab   = 0;
+let viewMode    = 'detail';   // 'summary' | 'detail'
 
 /* ── DOM refs ──────────────────────────────────────────────────────────── */
 const dropZone     = document.getElementById('dropZone');
@@ -666,11 +727,15 @@ const errorBanner  = document.getElementById('errorBanner');
 const warnBanner   = document.getElementById('warnBanner');
 const resultsWrap  = document.getElementById('resultsWrap');
 const resultsTitle = document.getElementById('resultsTitle');
-const raceTabs     = document.getElementById('raceTabs');
-const raceContent  = document.getElementById('raceContent');
-const rawPre       = document.getElementById('rawPre');
-const btnTxt       = document.getElementById('btnTxt');
-const btnPdf       = document.getElementById('btnPdf');
+const raceTabs       = document.getElementById('raceTabs');
+const raceContent    = document.getElementById('raceContent');
+const rawPre         = document.getElementById('rawPre');
+const btnTxt         = document.getElementById('btnTxt');
+const btnPdf         = document.getElementById('btnPdf');
+const summaryView    = document.getElementById('summaryView');
+const detailView     = document.getElementById('detailView');
+const btnViewSummary = document.getElementById('btnViewSummary');
+const btnViewDetail  = document.getElementById('btnViewDetail');
 
 /* ── Upload zone ───────────────────────────────────────────────────────── */
 dropZone.addEventListener('click', () => fileInput.click());
@@ -751,6 +816,90 @@ async function runAnalysis() {
   }
 }
 
+/* ── View toggle ───────────────────────────────────────────────────────── */
+function switchView(mode) {
+  viewMode = mode;
+  btnViewSummary.classList.toggle('active', mode === 'summary');
+  btnViewDetail.classList.toggle('active',  mode === 'detail');
+  if (mode === 'summary') {
+    show(summaryView); hide(detailView);
+  } else {
+    hide(summaryView); show(detailView);
+  }
+}
+
+function jumpToRace(idx) {
+  switchView('detail');
+  switchTab(idx);
+  detailView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ── Summary table ─────────────────────────────────────────────────────── */
+function buildSummary() {
+  const rows = races.map((r, i) => {
+    const top  = r.top_pick || {};
+    const va   = r.value_alt || {};
+    const rec  = calcBetRec(r) || {};
+    const icon = rec.verdict === 'PLAY' ? '✅' : rec.verdict === 'NEAR' ? '⚠️' : '⛔';
+    const vcls = rec.cls || 'bet-no';
+
+    const isHot  = /HOT/i.test(r.pace_type  || '');
+    const paceShort = isHot ? 'HOT' : (/SLOW/i.test(r.pace_type || '') ? 'SLOW' : 'NML');
+    const paceCls   = isHot ? 'pace-hot' : 'pace-normal';
+    const surf  = /turf/i.test(r.surface || '') ? 'T' : 'D';
+    const dist  = `${r.distance || '?'} ${surf}`;
+    const mlStr = (top.ml || '').replace(' ML', '');
+    const ccls  = compClass(top.composite);
+
+    /* speed horse count pill */
+    const scMatch = (r.pace_type || '').match(/(\d+)\s+speed/i);
+    const scPill  = scMatch
+      ? ` <span style="font-size:0.68rem;color:var(--muted)">(${scMatch[1]}spd)</span>`
+      : '';
+
+    /* value alt line */
+    const vaStr = va.pgm
+      ? `<div class="val-alt-line">💰 Alt: #${esc(va.pgm)} ${esc(va.name)}
+           <span class="va-odds">${(va.ml||'').replace(' ML','')}</span></div>`
+      : '';
+
+    return `
+      <tr class="summary-row" onclick="jumpToRace(${i})">
+        <td><span class="pgm-num">${esc(String(r.race_num ?? i+1))}</span></td>
+        <td>${esc(dist)}</td>
+        <td>$${esc(r.purse || '?')}</td>
+        <td><span class="pace-pill ${paceCls}">${paceShort}</span>${scPill}</td>
+        <td>
+          <div>#${esc(top.pgm || '?')} <strong>${esc(top.name || '?')}</strong></div>
+          ${vaStr}
+        </td>
+        <td><span class="comp-val ${ccls}">${esc(top.composite || '?')}</span></td>
+        <td>${esc(mlStr || '?')}</td>
+        <td><span class="bet-verdict ${vcls}" style="padding:2px 10px;font-size:0.72rem">${icon} ${esc(rec.verdict || '?')}</span></td>
+      </tr>`;
+  }).join('');
+
+  summaryView.innerHTML = `
+    <div class="tbl-wrap">
+      <table class="horse-tbl summary-tbl">
+        <thead>
+          <tr>
+            <th>Race</th>
+            <th>Dist</th>
+            <th>Purse</th>
+            <th>Pace</th>
+            <th>Top Pick / Value Alt</th>
+            <th>Comp</th>
+            <th>ML</th>
+            <th>Verdict</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="summary-hint">Click any row to open race detail ↗</p>`;
+}
+
 /* ── Render results ────────────────────────────────────────────────────── */
 function renderResults(data) {
   rawPre.textContent = data.text || '';
@@ -770,6 +919,11 @@ function renderResults(data) {
   btnTxt.disabled = !jobId;
   btnPdf.disabled = !pdfOk;
 
+  /* Build summary (uses calcBetRec — must run after races is populated) */
+  buildSummary();
+
+  /* Default to detail view */
+  switchView('detail');
   activeTab = 0;
   renderRace(0);
   show(resultsWrap);
