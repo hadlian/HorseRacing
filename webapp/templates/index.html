@@ -493,6 +493,82 @@
       font-size: 0.9rem;
     }
 
+    /* ── Bet recommendation ────────────────────────────────────────────── */
+    .bet-box {
+      border-top: 1px solid var(--border);
+      padding: 16px 20px;
+    }
+    .bet-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .bet-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .bet-verdict {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .bet-strong { background: rgba(39,174,96,0.18);  color: #5ddb8e; border: 1px solid rgba(39,174,96,0.5); }
+    .bet-yes    { background: rgba(39,174,96,0.10);  color: #5ddb8e; border: 1px solid rgba(39,174,96,0.35); }
+    .bet-marginal { background: rgba(230,126,34,0.15); color: #ffb86e; border: 1px solid rgba(230,126,34,0.45); }
+    .bet-no     { background: rgba(231,76,60,0.15);  color: #ff8080; border: 1px solid rgba(231,76,60,0.45); }
+    .bet-score {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    .bet-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 24px;
+    }
+    @media (max-width: 580px) { .bet-body { grid-template-columns: 1fr; } }
+    .bet-col-title {
+      font-size: 0.67rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 5px;
+    }
+    .bet-col-title.pros { color: var(--green); }
+    .bet-col-title.cons { color: var(--red); }
+    .bet-list { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+    .bet-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      font-size: 0.78rem;
+      line-height: 1.4;
+    }
+    .bet-list li .dot { flex-shrink: 0; font-size: 0.6rem; }
+    .bet-pro { color: #5ddb8e; }
+    .bet-pro .dot { color: var(--green); }
+    .bet-con { color: #ff8080; }
+    .bet-con .dot { color: var(--red); }
+    .bet-val-note {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(201,168,76,0.08);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 6px;
+      font-size: 0.77rem;
+      color: #d4b560;
+    }
+
     /* ── Utility ───────────────────────────────────────────────────────── */
     .hidden { display: none !important; }
   </style>
@@ -732,6 +808,7 @@ function renderRace(idx) {
 
       ${buildHorseTable(race)}
       ${buildPicks(race)}
+      ${buildBetRec(race)}
       ${buildExotics(race)}
     </div>
   `;
@@ -848,6 +925,142 @@ function buildExotics(race) {
     <div class="exotics-box">
       <div class="exotics-hdr">🎟 Exotics Structure</div>
       <div class="exotics-grid">${items.join('')}</div>
+    </div>`;
+}
+
+/* ── Bet / No Bet ──────────────────────────────────────────────────────── */
+
+/*
+ * Scoring model (0–10 pts):
+ *   Tier confidence   HIGH=3  SOLID=2  FAIR=1  SPEC=0
+ *   Value score       ≥7.5=3  ≥6.0=2  ≥5.0=1  else=0
+ *   Odds adequacy     ML > minOdds+1 = +2 | meets = +1 | below = -2
+ *   Speed fig (FCI)   present = +1
+ *   vPar position     ≥0 = +1 | ≤-20 = -1
+ *
+ * minOdds = max(mlOdds − 1, 1)  [same formula as R5 "Min acceptable odds"]
+ *
+ * Verdict:  ≥7 STRONG BET | ≥5 BET | ≥3 MARGINAL | <3 NO BET
+ */
+function parseMl(ml) {
+  if (!ml) return null;
+  const m = String(ml).match(/(\d+)-(\d+)/);
+  if (!m) return null;
+  return parseInt(m[1], 10) / parseInt(m[2], 10);  // "2-1"→2.0, "5-2"→2.5
+}
+
+function calcBetRec(race) {
+  const top = race.top_pick;
+  if (!top) return null;
+
+  const horse   = (race.horses || []).find(h => h.pgm === top.pgm);
+  const tier    = (top.tier || '').toUpperCase().replace('SPECULATIVE', 'SPEC');
+  const comp    = parseFloat(top.composite) || 0;
+  const mlOdds  = parseMl(top.ml);
+  const val     = parseFloat(horse?.val) || 0;
+  const fci     = horse?.fci;
+  const vpar    = parseFloat(horse?.vpar);
+  const hasFci  = fci && fci !== 'N/A';
+  const minOdds = mlOdds != null ? Math.max(mlOdds - 1, 1) : 1;
+
+  const pros = [], cons = [];
+  let pts = 0;
+
+  // 1 — Tier confidence
+  if      (tier === 'HIGH')  { pts += 3; pros.push(`HIGH tier — composite ${comp}`); }
+  else if (tier === 'SOLID') { pts += 2; pros.push(`SOLID tier — composite ${comp}`); }
+  else if (tier === 'FAIR')  { pts += 1; cons.push(`FAIR tier — limited edge`); }
+  else                        {           cons.push(`SPEC tier — low confidence`); }
+
+  // 2 — Value score
+  if      (val >= 7.5) { pts += 3; pros.push(`strong value score ${val} — significant overlay`); }
+  else if (val >= 6.0) { pts += 2; pros.push(`value score ${val} — model likes the price`); }
+  else if (val >= 5.0) { pts += 1; cons.push(`thin value score ${val}`); }
+  else                  {           cons.push(`poor value score ${val} — possibly underlaid`); }
+
+  // 3 — Odds adequacy vs R5 minimum
+  if (mlOdds != null) {
+    const mlStr = top.ml.replace(' ML','');
+    const minStr = `${minOdds % 1 === 0 ? minOdds : minOdds.toFixed(1)}-1`;
+    if      (mlOdds >= minOdds + 1) { pts += 2; pros.push(`ML ${mlStr} exceeds min acceptable odds (${minStr})`); }
+    else if (mlOdds >= minOdds)     { pts += 1; pros.push(`ML ${mlStr} meets min acceptable odds (${minStr})`); }
+    else                             { pts -= 2; cons.push(`ML ${mlStr} below min acceptable odds (${minStr}) — too short`); }
+  }
+
+  // 4 — Speed figure reliability
+  if (hasFci) { pts += 1; pros.push(`speed figure on record (FCI ${fci})`); }
+  else         {           cons.push(`no BRIS speed figure — debut or surface switch`); }
+
+  // 5 — vPar position
+  if (!isNaN(vpar)) {
+    const sign = vpar >= 0 ? '+' : '';
+    if      (vpar >= 0)   { pts += 1; pros.push(`at or above class par (${sign}${vpar})`); }
+    else if (vpar <= -20) { pts -= 1; cons.push(`well below class par (${vpar}) — big class ask`); }
+  }
+
+  let verdict, cls;
+  if      (pts >= 7) { verdict = 'STRONG BET'; cls = 'bet-strong'; }
+  else if (pts >= 5) { verdict = 'BET';         cls = 'bet-yes'; }
+  else if (pts >= 3) { verdict = 'MARGINAL';    cls = 'bet-marginal'; }
+  else               { verdict = 'NO BET';      cls = 'bet-no'; }
+
+  // Value alt note — shown when top pick is marginal/no-bet and alt offers better odds
+  let valNote = null;
+  const va = race.value_alt;
+  if (va && pts < 5) {
+    const vaOdds = parseMl(va.ml);
+    const vaVal  = parseFloat((race.horses || []).find(h => h.pgm === va.pgm)?.val) || 0;
+    if (vaOdds != null && vaOdds > (mlOdds || 0) && vaVal >= 6.0) {
+      valNote = `💰 Consider VALUE ALT #${va.pgm} ${va.name} [${va.ml.replace(' ML','')}] — higher odds with value score ${vaVal}`;
+    }
+  }
+
+  return { verdict, cls, pts, pros, cons, valNote };
+}
+
+function buildBetRec(race) {
+  const rec = calcBetRec(race);
+  if (!rec) return '';
+
+  const icon = rec.verdict === 'STRONG BET' ? '🟢'
+             : rec.verdict === 'BET'         ? '✅'
+             : rec.verdict === 'MARGINAL'    ? '🟡'
+             :                                 '🔴';
+
+  const prosHtml = rec.pros.length
+    ? `<div>
+         <div class="bet-col-title pros">For</div>
+         <ul class="bet-list">
+           ${rec.pros.map(p => `<li class="bet-pro"><span class="dot">▶</span>${esc(p)}</li>`).join('')}
+         </ul>
+       </div>`
+    : '';
+
+  const consHtml = rec.cons.length
+    ? `<div>
+         <div class="bet-col-title cons">Against</div>
+         <ul class="bet-list">
+           ${rec.cons.map(c => `<li class="bet-con"><span class="dot">▶</span>${esc(c)}</li>`).join('')}
+         </ul>
+       </div>`
+    : '';
+
+  const valNoteHtml = rec.valNote
+    ? `<div class="bet-val-note">${esc(rec.valNote)}</div>`
+    : '';
+
+  return `
+    <div class="bet-box">
+      <div class="bet-header">
+        <span class="bet-label">Bet Recommendation</span>
+        <span class="bet-verdict ${rec.cls}">${icon} ${rec.verdict}</span>
+        <span class="bet-score">Score ${rec.pts}/10</span>
+      </div>
+      <div class="bet-body">
+        ${prosHtml}
+        ${consHtml}
+      </div>
+      ${valNoteHtml}
     </div>`;
 }
 
