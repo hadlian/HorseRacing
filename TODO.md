@@ -1,0 +1,123 @@
+# R5 Handicapping System — Project TODO
+
+> This file is the authoritative task list for the R5 project.
+> It is updated after each work session and is the sync point for all collaborators.
+>
+> **Last updated:** 2026-05-08
+> **Current version:** 3.2-R4C
+> **Next planned session:** Saturday 2026-05-10 (post-race results review)
+
+---
+
+## 🔴 v3.3 — Engine Fixes (Priority Order)
+
+These must be resolved in order. Do not change TJ weights (Issue 3) until Issues 1 and 2 are fixed.
+
+### Issue 1 — Maiden / First-Time Starter Class Bug `CRITICAL`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** First-time starters with zero BRIS speed figures receive `class_n=7.0`, inflating their composite score and pushing them to the top of the rankings. All such horses in the CDX 05/07 audit finished off the board or scratched.
+- **Fix:** Set `class_n=0.0` for horses with no speed figures on the target surface. Add `[DEBUT]` flag in report output.
+- **Status:** Not started.
+
+### Issue 2 — Value Score Inversion `CRITICAL`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** The value formula penalises horses the market likes but the model ranks low — the wrong direction. A horse the market favours that the model ranks low should have *elevated* value (the market sees something the model missed). Confirmed: De' Medici (CDX R2) had `val_n=1.5` yet won at $6.48 as ML 2-1.
+- **Fix:** Full audit of `value` calculation logic. Direction of signal needs to be reversed or recalibrated.
+- **Status:** Not started. Do not raise TJ weight until this is resolved.
+
+### Issue 3 — T/J Weight Underperforming `MODERATE`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** At 10% weight, T/J cannot overcome FCI/Class even when winners have field-leading T/J scores. 3 of 8 winners in the CDX 05/07 audit had the highest or near-highest T/J in the field.
+- **Proposed fix:** Raise T/J from 10% → 15%. Offset: Class 20% → 13%, Bias 15% → 10%, Ped 10% → 7%.
+- **Status:** Candidate. Requires explicit approval before code change. Do not start until Issues 1 & 2 are resolved.
+
+### Issue 4 — Composite Score Ceiling `MODERATE`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** No race on CDX 05/07 reached SOLID tier (7.5). Best composite was 6.08. The `fci_n` normalisation (baseline=60, scale÷6) was calibrated for higher-class horses. Mid-week undercards with lower speed figures will always grade SPECULATIVE.
+- **Proposed fix:** Card-quality tier adjustment or dynamic normalisation based on field average FCI.
+- **Status:** Under discussion. No code change proposed yet.
+
+### Issue 5 — No Scratch Gate `OPERATIONAL`
+- **File:** `Claude/r5_parser_v2.py` / `Claude/run_r5.py`
+- **Problem:** When a top pick scratches, there is no automatic fallback to the next active ranked horse. A bettor acting on pre-race output had no model guidance after 2 top picks scratched on CDX 05/07.
+- **Proposed fix:** Scratch check function that removes scratched horses and re-identifies top pick from active starters. Optionally integrate with real-time scratch lists.
+- **Status:** Feature proposal. Not started.
+
+### Issue 6 — Crowded Room Penalty `PROPOSED`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** When the top 3 ranked horses are within ≤1.5 composite points of each other, the model has no conviction. Currently outputs a PLAY with no caveat.
+- **Proposed fix:** If spread between rank-1 and rank-3 comp is ≤1.5, flag race as `TIGHT CLUSTER` and apply a confidence deduction or suppress the PLAY verdict.
+- **Validation needed:** Confirm threshold against Saturday 2026-05-10 results before implementing.
+- **Status:** Proposed (Gemini advisory, 2026-05-08). Not started.
+
+### Issue 7 — Surface-Specific WS4 Weighting `PROPOSED`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** Current WS4 uses uniform weights (0.4 / 0.3 / 0.2 / 0.1) regardless of surface. Turf and dirt performance drivers differ meaningfully.
+- **Proposed fix:**
+  - Dirt: weight last 2 starts more heavily — recent form drives dirt results
+  - Turf: shift toward Trend and FCI over raw speed — class and trajectory matter more on grass
+- **Validation needed:** Specific split weights must be validated against results data before hardcoding.
+- **Status:** Proposed (Gemini advisory, 2026-05-08). Not started.
+
+### Issue 8 — Data Scarcity Confidence Cap `PROPOSED`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** In fields where >30% of horses have fewer than 2 lifetime starts, the model has very low information quality but produces normal-looking scores.
+- **Proposed fix:** Per-horse confidence adjustment that reduces comp for individual low-data horses (preferred over a field-wide cap).
+- **Status:** Proposed (Gemini advisory, 2026-05-08). Not started.
+
+---
+
+## 🟡 v4.0 — UI Enhancements (Priority Order)
+
+All UI work lives in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
+
+### UI-1 — Mobile Responsive Design
+- **File:** `webapp/templates/index.html`
+- **Problem:** The 12-column horse table is unreadable on a phone screen at the track.
+- **Proposed fix:** Collapsed row design for mobile — show Horse, Comp, Tier by default; tap to expand full metrics. CSS media queries.
+- **Status:** Not started.
+
+### UI-2 — Historical ROI Dashboard
+- **Files:** `webapp/app.py`, `webapp/templates/index.html`
+- **Problem:** Performance data is logged to SQLite via `r5_tracker.py` but only accessible via CLI or Excel export.
+- **Proposed fix:** Add an "Analytics" tab in the web UI. Pull SQLite data via a new Flask route and display interactive ROI and hit-rate charts by confidence tier.
+- **Status:** Not started. Requires sufficient logged races to be meaningful.
+
+### UI-3 — Live Odds Divergence Alerts
+- **Files:** `webapp/app.py`, `webapp/templates/index.html`
+- **Problem:** No real-time comparison between morning line and live board prices.
+- **Proposed fix:** UI layer that compares morning line against a live odds feed and flags "Strong Overlays" where board price significantly exceeds model rank.
+- **Note:** Fix value score inversion (Issue 2) in the engine before building this — the UI alert is the display layer on top of a correct signal.
+- **Status:** Not started. Depends on Issue 2 resolution and a reliable odds data source.
+
+---
+
+## 🔵 v5.0 — Intelligence Layer (Future)
+
+- ML-powered pattern recognition and lap time prediction
+- Anomaly detection for workout and form angle outliers
+- Optional LLM coaching summaries per race
+
+---
+
+## ✅ Completed (v3.2-R4C)
+
+- DRF parser (`r5_parser_v2.py`) — 7-component scoring pipeline, 1496-field BRIS format
+- WS4™ speed formula — weighted 4-race figure with continuous trend, surface-matched
+- Pace scenario engine — HOT / NML / PRESS classification with speed/closer fit
+- Web scout (`r5_scout.py`) — live intel via HRN, Blood-Horse, TDN + Claude API extraction
+- Results tracker (`r5_tracker.py`) — SQLite logger, manual/CSV/auto-fetch
+- Performance analyzer (`r5_analyze.py`) — Excel workbook, 5 sheets
+- Web frontend (`webapp/`) — Flask upload UI, structured race cards, colour-coded table
+- Bet Recommendation — PLAY / NEAR / SKIP verdict (comp ≥ 6.0 / 5.5–5.99 / < 5.5)
+- Overview toggle — 📋 card-level summary + 🏇 full tabbed race detail
+- PDF download — ReportLab via `--pdf` flag or web UI checkbox
+- README — badges, authorship, roadmap, contributors, trademark notice (R5™, R5 Composite Score™, WS4™)
+
+---
+
+## Notes for Collaborators
+
+- **Implementation:** All code changes are made in the Claude Code session (this repo's primary implementation environment). Verify actual file contents before proposing changes — do not assume column positions, variable names, or weights without reading the source.
+- **Advisory:** Gemini is used for design ideas, pseudocode, and architectural recommendations only. It does not write to this repo.
+- **Engine vs UI:** Engine work (`Claude/`) and UI work (`webapp/`) are handled in separate sessions. Do not mix.
