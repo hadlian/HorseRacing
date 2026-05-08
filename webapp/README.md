@@ -38,8 +38,9 @@ Open **http://localhost:5050** in your browser.
 | 1 | Drop one or more `.DRF` or `.ZIP` files onto the upload zone (or click to browse) |
 | 2 | Tick **Generate PDF** if you want a downloadable PDF report |
 | 3 | Click **Analyze Races** |
-| 4 | Browse race cards using the numbered tabs |
-| 5 | Download **TXT** or **PDF** from the top-right buttons |
+| 4 | Toggle between **📋 Overview** (card-level table) and **🏇 Race Detail** (tabbed view) |
+| 5 | Browse race cards using the numbered tabs; click any Overview row to jump to that race |
+| 6 | Download **TXT** or **PDF** from the top-right buttons |
 
 ### File types accepted
 
@@ -49,6 +50,44 @@ Open **http://localhost:5050** in your browser.
 | `.ZIP` | BRIS zip download — DRF files are extracted automatically |
 
 Multiple files may be uploaded in one batch (e.g. two tracks on the same card).
+
+---
+
+## Bet Recommendation
+
+Every race card includes a **Bet Recommendation** box driven entirely by the R5 composite score:
+
+| Composite | Verdict | Meaning |
+|-----------|---------|---------|
+| ≥ 6.0 | **PLAY** | Model has sufficient edge — viable bet |
+| 5.5 – 5.99 | **NEAR** | Borderline — consider only with strong supporting factors |
+| < 5.5 | **SKIP** | Insufficient edge — pass the race |
+
+The box also lists **For** and **Against** bullets drawn from secondary factors:
+
+| Factor | Signal |
+|--------|--------|
+| Trend ≥ +1.0 | Positive — horse improving |
+| vPar ≥ 6.5 | Positive — beats class par |
+| T/J ≥ 6.5 | Positive — strong connections |
+| HOT pace + speed horse | Negative — pace scenario risk |
+| HOT pace + closer | Positive — closer gets a pace target |
+| Min odds warning | Negative — ML odds too short for value |
+
+**Min acceptable odds** = `max(ML − 1, 1)` (e.g. 3-1 ML → minimum 2-1 on board).
+
+These secondary bullets are informational only — the composite score is the sole gate for PLAY / NEAR / SKIP.
+
+---
+
+## Overview Toggle
+
+After analysis completes, two view buttons appear at the top of the results:
+
+- **📋 Overview** — one-row-per-race summary table with columns: Race, Class, Distance, Top Pick, Composite, Tier, Verdict (PLAY / NEAR / SKIP), and Value Alt.
+- **🏇 Race Detail** — full tabbed race card view (default).
+
+Clicking any row in the Overview table jumps directly to that race in the Detail view.
 
 ---
 

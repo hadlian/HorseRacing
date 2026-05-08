@@ -142,9 +142,11 @@ python app.py
 | Feature | Detail |
 |---------|--------|
 | Upload | Drag-drop or browse — `.DRF` or `.ZIP`, multiple files OK |
-| Race tabs | One tab per race, instant switching |
+| Overview toggle | 📋 Overview: one-row-per-race card summary; 🏇 Race Detail: full tabbed view |
+| Race tabs | One tab per race, instant switching; click Overview row to jump |
 | Horse table | WS4, Trend, FCI, vPar, Ped, T/J, Pace, Val, Comp, Tier — colour-coded |
 | Pick boxes | Top Win Pick (green) and Value Alt (gold) |
+| Bet Recommendation | PLAY (comp ≥ 6.0) / NEAR (5.5–5.99) / SKIP (<5.5) with For/Against bullets |
 | Exotics | Win / Exacta / Trifecta / Superfecta |
 | Raw text | Full formatted output in collapsible block |
 | Downloads | TXT (always) + PDF (tick "Generate PDF" before uploading) |
