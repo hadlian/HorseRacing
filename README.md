@@ -283,11 +283,15 @@ Applied to composite score before final ranking:
 - 🔲 **Composite Ceiling** — Scores rarely exceed 8.5; HIGH confidence tier (≥ 8.5) is nearly unreachable under current scaling
 - 🔲 **Scratch Gate** — Scratches logged to tracker before scout runs can cause key errors in downstream pipeline
 
-### Upcoming: v4.0 — Intelligence Layer
-- 🔲 Live odds feed integration (morning line vs board divergence alerts)
-- 🔲 Multi-track batch analysis from a single ZIP
-- 🔲 Mobile-responsive web UI
-- 🔲 Historical ROI dashboard with chart visualisations
+### Upcoming: v4.0 — UI Enhancements
+- 🔲 **Mobile Refinement** — Responsive CSS for the horse table; readable on phone at the track
+- 🔲 **Historical ROI Dashboard** — Pull logged races from `r5_tracker.py` SQLite DB and display interactive ROI and hit-rate charts directly in the web UI
+- 🔲 **Live Odds Integration** — Compare morning line prices against a live odds feed; surface divergence alerts when the board moves significantly off the R5 model rank
+
+### Upcoming: v5.0 — Intelligence Layer
+- 🔲 ML-powered lap time prediction and pattern recognition
+- 🔲 Anomaly detection for workout and form angle outliers
+- 🔲 Optional LLM coaching summaries per race
 
 ---
 
