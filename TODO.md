@@ -71,6 +71,9 @@ These must be resolved in order. Do not change TJ weights (Issue 3) until Issues
 
 All UI work lives in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
 
+### ~~Multi-Track Batch ZIP Upload~~ `ALREADY BUILT`
+The existing upload UI already handles multiple DRF files and ZIP archives containing multiple tracks in a single pass. No work needed here.
+
 ### UI-1 — Mobile Responsive Design
 - **File:** `webapp/templates/index.html`
 - **Problem:** The 12-column horse table is unreadable on a phone screen at the track.
