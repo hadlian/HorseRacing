@@ -127,7 +127,33 @@ python3 Claude/r5_analyze.py --out my.xlsx   # custom filename
 
 ---
 
-## Setup
+## Web Frontend
+
+A browser-based UI for running analyses without touching the command line.
+
+```bash
+cd webapp
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python app.py
+# → open http://localhost:5050
+```
+
+| Feature | Detail |
+|---------|--------|
+| Upload | Drag-drop or browse — `.DRF` or `.ZIP`, multiple files OK |
+| Race tabs | One tab per race, instant switching |
+| Horse table | WS4, Trend, FCI, vPar, Ped, T/J, Pace, Val, Comp, Tier — colour-coded |
+| Pick boxes | Top Win Pick (green) and Value Alt (gold) |
+| Exotics | Win / Exacta / Trifecta / Superfecta |
+| Raw text | Full formatted output in collapsible block |
+| Downloads | TXT (always) + PDF (tick "Generate PDF" before uploading) |
+
+See [`webapp/README.md`](webapp/README.md) for full options and troubleshooting.
+
+---
+
+## Setup (CLI)
 
 ```bash
 # Python 3.9+
@@ -154,6 +180,12 @@ HorseRacing/
 │   ├── r5_tracker.py
 │   ├── r5_analyze.py
 │   └── R5_SETUP.md
+├── webapp/                  ← Web frontend (Flask)
+│   ├── app.py               ← Flask server + output parser
+│   ├── requirements.txt     ← Flask only
+│   ├── README.md            ← Setup + usage for the web UI
+│   └── templates/
+│       └── index.html       ← Single-page UI
 ├── files 2/                 ← BRIS .DRF input files (not in git)
 ├── results/                 ← SQLite DB + Excel reports (not in git)
 │   └── results_template.csv ← CSV template for manual result entry
@@ -165,6 +197,14 @@ HorseRacing/
 
 ## Typical Workflow
 
+### Via Web UI (easiest)
+```bash
+cd webapp && source .venv/bin/activate
+python app.py
+# Drop DRF or ZIP onto http://localhost:5050, click Analyze
+```
+
+### Via CLI
 ```bash
 source venv/bin/activate
 

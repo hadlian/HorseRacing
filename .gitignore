@@ -40,6 +40,7 @@ files/
 *.csv
 !results/results_template.csv
 *.html
+!webapp/templates/*.html
 *.textClipping
 
 # Results HTML companion folders and legacy results
