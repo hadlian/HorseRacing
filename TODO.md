@@ -3,9 +3,9 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-08 (evening)
-> **Current version:** 3.2-R4C
-> **Next planned session:** Saturday 2026-05-10 (post-race results review)
+> **Last updated:** 2026-05-09 (evening)
+> **Current version:** R5 v3.3 (commit be7bc04)
+> **Next planned session:** Preakness week — PIM ~2026-05-16 (continue data collection)
 
 ---
 
@@ -13,11 +13,10 @@
 
 These must be resolved in order. Do not change TJ weights (Issue 3) until Issues 1 and 2 are fixed.
 
-### Issue 1 — Maiden / First-Time Starter Class Bug `CRITICAL`
+### ~~Issue 1 — Maiden / First-Time Starter Class Bug~~ `FIXED — v3.3`
 - **File:** `Claude/r5_parser_v2.py`
-- **Problem:** First-time starters with zero BRIS speed figures receive `class_n=7.0`, inflating their composite score and pushing them to the top of the rankings. All such horses in the CDX 05/07 audit finished off the board or scratched.
-- **Fix:** Set `class_n=0.0` for horses with no speed figures on the target surface. Add `[DEBUT]` flag in report output.
-- **Status:** Not started.
+- **Fix applied:** `class_n=0.0` for horses with no BRIS speed figures. `[DEBUT]` tag added to table row and field-level warning printed.
+- **Commit:** be7bc04 — 2026-05-09
 
 ### Issue 2 — Value Score Inversion `CRITICAL`
 - **File:** `Claude/r5_parser_v2.py`
@@ -120,6 +119,12 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 - Optional LLM coaching summaries per race
 
 ---
+
+## ✅ Completed (v3.3)
+
+- **Issue 1 — Maiden/Firster class_n fix** — `class_n=0.0` for no-speed-figure horses; `[DEBUT]` flag in output (commit be7bc04, 2026-05-09)
+- **34-race results DB** — CDX0502 (14), DBY0502 (1 Derby), CDX0507 (8), BAQ0509 (11). 18.2% top-pick win rate, 45.5% top-3 hit rate, TJ signal +0.86.
+- **Audit reports** — CDX0507 and BAQ0509 audit TXTs saved in `Results/2026/`. Peter Pan G2 and Ruffian G2 wins validated graded-stakes model strength.
 
 ## ✅ Completed (v3.2-R4C)
 
