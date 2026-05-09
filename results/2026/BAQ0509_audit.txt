@@ -1,0 +1,114 @@
+==========================================================================================
+  R5 RESULTS AUDIT — Belmont at the Big A  MAY 9, 2026  (BAQ0509.DRF)
+  Peter Pan Stakes G2 (R9) | Ruffian Stakes G2 (R7)
+  Model Version: R5_v3.2-R4C
+==========================================================================================
+
+RACE-BY-RACE PREDICTED vs ACTUAL
+─────────────────────────────────────────────────────────────────────────────────────────
+R1  6.0f Dirt  Stakes  $80k  HOT PACE
+  Rank 1: #6 Close The Loop (5.08, 2-1) → 2nd
+  Winner: #4 Karley B — Rank 3  Pay: $3.50
+  → Top pick placed 2nd. Winner was Rank 3.
+
+R2  8.5f Turf  Alw Opt  $88k  NORMAL
+  Rank 1: #4 Celtic Flame (4.89, 8-1) → 3rd
+  Winner: #5 Arizona Territory — Rank 2  Pay: $2.94
+  → Winner was Rank 2.
+
+R3  6.0f Dirt  Claiming  $36k  HOT PACE
+  Rank 1: #4 Red Miller (4.49, 2-1) → off
+  Winner: #7 Superpower — Rank 7  Pay: $13.48
+  → Upset. Lowest-ranked active horse won.
+
+R4  8.5f Turf  Allowance  $82k  HOT PACE
+  Rank 1: #3 Dividend Recap (5.42, 1.6-1) → WIN ✓  Pay: $6.02
+  → MODEL CORRECT. Clean top-pick win.
+
+R5  6.0f Dirt  Alw Opt  $88k  HOT PACE
+  Rank 1: #1 Kadena (5.19, 4.5-1) → off
+  Winner: #8 Roman Grace — Rank 5  Pay: $13.74
+  → Upset. Rank 5 winner, HOT pace scenario.
+
+R6  6.0f Dirt  G3  $175k  HOT PACE (6 speed horses)
+  Rank 1: #5 One Nine Hundred (6.04, 1.4-1) → off
+  Winner: #6 Durante — Rank 5  Pay: $16.50
+  → Pace scenario flag proved correct — speed horse in 6-speed HOT pace.
+    Pre-race analysis noted this risk. Value alt Full Moon Madness ran 3rd.
+
+R7  8.0f Dirt  G2 Ruffian  $200k  NORMAL
+  Rank 1: #3 Eunomia (5.93, 1.2-1) → off
+  Winner: #6 Irish Maxima — Rank 2  Pay: $14.44
+  → Pre-race flagged: "Irish Maxima 5-1, Trend +5.0 — value if pace fires."
+    Model had winner at Rank 2. TJ signal weak for both (3.5); Trend was the key.
+
+R8  6.0f Turf  Stakes  $150k  HOT PACE
+  Rank 1: #6 Cadenza (5.88, 2-1) → WIN ✓  Pay: $5.10
+  → MODEL CORRECT. Top pick won. TJ=9.5 (Cox Brad H) was the differentiator.
+
+R9  9.0f Dirt  G2 Peter Pan  $200k  NORMAL  ← FEATURE RACE
+  Rank 1: #3 Growth Equity (5.82, 1.2-1) → WIN ✓  Pay: $4.04
+  → MODEL CORRECT. Clean top-pick win in the graded stakes feature.
+    Chad Brown / Prat Flavien. FCI 91.8, Trend +2.0, TJ=8.5.
+
+R10  8.5f Turf  Allowance  $88k  NORMAL
+  Rank 1: #1 Right To Vote (5.83, 2.5-1) → 2nd
+  Winner: #3 Arkhipov — Rank 5  Pay: $7.24
+  → Rank 5 upset. Arkhipov TJ=8.5 (vs Right To Vote TJ=9.5 — both high).
+
+R11  6.0f Turf  Stakes  $80k  HOT PACE
+  No result in PDF — race cancelled or off-card.
+
+==========================================================================================
+  PERFORMANCE SUMMARY
+==========================================================================================
+  Top pick win rate:      3/11 = 27.3%  ← best single-card result to date
+  Top-3 model coverage:  6/11 = 54.5%  (winner inside model top 3 in R1,R2,R4,R7,R8,R9)
+
+  ROI — flat $2 win on top pick:
+    Invested: $22.00  |  Returned: $15.16  |  Net: -$6.84  |  ROI: -31.1%
+
+  ROI — flat $2 win on top 3 (each):
+    Invested: $66.00  |  Returned: $36.04  |  Net: -$29.96  |  ROI: -45.4%
+
+  Winner rank distribution:
+    Rank 1: 3 wins  (R4 Dividend Recap, R8 Cadenza, R9 Growth Equity)
+    Rank 2: 2 wins  (R2 Arizona Territory, R7 Irish Maxima)
+    Rank 3: 1 win   (R1 Karley B)
+    Rank 5: 3 wins  (R5 Roman Grace, R6 Durante, R10 Arkhipov)
+    Rank 7: 1 win   (R3 Superpower)
+
+==========================================================================================
+  CUMULATIVE STATS (34 races: CDX0502 x14, DBY0502 x1, CDX0507 x8, BAQ0509 x11)
+==========================================================================================
+  Top pick win rate:   18.2%  (was 13.0% before BAQ)
+  Top-3 hit rate:      45.5%  (was 39.1%)
+  TJ signal:          +0.86   (was +0.78 — strengthening)
+  Value signal:       -0.35   (was -0.45 — improving but still inverted)
+
+==========================================================================================
+  KEY FINDINGS — BAQ CARD
+==========================================================================================
+  1. GRADED STAKES = BEST MODEL ENVIRONMENT
+     Both G2 feature races (Peter Pan R9, Ruffian R7) had model winners inside Rank 2.
+     Growth Equity (R9) was a clean Rank 1 win. Irish Maxima (R7) was pre-flagged at 5-1.
+     FCI and TJ are most predictive in quality fields with established figures.
+
+  2. PACE SCENARIO VALIDATED IN R6
+     Pre-race analysis flagged HOT pace risk for One Nine Hundred (speed horse, 6 speed
+     rivals). During (Rank 5, closer style) won $16.50. The pace flag was the right call.
+     Full Moon Madness (Rank 2, closer, Trend +4.0) ran 3rd — also the pre-race value pick.
+
+  3. RANK 5 UPSETS — 3 OCCURRENCES
+     Roman Grace (R5), Durante (R6), Arkhipov (R10) all won from Rank 5.
+     Each had one standout component (TJ or Trend) that couldn't overcome FCI/Class drag.
+     Consistent with TJ underweight finding from CDX0507 audit.
+
+  4. TJ SIGNAL STRENGTHENING (+0.86)
+     Now the single strongest differentiator across 34 races. Weight increase from
+     10% → 15% (proposed in R5_v3.3-W1) supported by this card's results.
+
+  5. VALUE SIGNAL STILL INVERTED (-0.35)
+     Improving from -0.45 but still negative. Fix remains the highest priority
+     before implementing weight changes.
+==========================================================================================
