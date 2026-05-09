@@ -191,12 +191,19 @@ def main():
     if args.scout_json:
         intel = load_scout_json(args.scout_json)
     elif args.auto_scout:
-        # Find most recent scout JSON
+        # Match scout JSON by track code extracted from DRF filename (e.g. CDX0507 → CDX)
         scout_dir = HORSE_RACING_ROOT / "scout"
-        json_files = sorted(scout_dir.glob("scout_*.json"), key=os.path.getmtime)
-        if json_files:
-            intel = load_scout_json(json_files[-1])
-            print(f"📋 Using scout: {json_files[-1].name}")
+        drf_track = Path(drf_path).stem[:3].upper()
+        drf_date  = Path(drf_path).stem[3:7]  # mmdd portion
+        # Prefer exact track+date match, fall back to track-only, then most recent
+        candidates = sorted(scout_dir.glob(f"scout_{drf_track}_*.json"), key=os.path.getmtime)
+        date_match = [f for f in candidates if drf_date in f.stem]
+        chosen = date_match[-1] if date_match else (candidates[-1] if candidates else None)
+        if chosen:
+            intel = load_scout_json(chosen)
+            print(f"📋 Using scout: {chosen.name}")
+        else:
+            print(f"⚠️  No scout JSON found for track {drf_track} — skipping scout adjustments")
 
     horses, adj_log = apply_scout_adjustments(horses, intel)
 

@@ -46,11 +46,13 @@ HEADERS = {
 # Maps BRIS track codes to natural-language search terms used in news articles
 TRACK_KEYWORDS = {
     "DBY": ["Kentucky Derby", "Derby", "Churchill"],
-    "CD":  ["Churchill Downs", "Churchill", "Derby"],
+    "CD":  ["Churchill Downs", "Churchill"],
+    "CDX": ["Churchill Downs", "Churchill"],
     "KEE": ["Keeneland"],
     "SAR": ["Saratoga"],
     "AQU": ["Aqueduct"],
-    "BEL": ["Belmont"],
+    "BAQ": ["Aqueduct", "Belmont at the Big A", "Big A"],
+    "BEL": ["Belmont", "Belmont Park"],
     "DMR": ["Del Mar"],
     "GP":  ["Gulfstream"],
     "OP":  ["Oaklawn"],
@@ -296,7 +298,7 @@ def extract_intel_with_claude(articles, api_key):
                 "content-type": "application/json",
             },
             json={
-                "model": "claude-sonnet-4-20250514",
+                "model": "claude-sonnet-4-6",
                 "max_tokens": 2000,
                 "messages": [{"role": "user", "content": prompt}],
             },
