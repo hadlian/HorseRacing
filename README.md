@@ -1,11 +1,11 @@
 # R5 Horse Racing Handicapping System
 
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-3.2--R4C-gold)]()
+[![Version](https://img.shields.io/badge/version-3.3-gold)]()
 [![Status](https://img.shields.io/badge/status-Active%20Development-brightgreen)]()
 [![License](https://img.shields.io/badge/license-Proprietary-blue)](#-license)
 
-**Version:** 3.2-R4C
+**Version:** 3.3
 
 **Status:** Active Development
 
@@ -264,7 +264,7 @@ Applied to composite score before final ranking:
 
 ## 🗺️ Roadmap
 
-### Current Version: v3.2-R4C (May 2026)
+### Current Version: v3.3 (May 2026)
 - ✅ **DRF Parser** — Fixed-format BRIS DRF parsing (1496 fields per record), full 7-component scoring pipeline
 - ✅ **WS4™ Speed Formula** — Weighted 4-race speed figure with continuous trend, surface-matched
 - ✅ **Pace Scenario Engine** — HOT / NML / PRESS classification; speed horse vs closer fit scoring
@@ -275,13 +275,15 @@ Applied to composite score before final ranking:
 - ✅ **Bet Recommendation** — PLAY / NEAR / SKIP verdict driven by R5 Composite Score™ with For/Against rationale bullets
 - ✅ **Overview Toggle** — Card-level summary table (📋 Overview) alongside full tabbed race detail (🏇 Race Detail)
 - ✅ **PDF Download** — ReportLab-generated PDF reports via `--pdf` flag or web UI checkbox
+- ✅ **Maiden/Firster Class Fix** — First-time starters with no BRIS speed figures now receive `class_n=0.0`; `[DEBUT]` flag surfaced in report output
 
-### Upcoming: v3.3 — Model Fixes
-- 🔲 **Maiden Class Bug** — Maiden special weight races scored as allowance, inflating class component for first-time starters
-- 🔲 **Value Score Inversion** — Horses near morning line rank receiving artificially suppressed value scores
-- 🔲 **T/J Weight Recalibration** — 10% trainer/jockey weight over-penalises horses with limited connections data (< 20 starts)
-- 🔲 **Composite Ceiling** — Scores rarely exceed 8.5; HIGH confidence tier (≥ 8.5) is nearly unreachable under current scaling
-- 🔲 **Scratch Gate** — Scratches logged to tracker before scout runs can cause key errors in downstream pipeline
+### Upcoming: v3.4 — Remaining Engine Fixes
+- 🔲 **Value Score Inversion** — Formula direction inverted; ML-favoured horses the model ranks low receive suppressed value scores instead of elevated ones
+- 🔲 **T/J Weight Recalibration** — Raise T/J from 10% → 15%; offset via Class, Bias, Ped reductions (pending value fix first)
+- 🔲 **Composite Ceiling** — Scores rarely exceed 8.5; `fci_n` normalisation calibrated for higher-class horses than typical mid-week undercards
+- 🔲 **Scratch Gate** — No automatic fallback to next active ranked horse when top pick scratches
+- 🔲 **Crowded Room Penalty** — Top-3 within ≤1.5 comp points gets no low-conviction flag; validate threshold against results data before implementing
+- 🔲 **Data Scarcity Cap** — Per-horse confidence reduction when horse has < 2 lifetime starts; field-level `LOW INFO` warning when >30% of field is low-data
 
 ### Upcoming: v4.0 — UI Enhancements
 - 🔲 **Mobile Refinement** — Responsive CSS for the horse table; readable on phone at the track

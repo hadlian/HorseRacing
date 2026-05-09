@@ -1,5 +1,5 @@
 # R5 Racing System — Setup Guide
-# Version: R5_v3.2-R4C
+# Version: R5_v3.3
 
 ## What's in this package
 
@@ -79,7 +79,7 @@ python3 Claude/r5_analyze.py --track CD   # single track
 
 ---
 
-## R5 Scoring Formula — v3.2-R4C
+## R5 Scoring Formula — v3.3
 
 ### WS4 — Weighted Speed
 Weighted average of last 4 BRIS speed figures on the **same surface**:

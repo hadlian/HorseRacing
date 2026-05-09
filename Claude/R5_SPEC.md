@@ -1,7 +1,6 @@
 # R5 Model Specification
 
-**Version:** R5_v3.2-R4C
-**C suffix:** Continuous Trend (as opposed to prior discrete ±5/0 implementation)
+**Version:** R5_v3.3
 **Current executable implementation:** `r5_parser_v2.py`
 
 ---
@@ -9,7 +8,7 @@
 ## Model Integrity Rules
 
 1. `R5_SPEC.md` defines the approved model version.
-2. `r5_parser_v2.py` is the current executable implementation of R5_v3.2-R4C.
+2. `r5_parser_v2.py` is the current executable implementation of R5_v3.3.
 3. If this document and the code disagree, treat it as a model-control conflict. Do not proceed with changes until the human steward resolves it.
 4. No scoring logic (WS4, Trend, FCI, Composite weights) may be changed without an explicit version bump and approval.
 5. Documentation updates do not require a version bump. Logic changes do.
@@ -110,6 +109,7 @@ Pass 2 (final `comp`): recalculates with field-context `val_n` (rank divergence)
 
 | Version | Change |
 |---------|--------|
+| R5_v3.3 | Maiden/firster class fix: `class_n=0.0` for no-speed-figure horses; `[DEBUT]` flag added (commit be7bc04) |
 | R5_v3.2-R4C | Confirmed continuous Trend in code; spec formalised |
 | R5_v3.2-R4 | Continuous Trend implemented in r5_parser_v2.py (replaced discrete ±5/0) |
 | R5_v3.1 | Two-pass finalize_field(); pace scenario; value as rank divergence |
