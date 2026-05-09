@@ -199,10 +199,15 @@ def parse_drf(path):
 
             # CLASS vs speed par
             par = h['speed_par']
+            h['debut'] = ws4 is None  # no BRIS speed figures on any surface
             if par and ws4:
                 par_diff = ws4 - par
                 class_n  = max(0.0, min(10.0, 5.0 + par_diff / 3))
+            elif ws4 is None:
+                # No speed figures — first-timer or debut on surface; class unknown
+                class_n = 0.0
             else:
+                # Has speed figures but no par (unclassified race type)
                 g1_hist = any('G1' in r or 'Derby' in r or 'Oaks' in r
                               for r in h['past_race_name'] if r)
                 class_n = 9.0 if g1_hist else 7.0
@@ -369,7 +374,7 @@ def report(horses):
     )
 
     print("=" * 104)
-    print(f"  🏇  R5 v2.1 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
+    print(f"  🏇  R5 v3.3 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
           f"{horses[0]['date']}  |  {dist_f}f  {horses[0]['surface']}  |  "
           f"Purse ${horses[0]['purse']:,.0f}  |  {pace_label}")
     print("=" * 104)
@@ -386,12 +391,20 @@ def report(horses):
         vp  = f"{h['par_diff']:+.1f}" if h['par_diff'] is not None else "  ?"
         tr  = f"{h['trend']:+.1f}"
         pce = h.get('pace_style', '?')[:3].upper()
+        debut_tag = "  [DEBUT]" if h.get('debut') else ""
         print(f"{h['pgm']:<4} {h['name']:<22} {ml:>5}  {s4:>22}  "
               f"{ws:>5}  {tr:>4}  {fc:>5}  {vp:>5}  "
               f"{h['ped_n']:>4.1f}  {h['tj_n']:>4.1f}  {pce:>4}  "
-              f"{h['val_n']:>4.1f}  {h['comp']:>5.2f}  {h['tier']}")
+              f"{h['val_n']:>4.1f}  {h['comp']:>5.2f}  {h['tier']}{debut_tag}")
 
     print()
+
+    # ── DEBUT WARNING ──
+    debut_horses = [h for h in ranked if h.get('debut')]
+    if debut_horses:
+        names = ", ".join(f"#{h['pgm']} {h['name']}" for h in debut_horses)
+        print(f"⚠️   DEBUT FLAG: {names} — no BRIS speed figures, class_n=0.0. Do not bet on class score alone.")
+        print()
 
     # ── TOP WIN PICK ──
     top = ranked[0]
