@@ -653,6 +653,79 @@
       border: 1px solid rgba(230,126,34,0.45);
     }
 
+    /* ── Manual scratch input ────────────────────────────────────────────── */
+    .scratch-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-top: 1px solid var(--border);
+      background: rgba(231,76,60,0.04);
+      flex-wrap: wrap;
+    }
+    .scratch-input-lbl {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .scratch-input {
+      background: var(--dark);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.82rem;
+      padding: 4px 10px;
+      width: 80px;
+    }
+    .scratch-input:focus { outline: none; border-color: var(--red); }
+    .scratch-input::placeholder { color: var(--muted); }
+    .btn-scratch-add {
+      background: rgba(231,76,60,0.18);
+      border: 1px solid rgba(231,76,60,0.4);
+      border-radius: 6px;
+      color: #ff8080;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 4px 12px;
+    }
+    .btn-scratch-add:hover { background: rgba(231,76,60,0.28); }
+    .scratch-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .scratch-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(231,76,60,0.15);
+      border: 1px solid rgba(231,76,60,0.35);
+      border-radius: 12px;
+      padding: 2px 10px;
+      font-size: 0.78rem;
+      color: #ff8080;
+      font-weight: 600;
+    }
+    .scratch-chip-remove {
+      background: none;
+      border: none;
+      color: #ff8080;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+      opacity: 0.7;
+    }
+    .scratch-chip-remove:hover { opacity: 1; }
+    .exotics-warning {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: #ffb86e;
+      font-style: italic;
+    }
+
     /* ── Utility ───────────────────────────────────────────────────────── */
     .hidden { display: none !important; }
   </style>
@@ -751,6 +824,8 @@ let races       = [];
 let pdfOk       = false;
 let activeTab   = 0;
 let viewMode    = 'detail';   // 'summary' | 'detail'
+// Manual scratches: Map of raceIdx → Set of pgm strings
+const manualScratches = {};
 
 /* ── DOM refs ──────────────────────────────────────────────────────────── */
 const dropZone     = document.getElementById('dropZone');
@@ -875,7 +950,7 @@ function buildSummary() {
   const rows = races.map((r, i) => {
     const top  = r.top_pick || {};
     const va   = r.value_alt || {};
-    const rec  = calcBetRec(r) || {};
+    const rec  = calcBetRec(r, i) || {};
     const icon = rec.verdict === 'PLAY' ? '✅' : rec.verdict === 'NEAR' ? '⚠️' : '⛔';
     const vcls = rec.cls || 'bet-no';
 
@@ -997,11 +1072,12 @@ function renderRace(idx) {
         </div>
       </div>
 
-      ${buildScratchNotices(race)}
-      ${buildHorseTable(race)}
-      ${buildPicks(race)}
-      ${buildBetRec(race)}
-      ${buildExotics(race)}
+      ${buildScratchNotices(race, idx)}
+      ${buildScratchInput(idx)}
+      ${buildHorseTable(race, idx)}
+      ${buildPicks(race, idx)}
+      ${buildBetRec(race, idx)}
+      ${buildExotics(race, idx)}
     </div>
   `;
 }
@@ -1011,21 +1087,32 @@ function metaItem(label, val) {
 }
 
 /* ── Horse table ───────────────────────────────────────────────────────── */
-function buildHorseTable(race) {
+function buildHorseTable(race, raceIdx) {
   const horses = race.horses || [];
   if (!horses.length) {
     return `<div class="empty-msg">Horse data could not be parsed — see raw text below.</div>`;
   }
 
-  const topPgm = race.top_pick?.pgm;
-  const valPgm = race.value_alt?.pgm;
+  const scratched = getScratchSet(raceIdx);
+  const activeHorses = horses.filter(h => !scratched.has(h.pgm));
+  const topPgm = activeHorses[0]?.pgm;                 // rank 1 of active horses
+  const valPgm = (() => {
+    // value alt: highest val score among non-top active horses
+    const rest = activeHorses.slice(1);
+    if (!rest.length) return null;
+    return rest.reduce((best, h) =>
+      (parseFloat(h.val) || 0) > (parseFloat(best.val) || 0) ? h : best
+    ).pgm;
+  })();
 
   const rows = horses.map(h => {
-    const isTop = h.pgm === topPgm;
-    const isVal = h.pgm === valPgm;
-    const rowCls = isTop ? 'row-top' : isVal ? 'row-val' : '';
+    const isScratched = scratched.has(h.pgm);
+    const isTop = !isScratched && h.pgm === topPgm;
+    const isVal = !isScratched && h.pgm === valPgm;
+    const rowCls = isScratched ? 'row-scratched' : isTop ? 'row-top' : isVal ? 'row-val' : '';
     const ccls   = compClass(h.comp);
-    const nameFlag = isTop ? ' 🏆' : isVal ? ' 💰' : '';
+    const nameFlag = isScratched ? ' <span style="color:var(--red);font-size:0.72rem">SCR</span>'
+                   : isTop ? ' 🏆' : isVal ? ' 💰' : '';
 
     return `
       <tr class="${rowCls}">
@@ -1062,14 +1149,28 @@ function buildHorseTable(race) {
 }
 
 /* ── Pick boxes ────────────────────────────────────────────────────────── */
-function buildPicks(race) {
-  const parts = [];
+function buildPicks(race, raceIdx) {
+  const scratched    = getScratchSet(raceIdx);
+  const activeHorses = (race.horses || []).filter(h => !scratched.has(h.pgm));
+  const parts        = [];
 
-  if (race.top_pick) {
-    const p = race.top_pick;
+  // Top pick: use revised rank-1 if original is scratched
+  const topHorse = activeHorses[0];
+  if (topHorse) {
+    // Use engine top_pick data if pgm matches, otherwise build from horse row
+    const orig    = race.top_pick || {};
+    const isOrig  = orig.pgm === topHorse.pgm;
+    const p = {
+      pgm:       topHorse.pgm,
+      name:      topHorse.name,
+      ml:        topHorse.ml,
+      composite: isOrig ? orig.composite : topHorse.comp,
+      tier:      topHorse.tier,
+    };
+    const wasRevised = scratched.size > 0 && !isOrig;
     parts.push(`
       <div class="pick-box pick-top">
-        <div class="pick-lbl">🏆 Top Win Pick</div>
+        <div class="pick-lbl">🏆 Top Win Pick${wasRevised ? ' <span style="font-size:0.65rem;color:#ffb86e">(revised)</span>' : ''}</div>
         <div class="pick-pgm-name">
           <span class="pick-pgm-num">#${esc(p.pgm)}</span>
           <span class="pick-horse-name">${esc(p.name)}</span>
@@ -1082,11 +1183,24 @@ function buildPicks(race) {
       </div>`);
   }
 
-  if (race.value_alt) {
-    const p = race.value_alt;
+  // Value alt: highest val score among non-top active horses
+  const valHorse = activeHorses.slice(1).reduce((best, h) =>
+    best == null || (parseFloat(h.val) || 0) > (parseFloat(best.val) || 0) ? h : best
+  , null);
+  if (valHorse) {
+    const origVa  = race.value_alt || {};
+    const isOrig  = origVa.pgm === valHorse.pgm;
+    const p = {
+      pgm:       valHorse.pgm,
+      name:      valHorse.name,
+      ml:        valHorse.ml,
+      composite: isOrig ? origVa.composite : valHorse.comp,
+      tier:      valHorse.tier,
+    };
+    const wasRevised = scratched.size > 0 && !isOrig;
     parts.push(`
       <div class="pick-box pick-val">
-        <div class="pick-lbl">💰 Value Alt</div>
+        <div class="pick-lbl">💰 Value Alt${wasRevised ? ' <span style="font-size:0.65rem;color:#ffb86e">(revised)</span>' : ''}</div>
         <div class="pick-pgm-name">
           <span class="pick-pgm-num">#${esc(p.pgm)}</span>
           <span class="pick-horse-name">${esc(p.name)}</span>
@@ -1103,38 +1217,111 @@ function buildPicks(race) {
 }
 
 /* ── Exotics ───────────────────────────────────────────────────────────── */
-function buildExotics(race) {
-  const ex    = race.exotics || {};
-  const pairs = [['WIN','win'],['EXACTA','exacta'],['TRIFECTA','trifecta'],['SUPERFECTA','superfecta']];
-  const items = pairs.filter(([, k]) => ex[k]).map(([label, k]) =>
+function buildExotics(race, raceIdx) {
+  const ex      = race.exotics || {};
+  const pairs   = [['WIN','win'],['EXACTA','exacta'],['TRIFECTA','trifecta'],['SUPERFECTA','superfecta']];
+  const items   = pairs.filter(([, k]) => ex[k]).map(([label, k]) =>
     `<div class="exotic-row">
        <span class="exotic-key">${label}</span>
        <span class="exotic-val">${esc(ex[k])}</span>
      </div>`
   );
   if (!items.length) return '';
+  const scratched   = getScratchSet(raceIdx);
+  const warnHtml    = scratched.size > 0
+    ? `<div class="exotics-warning">⚠️ Scratches detected — exotics shown are pre-scratch. Verify before wagering.</div>`
+    : '';
   return `
     <div class="exotics-box">
       <div class="exotics-hdr">🎟 Exotics Structure</div>
       <div class="exotics-grid">${items.join('')}</div>
+      ${warnHtml}
     </div>`;
 }
 
-/* ── Scratch notices ───────────────────────────────────────────────────── */
-function buildScratchNotices(race) {
-  const scratches = race.scratches || [];
-  if (!scratches.length) return '';
-  return scratches.map(s => {
+/* ── Manual scratch helpers ────────────────────────────────────────────── */
+function getScratchSet(raceIdx) {
+  return manualScratches[raceIdx] || new Set();
+}
+
+function addScratch(raceIdx, pgm) {
+  pgm = String(pgm).trim();
+  if (!pgm) return;
+  if (!manualScratches[raceIdx]) manualScratches[raceIdx] = new Set();
+  manualScratches[raceIdx].add(pgm);
+  renderRace(raceIdx);
+  buildSummary();
+}
+
+function removeScratch(raceIdx, pgm) {
+  if (manualScratches[raceIdx]) {
+    manualScratches[raceIdx].delete(pgm);
+    if (manualScratches[raceIdx].size === 0) delete manualScratches[raceIdx];
+  }
+  renderRace(raceIdx);
+  buildSummary();
+}
+
+function buildScratchInput(raceIdx) {
+  const scratched = getScratchSet(raceIdx);
+  const chips = [...scratched].map(pgm =>
+    `<span class="scratch-chip">
+       #${esc(pgm)}
+       <button class="scratch-chip-remove" onclick="removeScratch(${raceIdx}, '${esc(pgm)}')" title="Unscratch">×</button>
+     </span>`
+  ).join('');
+  return `
+    <div class="scratch-input-row">
+      <span class="scratch-input-lbl">🚨 Mark Scratch</span>
+      <input class="scratch-input" id="scratchInput_${raceIdx}"
+             type="text" placeholder="#  pgm"
+             onkeydown="if(event.key==='Enter'){addScratch(${raceIdx},this.value);this.value='';}"
+             title="Type program number and press Enter">
+      <button class="btn-scratch-add"
+              onclick="const el=document.getElementById('scratchInput_${raceIdx}');addScratch(${raceIdx},el.value);el.value='';">
+        Add
+      </button>
+      <div class="scratch-chips">${chips}</div>
+    </div>`;
+}
+
+/* ── Scratch notices (engine-reported + manual) ────────────────────────── */
+function buildScratchNotices(race, raceIdx) {
+  const parts = [];
+
+  // Engine-reported scratches (from stdout parsing)
+  for (const s of race.scratches || []) {
     const revised = s.revised_pgm
       ? `<div class="scratch-revised">↳ Revised Top Pick: #${esc(s.revised_pgm)} ${esc(s.revised_name)}${s.revised_comp ? ' — Comp ' + esc(s.revised_comp) : ''}</div>`
       : '';
-    return `
+    parts.push(`
       <div class="scratch-notice">
         <div class="scratch-title">🚨 Scratch — #${esc(s.pgm)} ${esc(s.name)}</div>
         <div class="scratch-detail">Pre-scratch Rank ${esc(s.pre_rank)} — removed from field</div>
         ${revised}
-      </div>`;
-  }).join('');
+      </div>`);
+  }
+
+  // Manual scratches
+  const manSet = getScratchSet(raceIdx);
+  for (const pgm of manSet) {
+    const horse = (race.horses || []).find(h => h.pgm === pgm);
+    const name  = horse ? horse.name : pgm;
+    // Find revised pick: first non-scratched horse by table order (already ranked)
+    const activeHorses = (race.horses || []).filter(h => !manSet.has(h.pgm));
+    const revised = activeHorses[0];
+    const revisedHtml = revised
+      ? `<div class="scratch-revised">↳ Revised Top Pick: #${esc(revised.pgm)} ${esc(revised.name)} — Comp ${esc(revised.comp)}</div>`
+      : '';
+    parts.push(`
+      <div class="scratch-notice">
+        <div class="scratch-title">🚨 Manual Scratch — #${esc(pgm)} ${esc(name)}</div>
+        <div class="scratch-detail">Removed from field by user</div>
+        ${revisedHtml}
+      </div>`);
+  }
+
+  return parts.join('');
 }
 
 /* ── Bet / No Bet ──────────────────────────────────────────────────────── */
@@ -1164,11 +1351,19 @@ function parseMl(ml) {
   return parseInt(m[1], 10) / parseInt(m[2], 10);  // "2-1"→2.0, "5-2"→2.5
 }
 
-function calcBetRec(race) {
-  const top = race.top_pick;
-  if (!top) return null;
+function calcBetRec(race, raceIdx) {
+  const scratched    = getScratchSet(raceIdx);
+  const activeHorses = (race.horses || []).filter(h => !scratched.has(h.pgm));
+  // Use active rank-1 as effective top pick
+  const topHorse = activeHorses[0];
+  if (!topHorse) return null;
+  const origTop  = race.top_pick || {};
+  const top      = origTop.pgm === topHorse.pgm ? origTop : {
+    pgm: topHorse.pgm, name: topHorse.name,
+    ml: topHorse.ml, composite: topHorse.comp, tier: topHorse.tier,
+  };
 
-  const horse    = (race.horses || []).find(h => h.pgm === top.pgm);
+  const horse    = topHorse;
   const tier     = (top.tier || '').toUpperCase().replace('SPECULATIVE', 'SPEC');
   const comp     = parseFloat(top.composite) || 0;
   const mlOdds   = parseMl(top.ml);
@@ -1292,8 +1487,8 @@ function calcBetRec(race) {
   return { verdict, cls, pts, pros, cons, valNote, comp };
 }
 
-function buildBetRec(race) {
-  const rec = calcBetRec(race);
+function buildBetRec(race, raceIdx) {
+  const rec = calcBetRec(race, raceIdx);
   if (!rec) return '';
 
   const icon = rec.verdict === 'PLAY' ? '✅'
