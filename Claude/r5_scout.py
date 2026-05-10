@@ -89,6 +89,82 @@ SOURCES = {
     },
 }
 
+# ── TRACK CODE → DRF TRACK ID ────────────────────────────────────────────────
+# DRF entry URLs use their own track IDs — map BRIS codes where they differ
+DRF_TRACK_MAP = {
+    "CDX": "CD",   # Churchill Downs regular meet uses CD in DRF
+    "DBY": "CD",   # Kentucky Derby day
+    "BAQ": "BAQ",  # Belmont at the Big A — DRF uses BAQ
+    "BEL": "BEL",
+    "SAR": "SAR",
+    "KEE": "KEE",
+    "PIM": "PIM",
+    "GP":  "GP",
+    "DMR": "DMR",
+    "OP":  "OP",
+    "MTH": "MTH",
+    "LRL": "LRL",
+}
+
+# ── EQUIBASE / DRF OFFICIAL SCRATCH FETCHER ──────────────────────────────────
+def fetch_official_scratches(track, date_str):
+    """
+    Fetch official scratch list from DRF entries page for a given track/date.
+
+    Args:
+        track    : BRIS track code (e.g. 'BAQ', 'CDX', 'PIM')
+        date_str : date in YYYYMMDD format (e.g. '20260510')
+
+    Returns:
+        List of dicts: [{"race": 7, "pgm": "4", "name": "FORT NELSON"}, ...]
+        Returns [] on any error — never raises.
+    """
+    drf_track = DRF_TRACK_MAP.get(track.upper(), track.upper())
+    # Convert YYYYMMDD → MM-DD-YYYY for DRF URL
+    try:
+        dt = datetime.strptime(date_str, "%Y%m%d")
+        drf_date = dt.strftime("%m-%d-%Y")
+    except ValueError:
+        print(f"  [scratch] Bad date format: {date_str}")
+        return []
+
+    url = f"https://www.drf.com/entries/entryDetails/id/{drf_track}/country/USA/date/{drf_date}"
+    print(f"  [scratch] Fetching: {url}")
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15)
+        if r.status_code != 200:
+            print(f"  [scratch] HTTP {r.status_code} — no scratch data available")
+            return []
+
+        soup = BeautifulSoup(r.text, "html.parser")
+        # DRF embeds full race JSON in a text node containing "raceKey"
+        json_node = soup.find(string=lambda t: t and '"raceKey"' in t)
+        if not json_node:
+            print(f"  [scratch] No race JSON found on page")
+            return []
+
+        data = json.loads(json_node.string)
+        scratches = []
+        for race in data.get("races", []):
+            rnum = race["raceKey"]["raceNumber"]
+            for runner in race.get("runners", []):
+                if runner.get("scratchIndicator", "N") != "N":
+                    pgm  = str(runner.get("programNumberStripped",
+                               runner.get("programNumber", "?"))).strip()
+                    name = runner.get("horseName", "?").upper()
+                    scratches.append({"race": rnum, "pgm": pgm, "name": name,
+                                      "source": "DRF official"})
+
+        print(f"  [scratch] Found {len(scratches)} official scratch(es)")
+        for s in scratches:
+            print(f"    ✗ R{s['race']} #{s['pgm']} {s['name']}")
+        return scratches
+
+    except Exception as e:
+        print(f"  [scratch] Error fetching scratch list: {e}")
+        return []
+
+
 # ── SCRAPER ───────────────────────────────────────────────────────────────────
 def fetch(url, timeout=12):
     """Fetch URL with retries"""
@@ -547,6 +623,25 @@ def main():
             "key_insights": [f"Raw articles collected: {len(articles)}. Run with ANTHROPIC_API_KEY set for full extraction."],
             "raw_articles": articles[:20],
         }
+
+    # Merge official scratch list — always runs if track is specified
+    if args.track:
+        print("\n🔍 Fetching official scratch list...")
+        official_scratches = fetch_official_scratches(args.track, run_date)
+        if official_scratches:
+            # Deduplicate against any scratches Claude already found from articles
+            existing_names = {s["horse"].upper() for s in intel.get("scratches", [])}
+            for s in official_scratches:
+                if s["name"] not in existing_names:
+                    intel.setdefault("scratches", []).append({
+                        "horse":  s["name"],
+                        "track":  args.track.upper(),
+                        "race":   str(s["race"]),
+                        "pgm":    s["pgm"],
+                        "reason": "official scratch",
+                        "source": "DRF official"
+                    })
+            print(f"  ✓ {len(official_scratches)} official scratch(es) merged into intel")
 
     # Format for R5
     r5_text = format_for_r5(intel, horses_list)
