@@ -300,7 +300,7 @@ def extract_intel_with_claude(articles, api_key):
             },
             json={
                 "model": "claude-sonnet-4-6",
-                "max_tokens": 2000,
+                "max_tokens": 4096,
                 "messages": [{"role": "user", "content": prompt}],
             },
             timeout=60,
@@ -316,6 +316,13 @@ def extract_intel_with_claude(articles, api_key):
         # Strip markdown fences if present
         text = re.sub(r"^```json\s*", "", text)
         text = re.sub(r"```$", "", text.rstrip())
+
+        # Extract just the JSON object (handles trailing text after closing brace)
+        start = text.find("{")
+        end   = text.rfind("}") + 1
+        if start == -1 or end == 0:
+            raise ValueError("No JSON object found in response")
+        text = text[start:end]
 
         intel = json.loads(text)
         intel["raw_article_count"] = len(articles)
