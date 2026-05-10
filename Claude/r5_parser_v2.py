@@ -345,8 +345,9 @@ def finalize_field(horses):
     for h in horses:
         mr  = model_rank.get(h['name'], n)
         or_ = odds_rank.get(h['name'], n // 2 + 1)
-        diff = or_ - mr                             # positive = model rates higher than market
-        h['val_n'] = round(max(1.0, min(10.0, 5.0 + diff * 0.7)), 1)
+        diff = or_ - mr                             # positive = overlay (model ranks higher than market)
+        # Floor at 5.0: overlays rewarded, underlays neutral — never penalise market favourites model ranks low
+        h['val_n'] = round(max(5.0, min(10.0, 5.0 + diff * 0.7)), 1)
 
     # ── FINAL COMPOSITE ───────────────────────────────────────────────────────
     for h in horses:
@@ -374,7 +375,7 @@ def report(horses):
     )
 
     print("=" * 104)
-    print(f"  🏇  R5 v3.3 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
+    print(f"  🏇  R5 v3.4 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
           f"{horses[0]['date']}  |  {dist_f}f  {horses[0]['surface']}  |  "
           f"Purse ${horses[0]['purse']:,.0f}  |  {pace_label}")
     print("=" * 104)

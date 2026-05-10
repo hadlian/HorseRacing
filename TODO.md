@@ -3,8 +3,8 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-09 (late evening)
-> **Current version:** R5 v3.3 (latest commit b2451df / scout fixes)
+> **Last updated:** 2026-05-10 (evening)
+> **Current version:** R5 v3.4 (val_n floor fix — Issue 2 resolved)
 > **Next planned session:** Preakness week — PIM ~2026-05-16 (continue data collection)
 
 ---
@@ -18,17 +18,17 @@ These must be resolved in order. Do not change TJ weights (Issue 3) until Issues
 - **Fix applied:** `class_n=0.0` for horses with no BRIS speed figures. `[DEBUT]` tag added to table row and field-level warning printed.
 - **Commit:** be7bc04 — 2026-05-09
 
-### Issue 2 — Value Score Inversion `CRITICAL`
+### ~~Issue 2 — Value Score Inversion~~ `FIXED — v3.4`
 - **File:** `Claude/r5_parser_v2.py`
-- **Problem:** The value formula penalises horses the market likes but the model ranks low — the wrong direction. A horse the market favours that the model ranks low should have *elevated* value (the market sees something the model missed). Confirmed: De' Medici (CDX R2) had `val_n=1.5` yet won at $6.48 as ML 2-1.
-- **Fix:** Full audit of `value` calculation logic. Direction of signal needs to be reversed or recalibrated.
-- **Status:** Not started. Do not raise TJ weight until this is resolved.
+- **Fix applied:** One-sided floor fix. `diff = or_ - mr` direction preserved (overlay detection) but floor raised from `max(1.0, ...)` → `max(5.0, ...)`. Underlays now get val_n=5.0 (neutral) instead of being penalised down to 0.8. Overlays (high odds + model likes) still fire val_n up to 10.0. Market favourites the model ranks low no longer have their composite dragged down by a compounding val_n penalty.
+- **De' Medici case:** Was val_n=1.5 → now val_n=5.0. The composite loss from this horse's val_n goes from −0.35 to 0.0.
+- **Commit:** 2026-05-10 (evening)
 
 ### Issue 3 — T/J Weight Underperforming `MODERATE`
 - **File:** `Claude/r5_parser_v2.py`
 - **Problem:** At 10% weight, T/J cannot overcome FCI/Class even when winners have field-leading T/J scores. 3 of 8 winners in the CDX 05/07 audit had the highest or near-highest T/J in the field.
 - **Proposed fix:** Raise T/J from 10% → 15%. Offset: Class 20% → 13%, Bias 15% → 10%, Ped 10% → 7%.
-- **Status:** Candidate. Requires explicit approval before code change. Do not start until Issues 1 & 2 are resolved.
+- **Status:** Candidate. Issues 1 & 2 now resolved — this is next in queue. Requires explicit approval before code change. Validate after Preakness week data collected.
 
 ### Issue 4 — Composite Score Ceiling `MODERATE`
 - **File:** `Claude/r5_parser_v2.py`
@@ -89,11 +89,9 @@ All UI work lives in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
 ### ~~Multi-Track Batch ZIP Upload~~ `ALREADY BUILT`
 The existing upload UI already handles multiple DRF files and ZIP archives containing multiple tracks in a single pass. No work needed here.
 
-### UI-1 — Mobile Responsive Design
+### ~~UI-1 — Mobile Responsive Design~~ `DONE — 2026-05-10`
 - **File:** `webapp/templates/index.html`
-- **Problem:** The 12-column horse table is unreadable on a phone screen at the track.
-- **Proposed fix:** Collapsed row design for mobile — show Horse, Comp, Tier by default; tap to expand full metrics. CSS media queries.
-- **Status:** Not started.
+- **What was built:** `@media (max-width: 639px)` block. Horse table hides columns 3–11 on mobile, showing only `#`, `Horse`, `Comp`, `Tier`. Each row has a `▶` tap-to-expand button that reveals a 3-column metrics grid (ML, WS4, Trend, FCI, vPar, Ped, T/J, Pce, Val). Race tabs scroll horizontally instead of wrapping. Summary table hides Purse/Pace/ML columns. Picks grid goes single-column. Reduced padding throughout. Desktop layout unchanged.
 
 ### UI-2 — Historical ROI Dashboard
 - **Files:** `webapp/app.py`, `webapp/templates/index.html`
@@ -118,6 +116,10 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 
 ---
 
+## ✅ Completed (v3.4)
+
+- **Issue 2 — Value score inversion fix** — One-sided floor: `max(1.0)` → `max(5.0)`. Underlays get val_n=5.0 (neutral) instead of being penalised. Overlays still rewarded up to 10.0. De' Medici case: val_n 1.5 → 5.0, composite drag eliminated. (2026-05-10)
+
 ## ✅ Completed (v3.3)
 
 - **Issue 1 — Maiden/Firster class_n fix** — `class_n=0.0` for no-speed-figure horses; `[DEBUT]` flag in output (commit be7bc04, 2026-05-09)
@@ -125,7 +127,8 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 - **Scout — Track keyword expansion** — Added `CDX` and `BAQ` to `TRACK_KEYWORDS`; was using generic fallback terms (commit b2451df, 2026-05-09)
 - **Scout — Auto-scout track matching** — `--auto-scout` now matches JSON by track prefix from DRF filename instead of loading most-recent-by-mtime (commit b2451df, 2026-05-09)
 - **Scout — Stacking cap** — Total scout adjustment per horse capped at ±0.40; prevents qualitative signals from overriding speed/class metrics (2026-05-09)
-- **Issue 5 — Scratch Gate** — Per-race scratch notice when pre-scratch top-3 horse is scratched; revised top pick printed; scratched horses excluded from DB (2026-05-10). **Live validation 2026-05-10 Race 7:** #4 FORT NELSON (pre-scratch Rank 3) scratched. Engine correctly promoted #5 I'M READY TO GO (Comp 6.41) as revised top pick, updated exotics (WIN #5 / EX #5-#1 / TRI #5-#1-#3), shifted value alt to #3 FIDDLING FELIX (12-1, Comp 5.46). Tight Cluster flag also fired (spread 0.95 pts). Note: web app still showed #4 because DRF file is unchanged — this is expected behaviour; fix lives in engine, not webapp.
+- **Issue 5 — Scratch Gate** — Per-race scratch notice when pre-scratch top-3 horse is scratched; revised top pick printed; scratched horses excluded from DB (2026-05-10). **Live validation 2026-05-10 Race 7:** #4 FORT NELSON (pre-scratch Rank 3) scratched. Engine correctly promoted #5 I'M READY TO GO (Comp 6.41) as revised top pick, updated exotics (WIN #5 / EX #5-#1 / TRI #5-#1-#3), shifted value alt to #3 FIDDLING FELIX (12-1, Comp 5.46). Tight Cluster flag also fired (spread 0.95 pts).
+- **UI — Scratch Notice Display** — `parse_output` in `webapp/app.py` now pre-scans full engine text for scratch notices keyed by race number (`R7:` etc.) before splitting into race blocks. Notices are injected into the correct race after parsing. Previously notices appeared between blocks and were associated with the wrong race. Fixed 2026-05-10.
 - **Issue 6 partial — Tight Cluster display flag** — ⚠️ TIGHT CLUSTER warning when top-3 spread ≤1.5 pts; display only, no score change (2026-05-10)
 - **Scout — LRL track keywords** — Laurel Park added to TRACK_KEYWORDS for Preakness week training intel (2026-05-10)
 - **34-race results DB** — CDX0502 (14), DBY0502 (1 Derby), CDX0507 (8), BAQ0509 (11). 18.2% top-pick win rate, 45.5% top-3 hit rate, TJ signal +0.86.
