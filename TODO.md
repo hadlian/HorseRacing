@@ -133,6 +133,13 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 
 ## 🟠 Scout — Remaining Improvements (post-Preakness)
 
+### Scout-0 — Equibase Official Scratch List `HIGH PRIORITY`
+- **File:** `Claude/r5_scout.py` (or new `Claude/r5_scratches.py`)
+- **Problem:** The scout finds scratches from news articles, which are often late or missing for same-day scratches. The official Equibase scratch list is public, updated in real time, and lists every scratch by track/date/race/program number — but the scout never queries it.
+- **Proposed fix:** Add a dedicated scratch fetcher that hits the Equibase scratch page for the target track and date, parses the program numbers, and returns a list of scratched pgms. Feed that list directly into the engine's scratch gate before output is generated.
+- **Why it matters:** Today (2026-05-10) #4 FORT NELSON was scratched in Race 7 but the scout missed it because no news article covered it in time. The manual scratch input in the web UI works around this, but the automatic solution is the Equibase list.
+- **Status:** Not started. Build before Preakness week (target: 2026-05-14).
+
 ### Scout-1 — Horse Name Expansion
 - **File:** `Claude/run_r5.py`, `Claude/r5_scout.py`
 - **Problem:** Scout queries only use track keywords. DRF horse names are never passed to the scraper, so Claude extracts no horse-specific trainer quotes or workout notes.

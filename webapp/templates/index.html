@@ -759,6 +759,10 @@
 
       <div class="options-row">
         <label class="check-label">
+          <input type="checkbox" id="scoutOpt">
+          Auto Scout (scrape trainer quotes, scratches, sharp money — requires API key)
+        </label>
+        <label class="check-label">
           <input type="checkbox" id="pdfOpt">
           Generate PDF (slower — requires reportlab)
         </label>
@@ -833,6 +837,7 @@ const fileInput    = document.getElementById('fileInput');
 const fileList     = document.getElementById('fileList');
 const analyzeBtn   = document.getElementById('analyzeBtn');
 const pdfOpt       = document.getElementById('pdfOpt');
+const scoutOpt     = document.getElementById('scoutOpt');
 const loadingWrap  = document.getElementById('loadingWrap');
 const errorBanner  = document.getElementById('errorBanner');
 const warnBanner   = document.getElementById('warnBanner');
@@ -902,7 +907,8 @@ async function runAnalysis() {
 
   const fd = new FormData();
   files.forEach(f => fd.append('files', f));
-  fd.append('pdf', pdfOpt.checked ? 'true' : 'false');
+  fd.append('pdf',   pdfOpt.checked   ? 'true' : 'false');
+  fd.append('scout', scoutOpt.checked ? 'true' : 'false');
 
   try {
     const res  = await fetch('/api/analyze', { method: 'POST', body: fd });

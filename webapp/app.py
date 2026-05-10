@@ -53,8 +53,10 @@ def extract_drfs(zip_path: Path, dest: Path) -> list[Path]:
     return drfs
 
 
-def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool) -> tuple[str, Path | None]:
+def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = False) -> tuple[str, Path | None]:
     cmd = [R5_PYTHON, str(CLAUDE_DIR / "run_r5.py"), str(drf_path)]
+    if want_scout:
+        cmd.append("--auto-scout")
     if want_pdf:
         cmd.append("--pdf")
 
@@ -293,7 +295,8 @@ def analyze():
     if not files or all(f.filename == "" for f in files):
         return jsonify({"error": "No files provided"}), 400
 
-    want_pdf = request.form.get("pdf", "false").lower() == "true"
+    want_pdf   = request.form.get("pdf",   "false").lower() == "true"
+    want_scout = request.form.get("scout", "false").lower() == "true"
 
     job_id  = str(uuid.uuid4())
     work_dir = WORK_BASE / job_id
@@ -325,7 +328,7 @@ def analyze():
 
         for drf in drfs:
             try:
-                text, pdf_path = run_r5(drf, work_dir, want_pdf)
+                text, pdf_path = run_r5(drf, work_dir, want_pdf, want_scout)
                 all_text += text + "\n"
                 all_races.extend(parse_output(text))
                 if pdf_path:
