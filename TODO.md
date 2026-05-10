@@ -5,7 +5,7 @@
 >
 > **Last updated:** 2026-05-10 (evening)
 > **Current version:** R5 v3.4 (val_n floor fix — Issue 2 resolved)
-> **Next planned session:** Preakness week — PIM ~2026-05-16 (continue data collection)
+> **Next planned session:** Thursday 2026-05-14 — CDX (Churchill Downs resumes Thu) + PIM load for Preakness Day (~Sat 2026-05-16)
 
 ---
 
