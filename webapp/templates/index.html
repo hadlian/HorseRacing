@@ -617,6 +617,42 @@
     }
     .val-alt-line .va-odds { color: var(--gold); font-weight: 600; }
 
+    /* ── Scratch notice ─────────────────────────────────────────────────── */
+    .scratch-notice {
+      background: rgba(231,76,60,0.10);
+      border-left: 4px solid var(--red);
+      border-radius: 0 6px 6px 0;
+      padding: 12px 16px;
+      margin: 14px 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .scratch-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #ff8080;
+    }
+    .scratch-detail { font-size: 0.82rem; color: var(--text); }
+    .scratch-revised { font-size: 0.82rem; color: #5ddb8e; font-weight: 600; }
+
+    /* ── Tight cluster pill ──────────────────────────────────────────────── */
+    .tight-cluster-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      background: rgba(230,126,34,0.18);
+      color: #ffb86e;
+      border: 1px solid rgba(230,126,34,0.45);
+    }
+
     /* ── Utility ───────────────────────────────────────────────────────── */
     .hidden { display: none !important; }
   </style>
@@ -957,9 +993,11 @@ function renderRace(idx) {
             <span class="meta-lbl">Pace</span>
             <span class="pace-pill ${paceClass}">${esc(race.pace_type || '?')}</span>
           </div>
+          ${race.tight_cluster ? `<div class="meta-item"><span class="tight-cluster-pill">⚠️ TIGHT CLUSTER${race.tight_cluster_spread ? ' · ' + race.tight_cluster_spread + ' pts' : ''}</span></div>` : ''}
         </div>
       </div>
 
+      ${buildScratchNotices(race)}
       ${buildHorseTable(race)}
       ${buildPicks(race)}
       ${buildBetRec(race)}
@@ -1082,6 +1120,23 @@ function buildExotics(race) {
     </div>`;
 }
 
+/* ── Scratch notices ───────────────────────────────────────────────────── */
+function buildScratchNotices(race) {
+  const scratches = race.scratches || [];
+  if (!scratches.length) return '';
+  return scratches.map(s => {
+    const revised = s.revised_pgm
+      ? `<div class="scratch-revised">↳ Revised Top Pick: #${esc(s.revised_pgm)} ${esc(s.revised_name)}${s.revised_comp ? ' — Comp ' + esc(s.revised_comp) : ''}</div>`
+      : '';
+    return `
+      <div class="scratch-notice">
+        <div class="scratch-title">🚨 Scratch — #${esc(s.pgm)} ${esc(s.name)}</div>
+        <div class="scratch-detail">Pre-scratch Rank ${esc(s.pre_rank)} — removed from field</div>
+        ${revised}
+      </div>`;
+  }).join('');
+}
+
 /* ── Bet / No Bet ──────────────────────────────────────────────────────── */
 
 /*
@@ -1199,6 +1254,12 @@ function calcBetRec(race) {
   } else if (isNml && isCloser) {
     pts += 1;
     pros.push(`closer in NORMAL pace — clean stalking setup`);
+  }
+
+  // 7 — Tight cluster
+  if (race.tight_cluster) {
+    const spread = race.tight_cluster_spread ? ` (top-3 spread ${race.tight_cluster_spread} pts)` : '';
+    cons.push(`tight speed cluster${spread} — low model separation, race is hard to call`);
   }
 
   // ── Verdict ──────────────────────────────────────────────────────────────

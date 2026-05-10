@@ -118,6 +118,18 @@ _TOP_PICK_RE = re.compile(
 _VAL_ALT_RE = re.compile(
     r'💰\s+VALUE ALT:\s+#(\S+)\s+(.+?)\s+\[([^\]]+)\]\s+\|\s+Composite\s+(\S+)\s+\|\s+(\S+)'
 )
+_TIGHT_CLUSTER_RE = re.compile(
+    r'⚠[️️]?\s*TIGHT CLUSTER[^=\n]*(?:spread\s*=\s*([\d.]+)\s*pts?)?',
+    re.IGNORECASE,
+)
+_SCRATCH_NOTICE_RE = re.compile(
+    r'🚨\s*SCRATCH NOTICE[^:]*:\s+#(\S+)\s+(.+?)\s+\(pre-scratch Rank\s+(\d+)\)',
+    re.IGNORECASE,
+)
+_REVISED_PICK_RE = re.compile(
+    r'REVISED TOP PICK:\s+#(\S+)\s+(.+?)\s+Composite\s+([\d.]+)',
+    re.IGNORECASE,
+)
 
 
 def parse_output(text: str) -> list[dict]:
@@ -198,6 +210,36 @@ def _parse_race_block(block: str) -> dict | None:
                             ("TRIFECTA:", "trifecta"), ("SUPERFECTA:", "superfecta")]:
             if label in line:
                 race["exotics"][key] = line.split(label, 1)[1].strip()
+
+    # ── Tight cluster ────────────────────────────────────────────────────────
+    for line in lines:
+        m = _TIGHT_CLUSTER_RE.search(line)
+        if m:
+            race["tight_cluster"] = True
+            race["tight_cluster_spread"] = m.group(1)  # e.g. "0.95", or None
+            break
+
+    # ── Scratch notices ──────────────────────────────────────────────────────
+    scratches = []
+    for i, line in enumerate(lines):
+        ms = _SCRATCH_NOTICE_RE.search(line)
+        if ms:
+            scratch = {
+                "pgm":      ms.group(1),
+                "name":     ms.group(2).strip(),
+                "pre_rank": ms.group(3),
+            }
+            # Revised pick is usually on the next line
+            for j in range(i + 1, min(i + 4, len(lines))):
+                mr = _REVISED_PICK_RE.search(lines[j])
+                if mr:
+                    scratch["revised_pgm"]  = mr.group(1)
+                    scratch["revised_name"] = mr.group(2).strip()
+                    scratch["revised_comp"] = mr.group(3)
+                    break
+            scratches.append(scratch)
+    if scratches:
+        race["scratches"] = scratches
 
     return race
 
