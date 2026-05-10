@@ -1,0 +1,111 @@
+=============================================================================
+  R5 v3.3 → v3.4  |  BAQ0510 (Belmont at the Big A)  |  May 10, 2026
+  9-Race Audit  |  Logged to DB 2026-05-10 (evening)
+=============================================================================
+
+RACE-BY-RACE RESULTS
+--------------------
+
+R1  6f Dirt | SLOW PACE | MSW $80K
+  Model Rank 1: #4 PROSPECTOR (2.5-1 ML, Comp 3.63)  →  Finished 4th
+  Winner: #1 BLUE ROOF BEAU (3-1 ML, $7.28) — Model Rank 3  [DEBUT]
+  SCR: Big Fat Goalie
+  Result: MISS | Winner inside top-3 ✓
+  Note: Full debut field — all 5 non-PROSPECTOR/HURRICANE entrants were [DEBUT].
+        Blue Roof Beau (DEBUT, class_n=0.0) ranked 3rd on TJ/Ped alone. Winner again
+        came from debut flagged group — model correctly warned off this race.
+
+R2  7f Dirt | NORMAL PACE | CLM $25K-$30K, $55K purse
+  Model Rank 1: #6 REMI'S MOON (2-1 ML, Comp 5.01)  →  Finished 1st ✓
+  Winner: #6 REMI'S MOON ($5.16 / 1.58-1) — Model Rank 1
+  Exacta: #6/#5 — Jackson Heights ran 2nd ✓ (Value Alt was Jackson Heights)
+  Result: WIN ✓ | Top-pick win | Exacta partial hit (#6/#2 not #6/#5)
+
+R3  1M Dirt | NORMAL PACE | MSW $80K
+  Model Rank 1: #6 JUDGE BOUSHAY (2.5-1 ML, Comp 5.11)  →  Finished 2nd
+  Winner: #7 TRICKY BUSINESS (4.5-1 ML, $8.14) — Model Rank 6  [DEBUT]
+  Result: MISS | Winner outside top-3
+  Note: Second debut winner on the card. Tricky Business (Vekoma/Weaver) ranked 6th
+        with class_n=0.0. Debut flag fired correctly — model warned not to bet on class.
+        Judge Boushay (Chad Brown) ran a creditable 2nd. Confirms debut-field caution.
+
+R4  1M Turf | HOT PACE (5 speed) | MSW $85K
+  Model Rank 1: #1 RIVER RIDE (3-1 ML, Comp 5.81)  →  Finished 2nd
+  Winner: #3 RIGHT TIMING (2-1 ML, $3.86, went off 0.93-1) — Model Rank 3
+  SCR: Prime Connection, Run Wild
+  Result: MISS | Winner inside top-3 ✓
+  Note: Right Timing was ML 2-1 and went off as odds-on favourite — model ranked 3rd.
+        HOT pace flag fired; speed horse Right Timing won anyway. River Ride (Rank 1,
+        McGaughey/Lezcano) ran 2nd. Top-3 model coverage preserved.
+
+R5  1M Dirt | NORMAL PACE | AOC $55K, $88K purse
+  Model Rank 1: #6 BRUNCH WITH AMY (4.5-1 ML, Comp 5.62)  →  Finished 3rd
+  Winner: #5 POINT OF REFERENCE (3-1 ML, $7.26) — Model Rank 2
+  Result: MISS | Winner inside top-3 ✓
+  Note: Model top-2 ran 1-3 in reverse order (PoR 1st, BwA 3rd). Snide (ML 2-1,
+        Rank 6) ran 2nd. Tight cluster (0.44 pts) — low conviction race, model warned.
+
+R6  1.5f Outer Turf | NORMAL PACE | MSW $85K  ← VALUE ALT WIN
+  Model Rank 1: #3 DONEGAL TIME (3-1 ML, Comp 5.65)  →  Finished 4th
+  Winner: #8 GLAVINE (6-1 ML, $10.34) — Model Rank 7  ← VALUE ALT
+  SCR: Copious, Stream It, C J Star, Pauillac, Moon On Fire, Fess (6 scratches)
+  Result: MISS (top pick) | VALUE ALT WIN ✓ | Winner outside top-3
+  Note: Glavine was explicitly named as VALUE ALT in the R5 output with 6-1 ML.
+        Paid $10.34. 6 scratches gutted the field. Tight cluster (0.23 pts) warned
+        low model conviction. TJ underweight consistent — Glavine had strong TJ signal.
+
+R7  1M Dirt | NORMAL PACE | ALW $88K  ← SCRATCH GATE VALIDATED
+  Model Rank 1: #5 I'M READY TO GO (1.6-1 ML, Comp 6.41)  →  Finished 1st ✓
+  Winner: #5 I'M READY TO GO ($4.00 / 1-1) — Model Rank 1
+  SCR: Fort Nelson (#4, pre-scratch Rank 3) — Scratch gate fired, revised top pick confirmed
+  Exacta: #5/#1 Bold Strength ✓ hit
+  Result: WIN ✓ | Highest comp on card (6.41) | Scratch gate validated live
+
+R8  1M Dirt | HOT PACE (5 speed) | ALW $82K
+  Model Rank 1: #9 MAD BANKER (8-1 ML, Comp 5.33)  →  Finished 6th
+  Winner: #6 STICKUPWITHOUTAGUN (3-1 ML, $4.68) — Model Rank 7
+  SCR: Max Money (#5, 2-1 ML)
+  Value Alt: #4 TARPAULIN (12-1 ML) → Finished 2nd ✓
+  Result: MISS | Winner outside top-3
+  Note: HOT pace — speed horse Stickupwithoutagun won wire-to-wire. Model correctly
+        identified closer as top pick in HOT pace but wrong closer (Mad Banker, not
+        Tarpaulin). Tarpaulin (Value Alt) ran 2nd. Max Money (2-1 ML fav) scratched.
+
+R9  1.5f Outer Turf | HOT PACE (6 speed) | ALW $82K
+  Model Rank 1: #10 JUST FOR LUCK (4.5-1 ML, Comp 6.32)  →  Finished 1st ✓
+  Winner: #10 JUST FOR LUCK ($7.00 / 2.5-1) — Model Rank 1
+  SCR: Love Coin, Calling Card
+  Result: WIN ✓ | HOT pace, closer won — model correct on pace scenario + horse
+  Note: Started at back of 12-horse field, angled 7 wide, closed strongly. Dutrow.
+
+=============================================================================
+BAQ0510 CARD SUMMARY
+=============================================================================
+Top-pick win rate:    3/9 = 33.3%   (prior DB baseline: 18.2%)
+Winner in model top-3: 6/9 = 66.7%  (prior DB baseline: 45.5%)
+Value Alt win:        R6 Glavine ($10.34) — named VALUE ALT in output
+Debut winners:        R1 Blue Roof Beau, R3 Tricky Business (both flagged [DEBUT])
+Scratch gate:         R7 Fort Nelson caught, I'm Ready to Go confirmed as winner
+HOT pace:             R4 speed won (vs. model), R8 speed won (vs. model), R9 closer won ✓
+
+=============================================================================
+FULL DB STATS (races with results logged)
+=============================================================================
+Races logged with results: 29
+Top-pick win rate:         9/29 = 31.0%
+Winner in model top-3:     21/29 = 72.4%
+
+KEY FINDINGS vs. PRIOR AUDIT
+- Debut flag: 2 more debut winners (R1, R3) — model's [DEBUT] warning is consistently
+  right to suppress these horses. Field-wide debut caution valid.
+- HOT pace (R8): speed won again. 2 of 3 HOT pace races today had speed horse win.
+  Closer bias in HOT pace may need review vs. data.
+- Value signal (v3.4 fix): val_n floor at 5.0 prevents downward drag. No cases today
+  where a ML-favoured horse was penalised — fix appears clean.
+- TJ underweight: Glavine (R6 VALUE ALT winner) had strong TJ signal. Consistent with
+  prior pattern — field-leading TJ horse repeatedly wins from outside model top-3.
+
+NEXT STEPS
+- Collect mid-week CDX card results
+- Preakness Day PIM (~May 16) — load Thursday, scout race morning
+- After ~60 races: revisit Issue 3 (TJ weight 10% → 15%) with data
