@@ -406,6 +406,17 @@ def report(horses):
         print(f"⚠️   DEBUT FLAG: {names} — no BRIS speed figures, class_n=0.0. Do not bet on class score alone.")
         print()
 
+    # ── TIGHT CLUSTER WARNING ──
+    if len(ranked) >= 3:
+        cluster_spread = round(ranked[0]['comp'] - ranked[2]['comp'], 2)
+        if cluster_spread <= 1.5:
+            print(f"⚠️   TIGHT CLUSTER: top 3 within {cluster_spread} pts "
+                  f"(#{ranked[0]['pgm']} {ranked[0]['comp']} / "
+                  f"#{ranked[1]['pgm']} {ranked[1]['comp']} / "
+                  f"#{ranked[2]['pgm']} {ranked[2]['comp']}) — "
+                  f"low model conviction. Consider value alt over top pick.")
+            print()
+
     # ── TOP WIN PICK ──
     top = ranked[0]
     print("=" * 104)

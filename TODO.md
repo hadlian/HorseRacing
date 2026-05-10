@@ -41,12 +41,11 @@ These must be resolved in order. Do not change TJ weights (Issue 3) until Issues
 - **Fix applied:** Per-race scratch notice prints when any scratched horse held pre-scratch Rank 1-3. Shows scratched horse name, pre-scratch rank, and revised top pick with composite and tier. Scratched horses excluded from DB logging. Scout JSON scratches feed this automatically.
 - **Note:** Scout must be run race-morning to catch day-of scratches reported in articles. Manual cross-check against official scratch list still recommended for high-stakes races.
 
-### Issue 6 — Crowded Room Penalty `PROPOSED`
+### Issue 6 — Crowded Room Penalty `PARTIAL — display flag live, deduction pending`
 - **File:** `Claude/r5_parser_v2.py`
-- **Problem:** When the top 3 ranked horses are within ≤1.5 composite points of each other, the model has no conviction. Currently outputs a PLAY with no caveat.
-- **Proposed fix:** If spread between rank-1 and rank-3 comp is ≤1.5, flag race as `TIGHT CLUSTER` and apply a confidence deduction or suppress the PLAY verdict.
-- **Validation needed:** Confirm threshold against Saturday 2026-05-10 results before implementing.
-- **Status:** Proposed (Gemini advisory, 2026-05-08). Not started.
+- **Display flag LIVE:** ⚠️ TIGHT CLUSTER warning prints when top-3 spread ≤1.5 pts. Shows individual composites and advises value alt. No score changes.
+- **Remaining:** Score deduction / PLAY suppression — requires validation against results data before implementing. Do not add deduction until threshold is confirmed.
+- **Status:** Flag implemented 2026-05-10. Deduction pending post-Preakness validation.
 
 ### Issue 7 — Surface-Specific WS4 Weighting `PROPOSED`
 - **File:** `Claude/r5_parser_v2.py`
@@ -127,6 +126,8 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 - **Scout — Auto-scout track matching** — `--auto-scout` now matches JSON by track prefix from DRF filename instead of loading most-recent-by-mtime (commit b2451df, 2026-05-09)
 - **Scout — Stacking cap** — Total scout adjustment per horse capped at ±0.40; prevents qualitative signals from overriding speed/class metrics (2026-05-09)
 - **Issue 5 — Scratch Gate** — Per-race scratch notice when pre-scratch top-3 horse is scratched; revised top pick printed; scratched horses excluded from DB (2026-05-10)
+- **Issue 6 partial — Tight Cluster display flag** — ⚠️ TIGHT CLUSTER warning when top-3 spread ≤1.5 pts; display only, no score change (2026-05-10)
+- **Scout — LRL track keywords** — Laurel Park added to TRACK_KEYWORDS for Preakness week training intel (2026-05-10)
 - **34-race results DB** — CDX0502 (14), DBY0502 (1 Derby), CDX0507 (8), BAQ0509 (11). 18.2% top-pick win rate, 45.5% top-3 hit rate, TJ signal +0.86.
 - **Audit reports** — CDX0507 and BAQ0509 audit TXTs saved in `Results/2026/`. Peter Pan G2 and Ruffian G2 wins validated graded-stakes model strength.
 

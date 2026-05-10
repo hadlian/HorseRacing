@@ -57,6 +57,7 @@ TRACK_KEYWORDS = {
     "GP":  ["Gulfstream"],
     "OP":  ["Oaklawn"],
     "PIM": ["Pimlico", "Preakness"],
+    "LRL": ["Laurel Park", "Laurel"],
     "MTH": ["Monmouth"],
     "AP":  ["Arlington"],
 }
