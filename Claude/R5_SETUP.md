@@ -167,6 +167,8 @@ Capped to the range [1.0, 10.0].
 | Health concern | −0.30 |
 | Scratch | Removed from field |
 
+**Cap:** Total scout adjustment per horse is capped at **±0.40**. Qualitative signals cannot override primary speed and class metrics.
+
 ---
 
 ## Directory Layout

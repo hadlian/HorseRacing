@@ -137,8 +137,13 @@ def apply_scout_adjustments(horses, intel):
                     log.append(f"  🏇 {h['name']}: +0.1 (upgrade to elite jockey {js['new_jockey']})")
 
         if adj != 0:
+            SCOUT_CAP = 0.40
+            if abs(adj) > SCOUT_CAP:
+                capped = round(SCOUT_CAP * (1 if adj > 0 else -1), 2)
+                log.append(f"  ⚡ {h['name']}: scout adj capped {adj:+.2f} → {capped:+.2f} (±{SCOUT_CAP} max)")
+                adj = capped
             h["comp"] = round(h["comp"] + adj, 2)
-            h["scout_adj"] = adj
+            h["scout_adj"] = round(adj, 2)
 
     return horses, log
 

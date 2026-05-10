@@ -3,8 +3,8 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-09 (evening)
-> **Current version:** R5 v3.3 (commit be7bc04)
+> **Last updated:** 2026-05-09 (late evening)
+> **Current version:** R5 v3.3 (latest commit b2451df / scout fixes)
 > **Next planned session:** Preakness week — PIM ~2026-05-16 (continue data collection)
 
 ---
@@ -123,8 +123,26 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 ## ✅ Completed (v3.3)
 
 - **Issue 1 — Maiden/Firster class_n fix** — `class_n=0.0` for no-speed-figure horses; `[DEBUT]` flag in output (commit be7bc04, 2026-05-09)
+- **Scout — API model fix** — `claude-sonnet-4-20250514` → `claude-sonnet-4-6`; was silently falling back to empty intel on every run (commit b2451df, 2026-05-09)
+- **Scout — Track keyword expansion** — Added `CDX` and `BAQ` to `TRACK_KEYWORDS`; was using generic fallback terms (commit b2451df, 2026-05-09)
+- **Scout — Auto-scout track matching** — `--auto-scout` now matches JSON by track prefix from DRF filename instead of loading most-recent-by-mtime (commit b2451df, 2026-05-09)
+- **Scout — Stacking cap** — Total scout adjustment per horse capped at ±0.40; prevents qualitative signals from overriding speed/class metrics (2026-05-09)
 - **34-race results DB** — CDX0502 (14), DBY0502 (1 Derby), CDX0507 (8), BAQ0509 (11). 18.2% top-pick win rate, 45.5% top-3 hit rate, TJ signal +0.86.
 - **Audit reports** — CDX0507 and BAQ0509 audit TXTs saved in `Results/2026/`. Peter Pan G2 and Ruffian G2 wins validated graded-stakes model strength.
+
+## 🟠 Scout — Remaining Improvements (post-Preakness)
+
+### Scout-1 — Horse Name Expansion
+- **File:** `Claude/run_r5.py`, `Claude/r5_scout.py`
+- **Problem:** Scout queries only use track keywords. DRF horse names are never passed to the scraper, so Claude extracts no horse-specific trainer quotes or workout notes.
+- **Fix:** Pass top-ranked horse names from the parsed DRF to `gather_raw_intel()` at runtime via `--auto-scout`.
+- **Status:** Not started. Do after first live scout card to confirm base extraction is working.
+
+### Scout-2 — Sentiment Confidence Score
+- **File:** `Claude/r5_scout.py`
+- **Problem:** Extraction prompt asks for `positive|neutral|negative` with no confidence weighting. Ambiguous quotes (e.g. "needs a race") can be misclassified.
+- **Fix:** Add `confidence` field (0.0–1.0) to extraction prompt; discard signals with confidence < 0.7 before applying adjustment.
+- **Status:** Not started. Evaluate raw scout output on 2–3 cards first.
 
 ## ✅ Completed (v3.2-R4C)
 
