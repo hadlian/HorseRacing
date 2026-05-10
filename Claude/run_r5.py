@@ -229,18 +229,35 @@ def main():
             print(line)
         print()
 
-    # Remove scratches from field
-    active = [h for h in horses if not h.get("scratched")]
+    # Remove scratches from field — with per-race scratch notices
+    def run_report_with_scratch_notice(race_horses):
+        ranked_full  = sorted(race_horses, key=lambda h: h["comp"], reverse=True)
+        scratched    = [h for h in ranked_full if h.get("scratched")]
+        active_field = [h for h in ranked_full if not h.get("scratched")]
+        if not active_field:
+            return
 
-    # Run report — per race if full card, single call if filtered to one race
+        # Print scratch notice when any scratched horse was in pre-scratch top 3
+        for s in scratched:
+            pre_rank = ranked_full.index(s) + 1
+            if pre_rank <= 3:
+                new_top = active_field[0]
+                print(f"🚨  SCRATCH NOTICE — R{s['race']}: "
+                      f"#{s['pgm']} {s['name']} (pre-scratch Rank {pre_rank}) scratched.")
+                print(f"    REVISED TOP PICK: #{new_top['pgm']} {new_top['name']}  "
+                      f"Composite {new_top['comp']}  {new_top['tier']}")
+                print()
+
+        report(active_field)
+
     if args.race:
-        report(active)
+        run_report_with_scratch_notice(horses)
     else:
-        active_by_race = _dd(list)
-        for h in active:
-            active_by_race[h["race"]].append(h)
-        for race_num in sorted(active_by_race.keys(), key=lambda x: int(x)):
-            report(active_by_race[race_num])
+        by_race = _dd(list)
+        for h in horses:
+            by_race[h["race"]].append(h)
+        for race_num in sorted(by_race.keys(), key=lambda x: int(x)):
+            run_report_with_scratch_notice(by_race[race_num])
 
     # Log picks to DB if --track flag used
     if args.track:
@@ -257,11 +274,12 @@ def main():
         year       = str(_date.today().year)
         date_str   = year + mmdd  # e.g. 20260502
 
-        by_race = _dd(list)
-        for h in active:
-            by_race[h["race"]].append(h)
+        active_for_db = [h for h in horses if not h.get("scratched")]
+        db_by_race = _dd(list)
+        for h in active_for_db:
+            db_by_race[h["race"]].append(h)
         print("\n📋 Logging picks to DB...")
-        for race_num, race_horses in sorted(by_race.items(), key=lambda x: int(x[0])):
+        for race_num, race_horses in sorted(db_by_race.items(), key=lambda x: int(x[0])):
             _tmod.log_race_picks(race_horses, track_code, date_str, race_num)
 
     # Save if requested
@@ -271,13 +289,13 @@ def main():
         old_stdout = _sys.stdout
         _sys.stdout = buffer = io.StringIO()
         if args.race:
-            report(active)
+            run_report_with_scratch_notice(horses)
         else:
             save_by_race = _dd(list)
-            for h in active:
+            for h in horses:
                 save_by_race[h["race"]].append(h)
             for race_num in sorted(save_by_race.keys(), key=lambda x: int(x)):
-                report(save_by_race[race_num])
+                run_report_with_scratch_notice(save_by_race[race_num])
         _sys.stdout = old_stdout
         with open(out, "w") as f:
             f.write(buffer.getvalue())

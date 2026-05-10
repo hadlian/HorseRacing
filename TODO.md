@@ -36,11 +36,10 @@ These must be resolved in order. Do not change TJ weights (Issue 3) until Issues
 - **Proposed fix:** Card-quality tier adjustment or dynamic normalisation based on field average FCI.
 - **Status:** Under discussion. No code change proposed yet.
 
-### Issue 5 — No Scratch Gate `OPERATIONAL`
-- **File:** `Claude/r5_parser_v2.py` / `Claude/run_r5.py`
-- **Problem:** When a top pick scratches, there is no automatic fallback to the next active ranked horse. A bettor acting on pre-race output had no model guidance after 2 top picks scratched on CDX 05/07.
-- **Proposed fix:** Scratch check function that removes scratched horses and re-identifies top pick from active starters. Optionally integrate with real-time scratch lists.
-- **Status:** Feature proposal. Not started.
+### ~~Issue 5 — No Scratch Gate~~ `FIXED — v3.3`
+- **File:** `Claude/run_r5.py`
+- **Fix applied:** Per-race scratch notice prints when any scratched horse held pre-scratch Rank 1-3. Shows scratched horse name, pre-scratch rank, and revised top pick with composite and tier. Scratched horses excluded from DB logging. Scout JSON scratches feed this automatically.
+- **Note:** Scout must be run race-morning to catch day-of scratches reported in articles. Manual cross-check against official scratch list still recommended for high-stakes races.
 
 ### Issue 6 — Crowded Room Penalty `PROPOSED`
 - **File:** `Claude/r5_parser_v2.py`
@@ -127,6 +126,7 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 - **Scout — Track keyword expansion** — Added `CDX` and `BAQ` to `TRACK_KEYWORDS`; was using generic fallback terms (commit b2451df, 2026-05-09)
 - **Scout — Auto-scout track matching** — `--auto-scout` now matches JSON by track prefix from DRF filename instead of loading most-recent-by-mtime (commit b2451df, 2026-05-09)
 - **Scout — Stacking cap** — Total scout adjustment per horse capped at ±0.40; prevents qualitative signals from overriding speed/class metrics (2026-05-09)
+- **Issue 5 — Scratch Gate** — Per-race scratch notice when pre-scratch top-3 horse is scratched; revised top pick printed; scratched horses excluded from DB (2026-05-10)
 - **34-race results DB** — CDX0502 (14), DBY0502 (1 Derby), CDX0507 (8), BAQ0509 (11). 18.2% top-pick win rate, 45.5% top-3 hit rate, TJ signal +0.86.
 - **Audit reports** — CDX0507 and BAQ0509 audit TXTs saved in `Results/2026/`. Peter Pan G2 and Ruffian G2 wins validated graded-stakes model strength.
 
