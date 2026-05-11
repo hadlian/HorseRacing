@@ -30,6 +30,13 @@ These must be resolved in order. Do not change TJ weights (Issue 3) until Issues
 - **Proposed fix:** Raise T/J from 10% → 15%. Offset: Class 20% → 13%, Bias 15% → 10%, Ped 10% → 7%.
 - **Status:** Candidate. Issues 1 & 2 now resolved — this is next in queue. Requires explicit approval before code change. Validate after Preakness week data collected.
 
+### Issue 3a — result_fetched Flag Not Set on Direct SQL Logging `MINOR`
+- **File:** `Claude/r5_tracker.py` (or results logging workflow)
+- **Problem:** When results are logged via direct SQL update (batch finish_pos), `result_fetched` is left at 0. `r5_analyze.py` filters `WHERE result_fetched=1`, so those races are excluded from the Excel workbook until manually fixed.
+- **Fix:** After each batch results update, run: `UPDATE races SET result_fetched=1 WHERE id IN (SELECT DISTINCT race_id FROM picks WHERE finish_pos IS NOT NULL AND finish_pos != -1)`
+- **Workaround:** Applied manually after BAQ0510 logging (2026-05-10). 42 races now correctly flagged.
+- **Status:** Workaround in place. Proper fix: auto-set flag in the batch SQL update routine.
+
 ### Issue 4 — Composite Score Ceiling `MODERATE`
 - **File:** `Claude/r5_parser_v2.py`
 - **Problem:** No race on CDX 05/07 reached SOLID tier (7.5). Best composite was 6.08. The `fci_n` normalisation (baseline=60, scale÷6) was calibrated for higher-class horses. Mid-week undercards with lower speed figures will always grade SPECULATIVE.
