@@ -85,7 +85,22 @@ These must be resolved in order. Do not change TJ weights (Issue 3) until Issues
 - **Problem:** Issue 7 proposes surface-specific WS4 weights (heavier recent-form weighting for dirt; Trend/FCI-heavy for turf) but specific values are unvalidated hypotheses, not confirmed fixes.
 - **Validation task:** After Saturday 2026-05-10 results are logged, compare actual winners against current uniform WS4 rankings on dirt vs turf races separately. Only implement split weighting if the data supports it.
 - **Do not implement Issue 7 before this validation is complete.**
-- **Status:** Pending Saturday results. Not started.
+- **Status:** BAQ0510 results now logged (2026-05-10). Ready for validation post-Preakness with 60+ race DB.
+
+### Issue 11 — Distance-Specific Speed Floor `PROPOSED`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** WS4 uses a weighted average of last 4 starts regardless of distance. A horse with a 95 at 6f but only 82 at a mile gets the same WS4 treatment whether today's race is a sprint or route. BRIS carries best-speed-at-distance figures which are currently unused.
+- **Proposed fix:** Incorporate BRIS best-at-distance figure as a secondary check on FCI — e.g. flag or discount horses where best-at-distance is meaningfully below WS4, particularly in routes.
+- **Validation needed:** Confirm BRIS field positions for best-at-distance in 1496-field format before coding. Validate signal strength against 60+ race DB.
+- **Do not implement before Preakness.** Post-Preakness priority, after Issue 3 (TJ weight).
+- **Status:** Proposed 2026-05-11. Not started.
+
+### Issue 12 — Career Average Class (Ever Avg. Class) `LOW PRIORITY`
+- **File:** `Claude/r5_parser_v2.py`
+- **Problem:** `class_n` uses active last-4-start capability. Career average class is not captured — useful for identifying dropdowns (high historical class now running lower) vs horses at their ceiling.
+- **Proposed fix:** Secondary flag only — not a composite weight. Flag horses where career avg class significantly exceeds recent class (dropdown angle) or falls below (ceiling horse). Display as a table annotation rather than affecting score.
+- **Note:** Raw earnings normalisation is poor across age/track/era — do not use money earned as a direct signal. Career class via par comparison is cleaner.
+- **Status:** Proposed 2026-05-11. Low priority — do not start until Issues 3 and 11 are evaluated.
 
 ---
 
