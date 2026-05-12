@@ -344,6 +344,23 @@ def load_csv(csv_path):
             sp     = float(row.get("sp_winner") or 0) or None
             if apply_result(row["track"], row["date"], row["race"], finish, sp):
                 loaded += 1
+
+    # Safety net: ensure result_fetched=1 for any race where picks have
+    # been given finish positions — catches direct-SQL updates that bypass
+    # apply_result() and would otherwise be excluded from r5_analyze.py
+    conn = init_db()
+    fixed = conn.execute("""
+        UPDATE races SET result_fetched=1
+        WHERE id IN (
+            SELECT DISTINCT race_id FROM picks
+            WHERE finish_pos IS NOT NULL AND finish_pos != -1
+        )
+    """).rowcount
+    conn.commit()
+    conn.close()
+    if fixed:
+        print(f"  🔧 result_fetched flag set for {fixed} previously unlabelled race(s)")
+
     print(f"\n✅ Loaded {loaded} results from {csv_path}")
 
 
