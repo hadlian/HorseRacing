@@ -314,8 +314,9 @@ def main():
         _pdfspec.loader.exec_module(_pdfmod)
 
         pdf_by_race = _dd(list)
-        for h in active:
-            pdf_by_race[h["race"]].append(h)
+        for h in horses:
+            if not h.get("scratched"):
+                pdf_by_race[h["race"]].append(h)
 
         track_code = Path(drf_path).stem[:3].upper()
         mmdd       = Path(drf_path).stem[3:7]
