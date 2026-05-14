@@ -3,9 +3,9 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-10 (evening)
+> **Last updated:** 2026-05-14
 > **Current version:** R5 v3.4 (val_n floor fix — Issue 2 resolved)
-> **Next planned session:** Thursday 2026-05-14 — CDX (Churchill Downs resumes Thu) + PIM load for Preakness Day (~Sat 2026-05-16)
+> **Next planned session:** PIM Preakness Day ~Sat 2026-05-16
 
 ---
 
@@ -91,6 +91,16 @@ These must be resolved in order. Do not change TJ weights (Issue 3) until Issues
 - **Validation needed:** Confirm BRIS field positions for best-at-distance in 1496-field format before coding. Validate signal strength against 60+ race DB.
 - **Do not implement before Preakness.** Post-Preakness priority, after Issue 3 (TJ weight).
 - **Status:** Proposed 2026-05-11. Not started.
+
+### Issue 13 — Late Scratch Detection at Result Logging `MODERATE`
+- **Files:** `Claude/r5_tracker.py`, `Claude/run_r5.py`
+- **Problem:** Scout catches scratches at run time (e.g. 8-9am race morning). Horses scratched *after* that point (vet scratch, equipment issue, etc.) remain in the active field in the morning analysis. When results are logged, these late scratches have no finish position in the PDF — currently they could be left as NULL in the DB, silently skewing model accuracy stats.
+- **Real example:** CDX0514 R1 — #1 SPUN TIGHT (Rank 3, DEBUT, 8-1 ML) was a late scratch not caught by morning scout. Would count as a Rank 3 miss if logged with finish_pos NULL or wrong value.
+- **Proposed fix (two parts):**
+  1. **Result-logging guard:** When logging results from PDF, cross-check each pick against actual starters. Any pick with no listed finish position gets `finish_pos = -1` (late scratch marker) — same as scout-caught scratches. Print a notice listing any picks auto-marked as late scratch.
+  2. **Stats exclusion:** Ensure `r5_analyze.py` excludes `finish_pos = -1` rows from all win-rate, top-3, and TJ-diff calculations (scout scratches already excluded — verify late scratches follow same path).
+- **Correct manual fix for CDX0514:** Set `finish_pos = -1` for SPUN TIGHT (R1, pgm #1) when logging today's results.
+- **Status:** Proposed 2026-05-14. Do not implement until CDX0514 results are fully logged (use manual -1 for this card). Build fix before next card.
 
 ### Issue 12 — Career Average Class (Ever Avg. Class) `LOW PRIORITY`
 - **File:** `Claude/r5_parser_v2.py`
