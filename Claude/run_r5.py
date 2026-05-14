@@ -69,11 +69,16 @@ def apply_scout_adjustments(horses, intel):
     if not intel:
         return horses, []
 
+    import re as _re
+    def _strip_country(n):
+        """Strip country-of-origin suffixes like (IRE), (GB), (FR), (AUS), (CHI) etc."""
+        return _re.sub(r'\s*\([A-Z]{2,3}\)\s*$', '', n.strip().upper())
+
     log = []
-    scratch_list = {s["horse"].upper() for s in intel.get("scratches", [])}
+    scratch_list = {_strip_country(s["horse"]) for s in intel.get("scratches", [])}
 
     for h in horses:
-        name = h["name"].upper()
+        name = _strip_country(h["name"])
 
         # Remove scratches
         if name in scratch_list:
