@@ -132,10 +132,12 @@ def load_data(track_filter=None):
 
 def calc_summary(races, picks):
     n_races = len(races)
-    all_picks = [p for ps in picks.values() for p in ps]
+    # Exclude late scratches (finish_pos=-1) but keep NULL (ran, position not fully logged)
+    all_picks = [p for ps in picks.values() for p in ps
+                 if p.get("finish_pos") != -1]
     winners   = [p for p in all_picks if p.get("won") == 1]
 
-    # Top pick (model_rank=1) performance
+    # Top pick (model_rank=1) performance — among horses that started (not late-scratched)
     top_picks = [p for p in all_picks if p.get("model_rank") == 1]
     top_wins  = [p for p in top_picks if p.get("won") == 1]
     top_win_sp = [p["sp_odds"] for p in top_wins if p.get("sp_odds")]
@@ -179,7 +181,8 @@ def calc_summary(races, picks):
 def calc_component_correlations(races, picks):
     """For each component, average score of winners vs non-winners."""
     rows = []
-    all_picks = [p for ps in picks.values() for p in ps if p.get("finish_pos")]
+    all_picks = [p for ps in picks.values() for p in ps
+                 if p.get("finish_pos") is not None and p["finish_pos"] > 0]
     for comp in COMPONENTS:
         winners = [p[comp] for p in all_picks if p.get("won") == 1 and p.get(comp) is not None]
         losers  = [p[comp] for p in all_picks if p.get("won") == 0 and p.get(comp) is not None]
@@ -581,7 +584,8 @@ def build_scout_impact(wb, picks):
     ws = wb.create_sheet("Scout Impact")
     ws.sheet_view.showGridLines = False
 
-    all_picks = [p for ps in picks.values() for p in ps if p.get("finish_pos")]
+    all_picks = [p for ps in picks.values() for p in ps
+                 if p.get("finish_pos") is not None and p["finish_pos"] > 0]
 
     row = title_block(ws, "SCOUT ADJUSTMENT IMPACT",
                       "Horses with vs without scout adjustments, among winners", n_cols=5)
@@ -652,7 +656,8 @@ def main():
     corr     = calc_component_correlations(races, picks)
     pace     = calc_pace_accuracy(races, picks)
     rbr      = calc_race_by_race(races, picks)
-    all_picks = [p for ps in picks.values() for p in ps]
+    all_picks = [p for ps in picks.values() for p in ps
+                 if p.get("finish_pos") is not None and p["finish_pos"] > 0]
     val_roi  = calc_value_roi(all_picks)
 
     generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
