@@ -9,6 +9,7 @@ Usage:
     python3 r5_tracker.py --fetch CD 20260502 --race 12     # specific race
     python3 r5_tracker.py --manual CD 20260502 12 "15,6,14,1" 18.40
     python3 r5_tracker.py --csv results/results.csv         # bulk load from CSV
+    python3 r5_tracker.py --finalize CD 20260514            # mark NULLs as late scratches (run after full logging)
 
 CSV format for --csv:
     track,date,race,finish,sp_winner
@@ -322,6 +323,21 @@ def apply_result(track, date_str, race_num, finish_pgms, sp_winner=None):
                 (sp_winner, race_id, pgm)
             )
 
+    # Auto-detect late scratches: any pick still NULL after position loop
+    # = horse was in morning analysis but did not appear in the results
+    late = conn.execute(
+        "SELECT pgm, horse_name FROM picks WHERE race_id=? AND finish_pos IS NULL",
+        (race_id,)
+    ).fetchall()
+    if late:
+        for ls in late:
+            conn.execute(
+                "UPDATE picks SET finish_pos=-1 WHERE race_id=? AND pgm=?",
+                (race_id, ls["pgm"])
+            )
+        names = ", ".join(f"#{ls['pgm']} {ls['horse_name']}" for ls in late)
+        print(f"  ⚠️  LATE SCRATCH: {names} → finish_pos=-1 (excluded from stats)")
+
     conn.execute("UPDATE races SET result_fetched=1 WHERE id=?", (race_id,))
     conn.commit()
 
@@ -332,6 +348,74 @@ def apply_result(track, date_str, race_num, finish_pgms, sp_winner=None):
     print(f"  ✅ {track} {date_str} R{race_num} — 1st:#{top}  2nd:#{sec}  3rd:#{trd}{sp_str}")
     conn.close()
     return True
+
+
+def finalize_card(track, date_str):
+    """
+    Post-result cleanup for cards logged via direct SQL.
+    Detects any picks still NULL (= late scratches not in results PDF)
+    and marks them finish_pos=-1 so they are excluded from model stats.
+
+    IMPORTANT: Only run this after ALL finishers have been logged for every race.
+    If a race shows many NULLs (>3), it likely means the card was not fully
+    logged — running finalize on partially-logged cards will incorrectly mark
+    valid runners as late scratches.
+    """
+    conn = init_db()
+    races = conn.execute(
+        "SELECT id, race_num FROM races WHERE track=? AND date=? AND result_fetched=1"
+        " ORDER BY CAST(race_num AS INT)",
+        (track.upper(), date_str)
+    ).fetchall()
+
+    if not races:
+        print(f"  ⚠️  No result_fetched races found for {track} {date_str}")
+        conn.close()
+        return
+
+    # Preview pass — check for suspicious NULL counts before committing
+    suspicious = []
+    for race in races:
+        null_count = conn.execute(
+            "SELECT COUNT(*) FROM picks WHERE race_id=? AND finish_pos IS NULL",
+            (race["id"],)
+        ).fetchone()[0]
+        if null_count > 3:
+            suspicious.append((race["race_num"], null_count))
+
+    if suspicious:
+        print(f"\n  ⚠️  WARNING: Some races have many NULL finish positions.")
+        print(f"     This usually means the card was NOT fully logged (partial logging).")
+        for rnum, cnt in suspicious:
+            print(f"     R{rnum}: {cnt} NULL positions — looks like partial logging, not late scratches")
+        print(f"\n  Aborting. Log all finish positions first, then re-run --finalize.")
+        conn.close()
+        return
+
+    total_late = 0
+    for race in races:
+        late = conn.execute(
+            "SELECT pgm, horse_name FROM picks WHERE race_id=? AND finish_pos IS NULL",
+            (race["id"],)
+        ).fetchall()
+        if late:
+            for ls in late:
+                conn.execute(
+                    "UPDATE picks SET finish_pos=-1 WHERE race_id=? AND pgm=?",
+                    (race["id"], ls["pgm"])
+                )
+            names = ", ".join(f"#{ls['pgm']} {ls['horse_name']}" for ls in late)
+            print(f"  ⚠️  R{race['race_num']}: Late scratch detected → {names}")
+            total_late += len(late)
+
+    conn.commit()
+    conn.close()
+
+    if total_late:
+        print(f"\n  🔧 {total_late} late scratch(es) marked finish_pos=-1 — excluded from stats")
+        print(f"  Regenerate workbook: python3 r5_analyze.py")
+    else:
+        print(f"\n  ✅ {track} {date_str} — no NULL finish positions found. Card is clean.")
 
 
 def load_csv(csv_path):
@@ -411,6 +495,8 @@ def main():
                         help="TRACK DATE RACE 'pgm1,pgm2,...' [SP_WINNER]")
     parser.add_argument("--csv", metavar="FILE",
                         help="Bulk load from CSV file")
+    parser.add_argument("--finalize", nargs=2, metavar=("TRACK","DATE"),
+                        help="Detect NULL finish positions and mark as late scratches (e.g. CD 20260514)")
     args = parser.parse_args()
 
     if args.fetch:
@@ -437,6 +523,11 @@ def main():
 
     elif args.csv:
         load_csv(args.csv)
+
+    elif args.finalize:
+        track, date = args.finalize
+        print(f"\n🔍 Finalizing {track} {date} — checking for late scratches...")
+        finalize_card(track, date)
 
     else:
         show_status()
