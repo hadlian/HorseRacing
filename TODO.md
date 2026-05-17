@@ -3,9 +3,9 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-15
+> **Last updated:** 2026-05-16
 > **Current version:** R5 v3.4 (val_n floor fix, late scratch detection)
-> **Next planned session:** PIM Preakness Day ~Sat 2026-05-16
+> **Next planned session:** Issue 3 approval + v3.5 weight change
 
 ---
 

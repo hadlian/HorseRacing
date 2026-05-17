@@ -20,12 +20,12 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| Races with results | 50 | Through CDX0514 |
-| Total picks in DB | 64 | +14 LRL0516 awaiting results |
-| Top pick win rate | 26.5% | Up from 18.2% at 34 races |
-| Top-3 hit rate | 52.0% | Up from 45.5% at 34 races |
-| TJ signal strength | +1.01 | Up from +0.86 — most predictive component |
-| Value ROI | +172.9% | Correct metric for val_n (not win-rate differential) |
+| Races with results | 63 | Through LRL0516 (13 races logged) |
+| Total picks in DB | 65 | R14 LRL0516 still pending |
+| Top pick win rate | 26.7% | Up from 26.5% at 50 races |
+| Top-3 hit rate | 55.6% | Up from 52.0% at 50 races |
+| TJ signal strength | +0.83 | Class vs Par rising (+0.73), FCI +0.68 |
+| Value ROI | +165.2% | Correct metric for val_n (not win-rate differential) |
 | val_n win diff | −0.31 | EXPECTED — overlays designed to pay more, not win more |
 
 ### Cards logged
@@ -36,11 +36,10 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 | CDX 20260507 | 8 | Results loaded |
 | BAQ 20260509 | 11 | 10 results loaded (R11 still missing — non-critical) |
 | CDX 20260514 | 8 | Results loaded — 4/8 wins (50%), best card to date |
-| LRL 20260516 | 14 | **Picks logged — results PENDING post-Preakness** |
+| LRL 20260516 | 14 | R1–R13 results logged; R14 pending |
 
 ### 60-race threshold
-**60+ races required before any composite weight adjustments.**
-Met/nearly met after Preakness results logged. Issue 3 (TJ reweight) decision point imminent.
+**60-race gate MET (63 races). Issue 3 (TJ reweight) awaiting explicit approval.**
 
 ---
 
@@ -185,15 +184,17 @@ T/J 10%→15%, Class 20%→13%, Bias 15%→10%, Ped 10%→7%
 | 2026-05-14 | CDX scout test | Scout and scratch report validated before CDX card |
 | 2026-05-15 | CDX0514 results + Issue 13 | 4/8 wins (50%). Issue 13 built (late scratch detection, --finalize, two-tier filter). PDF NameError fixed. 50 races in DB. |
 | 2026-05-16 | Preakness Day | LRL0516 scout + analysis run (14 races). HOT pace in Preakness. Memory + state files synced. Results pending. |
+| 2026-05-16 | LRL0516 Results | R1–R13 logged. 2 wins (R7 OBLITERATION rank 1 $3.40, R9 TURF STAR rank 1 $10.40, R2 WICKEDDIVINE rank 1 $5.20). Preakness: NAPOLEON SOLO (rank 11) won $17.80. Rank-3 horses won R1/R3/R4/R6/R10/R11/R12. pgm-number mismatch noted on R2 and R5 (DRF vs official chart). 63 races in DB. |
 
 ---
 
 ## 📋 Immediate Next Steps
 
-1. **Log LRL0516 results** — bring results PDF, log all finish positions, run `--finalize LRL 20260516`, regenerate Excel.
-2. **Issue 3 decision** — with 60+ races confirmed, decide on TJ 10%→15% reweight. Requires explicit approval before code change.
+1. **Log LRL0516 R14** — card had 14 races; R14 picks are in DB but result not yet logged.
+2. **Issue 3 decision** — 60-race gate confirmed (63 races). Decide on TJ 10%→15% reweight. Requires explicit approval before code change.
 3. **Issue 4 design session** — dynamic fci_n normalisation. No code proposed yet.
-4. **Update this file** after LRL results logged and Issue 3 decided.
+4. **pgm-number mismatch** — R2 and R5 on LRL0516 had DRF pgm ≠ official chart pgm. Monitor for pattern on future cards; if recurring, add pgm cross-check step to result-logging workflow.
+5. **Issue 3 Preakness note** — Rank-3 horses won 7 of 13 races on LRL0516. TJ and Class signals outperforming. Supports v3.5 weight shift.
 
 ---
 
