@@ -3,7 +3,7 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-05-16 (Preakness Day)
+> **Last updated:** 2026-05-16 (LRL results logged — 63 races in DB)
 > **Current version:** R5 v3.4
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
