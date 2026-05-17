@@ -728,6 +728,97 @@
 
     /* ── Utility ───────────────────────────────────────────────────────── */
     .hidden { display: none !important; }
+
+    /* ── Mobile expand button (hidden on desktop) ──────────────────────────── */
+    .expand-btn { display: none; }
+
+    /* ── Mobile responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 639px) {
+      .container  { padding: 14px 10px 48px; }
+      .card-body  { padding: 14px; }
+      .card-head  { padding: 12px 14px; }
+      .navbar     { padding: 11px 14px; }
+
+      /* Race tabs → horizontal scroll, no wrap */
+      .race-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .race-tabs::-webkit-scrollbar { display: none; }
+      .race-tab { flex-shrink: 0; }
+
+      /* Results top → stack */
+      .results-top { flex-direction: column; align-items: flex-start; }
+
+      /* Horse detail table — hide columns 3–11, keep #, Horse, Comp, Tier */
+      .detail-tbl th:nth-child(n+3):nth-child(-n+11),
+      .detail-tbl td:nth-child(n+3):nth-child(-n+11) { display: none; }
+
+      /* Widen horse name cell so it uses reclaimed space */
+      .detail-tbl td:nth-child(2) { white-space: normal; word-break: break-word; }
+
+      /* Expand button: visible on mobile */
+      .expand-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        color: var(--muted);
+        font-size: 0.6rem;
+        padding: 1px 5px;
+        margin-left: 6px;
+        vertical-align: middle;
+        line-height: 1;
+        transition: border-color 0.12s, color 0.12s;
+      }
+      .expand-btn:hover { border-color: var(--gold); color: var(--gold); }
+      .expand-btn.open  { border-color: var(--gold); color: var(--gold); }
+
+      /* Expanded metrics sub-row */
+      .horse-expand { background: rgba(15,52,96,0.55); }
+      .horse-expand > td {
+        padding: 10px 12px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .horse-expand-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px 10px;
+      }
+      .hx-item { display: flex; flex-direction: column; gap: 1px; }
+      .hx-label {
+        color: var(--muted);
+        font-size: 0.61rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .hx-val { color: var(--text); font-size: 0.79rem; }
+
+      /* Summary table: hide Purse(3), Pace(4), ML(7) on mobile */
+      .summary-tbl th:nth-child(3), .summary-tbl td:nth-child(3),
+      .summary-tbl th:nth-child(4), .summary-tbl td:nth-child(4),
+      .summary-tbl th:nth-child(7), .summary-tbl td:nth-child(7) { display: none; }
+
+      /* Race header */
+      .race-hdr  { padding: 11px 13px; gap: 5px 12px; }
+      .race-name { font-size: 0.9rem; }
+
+      /* Picks: single column on mobile */
+      .picks-grid { grid-template-columns: 1fr; padding: 13px; }
+
+      /* Bet rec + exotics padding */
+      .bet-box     { padding: 12px 13px; }
+      .exotics-box { padding: 12px 13px; }
+
+      /* Scratch input */
+      .scratch-input-row { padding: 8px 13px; }
+    }
   </style>
 </head>
 <body>
@@ -1123,7 +1214,7 @@ function buildHorseTable(race, raceIdx) {
     return `
       <tr class="${rowCls}">
         <td><span class="pgm-num">${esc(h.pgm)}</span></td>
-        <td>${esc(h.name)}${nameFlag}</td>
+        <td>${esc(h.name)}${nameFlag}<button class="expand-btn" onclick="toggleExpand(this)" title="Show metrics">▶</button></td>
         <td>${esc(h.ml)}</td>
         <td>${esc(h.ws4)}</td>
         <td>${esc(h.trend)}</td>
@@ -1135,12 +1226,27 @@ function buildHorseTable(race, raceIdx) {
         <td>${esc(h.val)}</td>
         <td><span class="comp-val ${ccls}">${esc(h.comp)}</span></td>
         <td>${tierBadge(h.tier)}</td>
+      </tr>
+      <tr class="horse-expand hidden">
+        <td colspan="13">
+          <div class="horse-expand-grid">
+            <div class="hx-item"><span class="hx-label">ML</span><span class="hx-val">${esc(h.ml)}</span></div>
+            <div class="hx-item"><span class="hx-label">WS4</span><span class="hx-val">${esc(h.ws4)}</span></div>
+            <div class="hx-item"><span class="hx-label">Trend</span><span class="hx-val">${esc(h.trend)}</span></div>
+            <div class="hx-item"><span class="hx-label">FCI</span><span class="hx-val">${esc(h.fci)}</span></div>
+            <div class="hx-item"><span class="hx-label">vPar</span><span class="hx-val">${esc(h.vpar)}</span></div>
+            <div class="hx-item"><span class="hx-label">Ped</span><span class="hx-val">${esc(h.ped)}</span></div>
+            <div class="hx-item"><span class="hx-label">T/J</span><span class="hx-val">${esc(h.tj)}</span></div>
+            <div class="hx-item"><span class="hx-label">Pce</span><span class="hx-val">${esc(h.pce)}</span></div>
+            <div class="hx-item"><span class="hx-label">Val</span><span class="hx-val">${esc(h.val)}</span></div>
+          </div>
+        </td>
       </tr>`;
   }).join('');
 
   return `
     <div class="tbl-wrap">
-      <table class="horse-tbl">
+      <table class="horse-tbl detail-tbl">
         <thead>
           <tr>
             <th>#</th><th>Horse</th><th>ML</th>
@@ -1536,6 +1642,18 @@ function buildBetRec(race, raceIdx) {
       </div>
       ${valNoteHtml}
     </div>`;
+}
+
+
+/* ── Mobile: expand/collapse horse metrics row ─────────────────────────── */
+function toggleExpand(btn) {
+  const row  = btn.closest('tr');
+  const next = row.nextElementSibling;
+  if (!next || !next.classList.contains('horse-expand')) return;
+  const isOpen = !next.classList.contains('hidden');
+  next.classList.toggle('hidden', isOpen);
+  btn.textContent = isOpen ? '▶' : '▼';
+  btn.classList.toggle('open', !isOpen);
 }
 
 /* ── Downloads ─────────────────────────────────────────────────────────── */

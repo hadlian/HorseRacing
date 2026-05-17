@@ -53,7 +53,8 @@ def extract_drfs(zip_path: Path, dest: Path) -> list[Path]:
     return drfs
 
 
-def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = False) -> tuple[str, Path | None]:
+def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = False) -> tuple[str, Path | None, str]:
+    """Returns (stdout_text, pdf_path_or_None, warning_string)."""
     cmd = [R5_PYTHON, str(CLAUDE_DIR / "run_r5.py"), str(drf_path)]
     if want_scout:
         cmd.append("--auto-scout")
@@ -72,13 +73,20 @@ def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = Fa
     if result.returncode != 0 and not text.strip():
         raise RuntimeError(result.stderr[:600] or "Analysis produced no output")
 
+    # Partial failure: engine produced output but still exited non-zero.
+    # Surface stderr as a warning so it isn't silently swallowed.
+    warning = ""
+    if result.returncode != 0 and result.stderr.strip():
+        first_line = result.stderr.strip().splitlines()[-1][:200]
+        warning = f"Engine error after analysis (PDF may be missing): {first_line}"
+
     pdf_path = None
     if want_pdf:
         candidate = work_dir / (drf_path.stem + "_R5.pdf")
         if candidate.exists():
             pdf_path = candidate
 
-    return text, pdf_path
+    return text, pdf_path, warning
 
 
 # ── Output parser ─────────────────────────────────────────────────────────────
@@ -125,16 +133,40 @@ _TIGHT_CLUSTER_RE = re.compile(
     re.IGNORECASE,
 )
 _SCRATCH_NOTICE_RE = re.compile(
-    r'🚨\s*SCRATCH NOTICE[^:]*:\s+#(\S+)\s+(.+?)\s+\(pre-scratch Rank\s+(\d+)\)',
+    r'SCRATCH NOTICE[^:]*:\s+#(\S+)\s+(.+?)\s+\(pre-scratch Rank\s+(\d+)\)',
     re.IGNORECASE,
 )
 _REVISED_PICK_RE = re.compile(
-    r'REVISED TOP PICK:\s+#(\S+)\s+(.+?)\s+Composite\s+([\d.]+)',
-    re.IGNORECASE,
-)
+    r'REVISED TOP PICK:\s+#?(\S+)\s+(.+?)\s+Composite\s+([\d.]+)',
+    re.IGNORECASE,)
 
 
 def parse_output(text: str) -> list[dict]:
+    # Pre-collect scratch notices from full text keyed by race number.
+    # Notices appear BETWEEN race blocks (after Race N exotics, before Race N+1
+    # header), so they end up in the wrong block if parsed inside _parse_race_block.
+    scratch_map: dict = {}
+    lines_all = text.splitlines()
+    for i, line in enumerate(lines_all):
+        ms = _SCRATCH_NOTICE_RE.search(line)
+        if ms:
+            race_m = re.search(r'\bR(\d+)\b', line)
+            race_num = int(race_m.group(1)) if race_m else None
+            scratch = {
+                "pgm":      ms.group(1),
+                "name":     ms.group(2).strip(),
+                "pre_rank": ms.group(3),
+            }
+            for j in range(i + 1, min(i + 4, len(lines_all))):
+                mr = _REVISED_PICK_RE.search(lines_all[j])
+                if mr:
+                    scratch["revised_pgm"]  = mr.group(1)
+                    scratch["revised_name"] = mr.group(2).strip()
+                    scratch["revised_comp"] = mr.group(3)
+                    break
+            if race_num is not None:
+                scratch_map.setdefault(race_num, []).append(scratch)
+
     # Split into race blocks at each ====...==== line that precedes a 🏇 header
     blocks = re.split(r'(?=={60,}\n\s*🏇)', text)
     races = []
@@ -143,6 +175,9 @@ def parse_output(text: str) -> list[dict]:
             continue
         race = _parse_race_block(block)
         if race:
+            rn = race.get("race_num")
+            if rn and rn in scratch_map:
+                race["scratches"] = scratch_map[rn]
             races.append(race)
     return races
 
@@ -220,28 +255,6 @@ def _parse_race_block(block: str) -> dict | None:
             race["tight_cluster"] = True
             race["tight_cluster_spread"] = m.group(1)  # e.g. "0.95", or None
             break
-
-    # ── Scratch notices ──────────────────────────────────────────────────────
-    scratches = []
-    for i, line in enumerate(lines):
-        ms = _SCRATCH_NOTICE_RE.search(line)
-        if ms:
-            scratch = {
-                "pgm":      ms.group(1),
-                "name":     ms.group(2).strip(),
-                "pre_rank": ms.group(3),
-            }
-            # Revised pick is usually on the next line
-            for j in range(i + 1, min(i + 4, len(lines))):
-                mr = _REVISED_PICK_RE.search(lines[j])
-                if mr:
-                    scratch["revised_pgm"]  = mr.group(1)
-                    scratch["revised_name"] = mr.group(2).strip()
-                    scratch["revised_comp"] = mr.group(3)
-                    break
-            scratches.append(scratch)
-    if scratches:
-        race["scratches"] = scratches
 
     return race
 
@@ -328,11 +341,13 @@ def analyze():
 
         for drf in drfs:
             try:
-                text, pdf_path = run_r5(drf, work_dir, want_pdf, want_scout)
+                text, pdf_path, warning = run_r5(drf, work_dir, want_pdf, want_scout)
                 all_text += text + "\n"
                 all_races.extend(parse_output(text))
                 if pdf_path:
                     pdf_paths.append(str(pdf_path))
+                if warning:
+                    errors.append(f"{drf.name}: {warning}")
             except Exception as exc:
                 errors.append(f"{drf.name}: {exc}")
 
