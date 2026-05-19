@@ -3,7 +3,7 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-05-16 (v3.5 live — weight rebalance + best_dist_n + pp_n)
+> **Last updated:** 2026-05-16 (v3.5 live — Preakness retroactive test complete, scratch gate audited)
 > **Current version:** R5 v3.5
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
@@ -39,7 +39,7 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 | LRL 20260516 | 14 | R1–R13 results logged; R14 pending |
 
 ### 60-race threshold
-**60-race gate MET (63 races). Issue 3 (TJ reweight) awaiting explicit approval.**
+**60-race gate MET (63 races). Issue 3 (TJ reweight) implemented in v3.5.**
 
 ---
 
@@ -57,6 +57,10 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 
 6. **CDX0514 best card to date.** 4/8 top-pick wins (50%). Late scratch VIVIANITE (R8, #5, Rank 8) correctly caught by new --finalize command and set to finish_pos=-1.
 
+7. **Preakness v3.5 retroactive test.** TAJ MAHAL ranked 1st (6.88 FAIR — only FAIR in the 14-horse field) with TJ=10.0, max Trend +5.0, PP=144.6. Scratched on race day. NAPOLEON SOLO (actual winner, $17.80) ranked 10th — low TJ (3.0) dragged it down despite PP=143.7 (3rd in field). HOT PACE (8 speed) correctly flagged; OCELLI (CLOSER, 6-1) was value alt — the correct closer angle. Model logic sound; outcome was a scratch event, not a miss.
+
+8. **Scratch gate confirmed working** (via `run_r5.py --auto-scout`). When a Rank 1–3 horse is in the scout scratch list, the report prints `🚨 SCRATCH NOTICE` with the revised top pick and passes only active horses to `report()`. Running `r5_parser_v2.py` directly bypasses this (no scout data). Gap: scratches of Rank 4+ are silently removed with no notice.
+
 ---
 
 ## 🔴 Open Issues — Engine (Priority Order)
@@ -65,7 +69,6 @@ All weight changes require explicit approval + version bump per spec rules.
 
 | Issue | Description | Status | Priority |
 |-------|-------------|--------|----------|
-| 3 | T/J weight 10% → 15% (offset via Class/Bias/Ped) | **60-race gate NOW MET — awaiting approval** | HIGH |
 | 4 | Composite score ceiling — dynamic fci_n normalisation | Under discussion | HIGH |
 | 6 | Crowded Room Penalty — score deduction (flag is live) | Pending post-Preakness validation | MODERATE |
 | 7 | Surface-specific WS4 weights (dirt vs turf) | Gate lifted post-Preakness | MODERATE |
@@ -86,6 +89,7 @@ All weight changes require explicit approval + version bump per spec rules.
 |-------|-----|---------|------|
 | 1 | Maiden/firster class_n=0.0 + [DEBUT] flag | v3.3 | 2026-05-09 |
 | 2 | Value score inversion — floor raised max(1.0)→max(5.0) | v3.4 | 2026-05-10 |
+| 3 | TJ weight 10%→15%; best_dist_n 8% + pp_n 5% added; bias 15→8%, val 10→5%, ped 10→7%, fci 25→22% | v3.5 | 2026-05-16 |
 | 3a | result_fetched flag not set on direct SQL logging | v3.4 | 2026-05-12 |
 | 5 | Scratch gate — revised top pick when Rank 1-3 scratched | v3.3 | 2026-05-10 |
 | 6-display | TIGHT CLUSTER warning flag (display only, no deduction yet) | v3.4 | 2026-05-10 |
@@ -112,9 +116,9 @@ All UI work in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
 
 | Phase | Version | Description | Gate |
 |-------|---------|-------------|------|
-| Current | v3.4 | Engine fixes, val_n floor, scratch gate, Issue 13 | Live |
-| Next | v3.5 | T/J reweight (Issue 3), composite ceiling fix (Issue 4) | **Gate met — need approval** |
-| Future | v4.0+ | ROI Dashboard, live odds alerts | After v3.5 validated |
+| **Current** | **v3.5** | 9-component composite; TJ 15%, best_dist_n 8%, pp_n 5%; weight rebalance | **Live — 2026-05-16** |
+| Next | v3.6 | Composite score ceiling fix (Issue 4); surface-specific WS4 (Issue 7) | After v3.5 validated (~20 races) |
+| Future | v4.0+ | ROI Dashboard, live odds alerts | After v3.6 validated |
 | Future | v5.0 | ML pattern recognition, anomaly detection, LLM coaching summaries | Long term |
 | Target | — | Saratoga 2026 deployment | Summer 2026 |
 
@@ -125,7 +129,7 @@ All UI work in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
 ```
 files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1496 fields per record)
          │
-  r5_parser_v2.py        ← Parse + score (7-component composite)
+  r5_parser_v2.py        ← Parse + score (9-component composite — v3.5)
          │
   r5_scout.py            ← Live intel via HRN, Blood-Horse, TDN + Claude API extraction
          │
@@ -194,17 +198,19 @@ tj_n +0.832 > class_n +0.723 > fci_n +0.681 > form_n +0.364 > ped_n +0.217 > bia
 | 2026-05-16 | Preakness Day | LRL0516 scout + analysis run (14 races). HOT pace in Preakness. Memory + state files synced. Results pending. |
 | 2026-05-16 | LRL0516 Results | R1–R13 logged. 2 wins (R7 OBLITERATION rank 1 $3.40, R9 TURF STAR rank 1 $10.40, R2 WICKEDDIVINE rank 1 $5.20). Preakness: NAPOLEON SOLO (rank 11) won $17.80. Rank-3 horses won R1/R3/R4/R6/R10/R11/R12. pgm-number mismatch noted on R2 and R5 (DRF vs official chart). 63 races in DB. |
 | 2026-05-16 | Signal analysis + v3.5 | 63-race correlation analysis: prime_power, best_dist, best_life, best_fast, life_earn evaluated. best_fast eliminated (negative signal). Approved v3.5 weight rebalance: TJ 10→15%, best_dist_n NEW 8%, pp_n NEW 5%, bias 15→8%, val 10→5%, ped 10→7%, fci 25→22%. Commit 5678ff6. |
+| 2026-05-16 | Preakness v3.5 test + scratch audit | Ran v3.5 retroactively on LRL R13 (Preakness). TAJ MAHAL Rank 1 (6.88 FAIR, TJ=10.0, PP=144.6) — scratched race day. NAPOLEON SOLO (winner $17.80) Rank 10 — low TJ dragged score despite strong PP. HOT pace + CLOSER value alt correctly flagged. Scratch gate confirmed working via run_r5.py --auto-scout; gap noted: Rank 4+ scratches silent. |
 
 ---
 
 ## 📋 Immediate Next Steps
 
 1. **Log LRL0516 R14** — card had 14 races; R14 picks are in DB but result not yet logged.
-2. **v3.5 first-card validation** — run next card under v3.5, compare top-pick win rate and rank distribution vs v3.4 baseline (26.7% / 55.6%).
+2. **v3.5 first-card validation** — run next card under v3.5, compare top-pick win rate and rank distribution vs v3.4 baseline (26.7% / 55.6%). Target: ~20 races before v3.6 decisions.
 3. **Issue 4 design session** — dynamic fci_n normalisation. No code proposed yet.
 4. **pgm-number mismatch** — R2 and R5 on LRL0516 had DRF pgm ≠ official chart pgm. Monitor for pattern on future cards.
-5. **best_dist_n / pp_n backfill** — historical picks in DB have raw prime_power and best_dist but best_dist_n and pp_n columns are NULL for pre-v3.5 rows. Backfill when needed for longitudinal analysis.
-6. **UI-2 ROI Dashboard** — 63 races now in DB, ready to build Analytics tab.
+5. **best_dist_n / pp_n backfill** — historical rows have raw prime_power and best_dist but best_dist_n / pp_n columns are NULL. Backfill when needed for longitudinal analysis.
+6. **Scratch gate gap** — Rank 4+ scratches are silently removed with no notice in the report. Low priority but worth a one-line fix.
+7. **UI-2 ROI Dashboard** — 63 races now in DB, ready to build Analytics tab.
 
 ---
 
