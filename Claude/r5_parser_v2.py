@@ -266,26 +266,46 @@ def parse_drf(path):
                 if any(s in h['sire'].upper() for s in classic_sires):
                     ped_n = 7.0
 
-            # Store all components (bias_n and val_n finalized in finalize_field)
-            h['ws4']        = round(ws4, 1) if ws4 else None
-            h['trend']      = trend
-            h['fci']        = round(fci, 1) if fci else None
-            h['fci_n']      = round(fci_n, 2)
-            h['class_n']    = round(class_n, 2)
-            h['par_diff']   = round(ws4 - par, 1) if (ws4 and par) else None
-            h['post_score'] = post_score
-            h['bias_n']     = post_score       # updated in finalize_field
-            h['tj_n']       = round(tj_n, 1)
-            h['form_n']     = round(form_n, 1)
-            h['ped_n']      = round(ped_n, 1)
-            h['val_n']      = 5.0              # updated in finalize_field
-            h['pace_style'] = 'unknown'
-            h['pace_fit']   = 5.0
+            # === NEW NORMALIZED COMPONENTS (v3.5) ===
 
-            # Pre-finalize composite (val_n=5, bias_n=post only)
-            pre = (fci_n       * 0.25 + class_n * 0.20 + post_score * 0.15 +
-                   tj_n        * 0.10 + form_n  * 0.10 + ped_n      * 0.10 +
-                   5.0         * 0.10)
+            # best_dist_n: at-distance BRIS speed figure, normalized to 0–10
+            # Fallback: fci_n (so missing data doesn't crater composite)
+            bd = h['best_dist']
+            if bd and bd > 0:
+                best_dist_n = max(0.0, min(10.0, (bd - 60) / 6))
+            else:
+                best_dist_n = fci_n
+
+            # pp_n: Prime Power rating, normalized to 0–10
+            # Fallback: 5.0 (neutral)
+            pp = h['prime_power']
+            if pp and pp > 0:
+                pp_n = max(0.0, min(10.0, (pp - 100) / 6))
+            else:
+                pp_n = 5.0
+
+            # Store all components (bias_n and val_n finalized in finalize_field)
+            h['ws4']          = round(ws4, 1) if ws4 else None
+            h['trend']        = trend
+            h['fci']          = round(fci, 1) if fci else None
+            h['fci_n']        = round(fci_n, 2)
+            h['class_n']      = round(class_n, 2)
+            h['par_diff']     = round(ws4 - par, 1) if (ws4 and par) else None
+            h['post_score']   = post_score
+            h['bias_n']       = post_score       # updated in finalize_field
+            h['tj_n']         = round(tj_n, 1)
+            h['form_n']       = round(form_n, 1)
+            h['ped_n']        = round(ped_n, 1)
+            h['val_n']        = 5.0              # updated in finalize_field
+            h['best_dist_n']  = round(best_dist_n, 2)
+            h['pp_n']         = round(pp_n, 2)
+            h['pace_style']   = 'unknown'
+            h['pace_fit']     = 5.0
+
+            # Pre-finalize composite (val_n=5.0, bias_n=post only) — v3.5 weights
+            pre = (fci_n        * 0.22 + class_n * 0.20 + post_score   * 0.08 +
+                   tj_n         * 0.15 + form_n  * 0.10 + ped_n        * 0.07 +
+                   best_dist_n  * 0.08 + pp_n    * 0.05 + 5.0          * 0.05)
             h['pre_comp'] = round(pre, 2)
             h['comp']     = h['pre_comp']
             h['tier']     = tier(h['comp'])
@@ -349,16 +369,18 @@ def finalize_field(horses):
         # Floor at 5.0: overlays rewarded, underlays neutral — never penalise market favourites model ranks low
         h['val_n'] = round(max(5.0, min(10.0, 5.0 + diff * 0.7)), 1)
 
-    # ── FINAL COMPOSITE ───────────────────────────────────────────────────────
+    # ── FINAL COMPOSITE — v3.5 weights ───────────────────────────────────────
     for h in horses:
         h['comp'] = round(
-            h['fci_n']   * 0.25 +
-            h['class_n'] * 0.20 +
-            h['bias_n']  * 0.15 +
-            h['tj_n']    * 0.10 +
-            h['form_n']  * 0.10 +
-            h['ped_n']   * 0.10 +
-            h['val_n']   * 0.10, 2)
+            h['fci_n']        * 0.22 +
+            h['class_n']      * 0.20 +
+            h['tj_n']         * 0.15 +
+            h['best_dist_n']  * 0.08 +
+            h['pp_n']         * 0.05 +
+            h['form_n']       * 0.10 +
+            h['ped_n']        * 0.07 +
+            h['bias_n']       * 0.08 +
+            h['val_n']        * 0.05, 2)
         h['tier'] = tier(h['comp'])
 
     return horses
@@ -374,15 +396,15 @@ def report(horses):
         f"NORMAL PACE ({speed_ct} speed)"
     )
 
-    print("=" * 104)
-    print(f"  🏇  R5 v3.4 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
+    print("=" * 114)
+    print(f"  🏇  R5 v3.5 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
           f"{horses[0]['date']}  |  {dist_f}f  {horses[0]['surface']}  |  "
           f"Purse ${horses[0]['purse']:,.0f}  |  {pace_label}")
-    print("=" * 104)
+    print("=" * 114)
     print(f"\n{'#':<4} {'Horse':<22} {'ML':>5}  {'Spd 1-4':>22}  "
           f"{'WS4':>5}  {'T':>4}  {'FCI':>5}  {'vPar':>5}  "
-          f"{'Ped':>4}  {'TJ':>4}  {'Pce':>4}  {'Val':>4}  {'Comp':>5}  Tier")
-    print("-" * 104)
+          f"{'Ped':>4}  {'TJ':>4}  {'Pce':>4}  {'BDn':>4}  {'PPn':>4}  {'Val':>4}  {'Comp':>5}  Tier")
+    print("-" * 114)
 
     for h in ranked:
         s4  = " ".join(f"{s:.0f}" if s else "--" for s in h['bris_speed'][:4])
@@ -396,6 +418,7 @@ def report(horses):
         print(f"{h['pgm']:<4} {h['name']:<22} {ml:>5}  {s4:>22}  "
               f"{ws:>5}  {tr:>4}  {fc:>5}  {vp:>5}  "
               f"{h['ped_n']:>4.1f}  {h['tj_n']:>4.1f}  {pce:>4}  "
+              f"{h['best_dist_n']:>4.1f}  {h['pp_n']:>4.1f}  "
               f"{h['val_n']:>4.1f}  {h['comp']:>5.2f}  {h['tier']}{debut_tag}")
 
     print()
@@ -420,7 +443,7 @@ def report(horses):
 
     # ── TOP WIN PICK ──
     top = ranked[0]
-    print("=" * 104)
+    print("=" * 114)
     print(f"🏆  TOP WIN PICK:  #{top['pgm']} {top['name']}  "
           f"[{top['ml_odds']:.0f}-1 ML]  |  Composite {top['comp']}  |  {top['tier']}")
     print(f"    Trainer: {top['trainer']}  |  Jockey: {top['jockey']}")
@@ -494,13 +517,13 @@ def report(horses):
     t3pgm = [h['pgm'] for h in ranked[:3]]
     t6pgm = [h['pgm'] for h in ranked[3:6]]
     t6str = "  ".join(f"#{p}" for p in t6pgm)
-    print("=" * 104)
+    print("=" * 114)
     print("🎟️   EXOTICS STRUCTURE:")
     print(f"    WIN:        #{t3pgm[0]} {ranked[0]['name']}")
     print(f"    EXACTA:     #{t3pgm[0]} / #{t3pgm[1]}")
     print(f"    TRIFECTA:   #{t3pgm[0]} / #{t3pgm[1]} / #{t3pgm[2]}")
     print(f"    SUPERFECTA: #{t3pgm[0]} / #{t3pgm[1]} / #{t3pgm[2]} / {t6str}")
-    print("=" * 104)
+    print("=" * 114)
 
 
 if __name__ == "__main__":
