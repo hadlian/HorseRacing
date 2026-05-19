@@ -97,8 +97,12 @@ def init_db():
             pace_style  TEXT,
             pace_fit    REAL,
             scout_adj   REAL DEFAULT 0,
-            finish_pos  INTEGER,
-            won         INTEGER DEFAULT 0
+            prime_power  REAL,
+            best_dist    REAL,
+            best_dist_n  REAL,
+            pp_n         REAL,
+            finish_pos   INTEGER,
+            won          INTEGER DEFAULT 0
         );
     """)
     conn.commit()
@@ -151,14 +155,17 @@ def log_race_picks(horses, track, date, race_num):
             INSERT INTO picks
             (race_id, pgm, horse_name, ml_odds, model_rank, comp, tier,
              fci_n, class_n, bias_n, tj_n, form_n, ped_n, val_n,
-             pace_style, pace_fit, scout_adj)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             pace_style, pace_fit, scout_adj, prime_power, best_dist,
+             best_dist_n, pp_n)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (race_id, h.get("pgm"), h.get("name"), h.get("ml_odds"),
               rank, h.get("comp"), h.get("tier"),
               h.get("fci_n"), h.get("class_n"), h.get("bias_n"),
               h.get("tj_n"), h.get("form_n"), h.get("ped_n"), h.get("val_n"),
               h.get("pace_style", "unknown"), h.get("pace_fit", 5.0),
-              h.get("scout_adj", 0.0)))
+              h.get("scout_adj", 0.0),
+              h.get("prime_power"), h.get("best_dist"),
+              h.get("best_dist_n"), h.get("pp_n")))
 
     conn.commit()
     conn.close()
