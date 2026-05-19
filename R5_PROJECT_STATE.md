@@ -3,8 +3,8 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-05-16 (LRL results logged — 63 races in DB)
-> **Current version:** R5 v3.4
+> **Last updated:** 2026-05-16 (v3.5 live — weight rebalance + best_dist_n + pp_n)
+> **Current version:** R5 v3.5
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
 
@@ -143,20 +143,28 @@ files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1496 fields per record)
 
 ---
 
-## ⚖️ Current Composite Weights (v3.4 — frozen)
+## ⚖️ Current Composite Weights (v3.5 — LIVE 2026-05-16)
 
-| Component | Weight | Field | Notes |
-|-----------|--------|-------|-------|
-| FCI (WS4 + Trend) | 25% | fci_n | Most predictive in stakes fields |
-| Class vs Speed Par | 20% | class_n | |
-| Bias / Pace Fit | 15% | bias_n | Pace scenario validated |
-| Trainer / Jockey | 10% | tj_n | Signal +1.01 — underweighted, 60-race gate met |
-| Form Angle | 10% | form_n | |
-| Pedigree | 10% | ped_n | Weakest signal on dirt sprints |
-| Value vs ML | 10% | val_n | ROI +172.9% — working correctly |
+| Component | Weight | Field | Winner Diff | Change from v3.4 |
+|-----------|--------|-------|-------------|------------------|
+| FCI (WS4 + Trend) | 22% | fci_n | +0.681 | 25% → 22% |
+| Class vs Speed Par | 20% | class_n | +0.723 | unchanged |
+| Trainer / Jockey | 15% | tj_n | +0.832 | **10% → 15%** |
+| Best @ Distance | 8% | best_dist_n | +4.89 raw | **NEW** |
+| Bias / Pace Fit | 8% | bias_n | −0.106 | 15% → 8% |
+| Form Angle | 10% | form_n | +0.364 | unchanged |
+| Pedigree | 7% | ped_n | +0.217 | 10% → 7% |
+| Prime Power | 5% | pp_n | +5.48 raw | **NEW** |
+| Value vs ML | 5% | val_n | −0.262 | 10% → 5% |
 
-**Proposed v3.5 weights (60-race gate met — pending explicit approval):**
-T/J 10%→15%, Class 20%→13%, Bias 15%→10%, Ped 10%→7%
+**Normalization for new components:**
+- `best_dist_n` = clamp((best_dist − 60) / 6, 0, 10) — fallback: fci_n if missing
+- `pp_n` = clamp((prime_power − 100) / 6, 0, 10) — fallback: 5.0 (neutral) if missing
+
+**Weight sum: 1.00 verified. Commit: 5678ff6**
+
+**Signal ranking (all 63 races, winner diff):**
+tj_n +0.832 > class_n +0.723 > fci_n +0.681 > form_n +0.364 > ped_n +0.217 > bias_n −0.106 > val_n −0.262
 
 ---
 
@@ -168,7 +176,7 @@ T/J 10%→15%, Class 20%→13%, Bias 15%→10%, Ped 10%→7%
 - **Gemini / ChatGPT** — design ideas and pseudocode only. Do not write to repo.
 
 ### When to escalate to Opus
-- Post-60-race DB weight evaluation (NOW READY)
+- Post-v3.5 validation (next card, ~20 races) — did weight shift improve top-pick win rate?
 - Phase 2 architectural planning (betting model, Kelly sizing)
 - Saratoga-specific calibration session
 
@@ -185,16 +193,18 @@ T/J 10%→15%, Class 20%→13%, Bias 15%→10%, Ped 10%→7%
 | 2026-05-15 | CDX0514 results + Issue 13 | 4/8 wins (50%). Issue 13 built (late scratch detection, --finalize, two-tier filter). PDF NameError fixed. 50 races in DB. |
 | 2026-05-16 | Preakness Day | LRL0516 scout + analysis run (14 races). HOT pace in Preakness. Memory + state files synced. Results pending. |
 | 2026-05-16 | LRL0516 Results | R1–R13 logged. 2 wins (R7 OBLITERATION rank 1 $3.40, R9 TURF STAR rank 1 $10.40, R2 WICKEDDIVINE rank 1 $5.20). Preakness: NAPOLEON SOLO (rank 11) won $17.80. Rank-3 horses won R1/R3/R4/R6/R10/R11/R12. pgm-number mismatch noted on R2 and R5 (DRF vs official chart). 63 races in DB. |
+| 2026-05-16 | Signal analysis + v3.5 | 63-race correlation analysis: prime_power, best_dist, best_life, best_fast, life_earn evaluated. best_fast eliminated (negative signal). Approved v3.5 weight rebalance: TJ 10→15%, best_dist_n NEW 8%, pp_n NEW 5%, bias 15→8%, val 10→5%, ped 10→7%, fci 25→22%. Commit 5678ff6. |
 
 ---
 
 ## 📋 Immediate Next Steps
 
 1. **Log LRL0516 R14** — card had 14 races; R14 picks are in DB but result not yet logged.
-2. **Issue 3 decision** — 60-race gate confirmed (63 races). Decide on TJ 10%→15% reweight. Requires explicit approval before code change.
+2. **v3.5 first-card validation** — run next card under v3.5, compare top-pick win rate and rank distribution vs v3.4 baseline (26.7% / 55.6%).
 3. **Issue 4 design session** — dynamic fci_n normalisation. No code proposed yet.
-4. **pgm-number mismatch** — R2 and R5 on LRL0516 had DRF pgm ≠ official chart pgm. Monitor for pattern on future cards; if recurring, add pgm cross-check step to result-logging workflow.
-5. **Issue 3 Preakness note** — Rank-3 horses won 7 of 13 races on LRL0516. TJ and Class signals outperforming. Supports v3.5 weight shift.
+4. **pgm-number mismatch** — R2 and R5 on LRL0516 had DRF pgm ≠ official chart pgm. Monitor for pattern on future cards.
+5. **best_dist_n / pp_n backfill** — historical picks in DB have raw prime_power and best_dist but best_dist_n and pp_n columns are NULL for pre-v3.5 rows. Backfill when needed for longitudinal analysis.
+6. **UI-2 ROI Dashboard** — 63 races now in DB, ready to build Analytics tab.
 
 ---
 
