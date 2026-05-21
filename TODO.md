@@ -3,9 +3,9 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-16
-> **Current version:** R5 v3.4 (val_n floor fix, late scratch detection)
-> **Next planned session:** Issue 3 approval + v3.5 weight change
+> **Last updated:** 2026-05-21
+> **Current version:** R5 v3.5 | CompareModels v1.0 (parallel system — see `comparemodels/`)
+> **Next planned session:** R5 Issue 4 (score ceiling) + v3.5 post-validation (~20 more races)
 
 ---
 
@@ -133,6 +133,55 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 - **Proposed fix:** UI layer that compares morning line against a live odds feed and flags "Strong Overlays" where board price significantly exceeds model rank.
 - **Note:** Fix value score inversion (Issue 2) in the engine before building this — the UI alert is the display layer on top of a correct signal.
 - **Status:** Not started. Depends on Issue 2 resolution and a reliable odds data source.
+
+---
+
+## 🔀 CompareModels v1.0 — Parallel BRIS Summary System
+
+> See `comparemodels/COMPAREMODELS_STATE.md` for full spec and results.
+> All CM code in `comparemodels/`. Read-only access to `results/r5_results.db` and `files 2/*.DRF`.
+
+### ✅ CM v1.0 — Build + 63-race backfill + analysis `COMPLETE — 2026-05-21`
+
+**Build complete.** Backfill: 7 cards, 63 races, 669 picks, 631 results joined.
+Report: `comparemodels/reports/comparemodels_vs_r5_63races_20260521_020626.xlsx`
+
+**Head-to-head (63 races):**
+- CM win rate: 25.4% (16/63) — tied with R5
+- R5 win rate: 25.4% (16/63)
+- CM top-3 rate: 47.6% vs R5 55.6%
+- CM ROI (SP): +50.6% vs R5 ROI (SP): +93.0%
+- Agreement rate: 31.7% (only 20/63 races)
+
+**Disagreement breakdown (43 races):** R5 correct 10 / CM correct 10 / Neither 23 — exact dead heat.
+
+**CM segment outperformance (actionable):**
+- Non-graded Stakes: CM 38.5% vs R5 15.4% (13 races — largest gap)
+- Dirt surface: CM 30.0% vs R5 25.0% (40 races)
+- CDX (Churchill): CM 33.3% vs R5 23.3% (30 races)
+
+**CM signal quality:**
+- Consensus ≥ 4 → 30.8% win rate (39 races) — key threshold
+- Prime Power underline → 33.3% win rate (57 fires) — best single signal
+- Overlay Watch → 5.6% win rate (18 fires) — **BROKEN, do not use**
+
+**Advisory:** CM is a supplemental confidence filter for R5, not a replacement. When R5 top pick has CM consensus ≥ 4 and/or Prime Power underline, increase confidence. When disagreement + CM consensus < 4, lean R5.
+
+### CM-1 — Overlay Watch definition broken `PROPOSED — post v3.6`
+- Current: consensus ≥ 5 AND ML ≥ 6.0 → 5.6% win rate
+- Fix: raise consensus threshold or add surface/pace qualifier
+- **Do not use Overlay Watch until fixed.**
+
+### CM-2 — Turf weight calibration `PROPOSED`
+- CM 10.5% turf vs R5 15.8%. Speed-heavy weights don't translate to grass.
+- Fix candidate: surface-specific weight sets
+
+### CM-3 — Trainer Rating signal weak `PROPOSED`
+- 0/12 wins with Trainer Rating underline. Raw win% × 100 too noisy.
+- Fix candidate: BRIS trainer% by distance/surface/race-type
+
+### CM-4 — BRIS Top Pick field not located `DEFERRED`
+- +2 bonus silently skipped. Find field position in DRF before v2.
 
 ---
 
