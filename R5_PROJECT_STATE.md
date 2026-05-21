@@ -3,7 +3,7 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-05-16 (v3.5 live — Preakness retroactive test complete, scratch gate audited)
+> **Last updated:** 2026-05-21 (CompareModels v1.0 built, 63-race comparison complete)
 > **Current version:** R5 v3.5
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
@@ -60,6 +60,42 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 7. **Preakness v3.5 retroactive test.** TAJ MAHAL ranked 1st (6.88 FAIR — only FAIR in the 14-horse field) with TJ=10.0, max Trend +5.0, PP=144.6. Scratched on race day. NAPOLEON SOLO (actual winner, $17.80) ranked 10th — low TJ (3.0) dragged it down despite PP=143.7 (3rd in field). HOT PACE (8 speed) correctly flagged; OCELLI (CLOSER, 6-1) was value alt — the correct closer angle. Model logic sound; outcome was a scratch event, not a miss.
 
 8. **Scratch gate confirmed working** (via `run_r5.py --auto-scout`). When a Rank 1–3 horse is in the scout scratch list, the report prints `🚨 SCRATCH NOTICE` with the revised top pick and passes only active horses to `report()`. Running `r5_parser_v2.py` directly bypasses this (no scout data). Gap: scratches of Rank 4+ are silently removed with no notice.
+
+---
+
+## 🔀 CompareModels v1.0 — Parallel System (2026-05-21)
+
+Full state doc: `comparemodels/COMPAREMODELS_STATE.md`
+Report: `comparemodels/reports/comparemodels_vs_r5_63races_20260521_020626.xlsx`
+
+**BRIS Summary methodology** — 8-category consensus scoring (Prime Power, Avg Speed, Best Speed, Distance Speed, Avg Class, Jockey Rating, Trainer Rating, Earnings). Scored independently from raw DRF data. No R5 code imported.
+
+### 63-race head-to-head
+
+| Metric | CM | R5 |
+|---|---|---|
+| Top pick win rate | 25.4% | 25.4% |
+| Top-3 hit rate | 47.6% | 55.6% |
+| ROI (ML) | −6.7% | −7.3% |
+| ROI (SP) | +50.6% | +93.0% |
+| Agreement rate | 31.7% | — |
+
+Disagreements (43 races): R5 right 10 / CM right 10 / Neither 23 — dead heat.
+
+### CM segment outperformance
+- **Non-graded Stakes:** CM 38.5% vs R5 15.4% (13 races) — strongest signal
+- **Dirt:** CM 30.0% vs R5 25.0% (40 races)
+- **CDX:** CM 33.3% vs R5 23.3% (30 races)
+
+R5 outperforms CM on: Turf, BAQ, Allowance/Opt-Clm races.
+
+### Actionable CM signals
+- **Consensus ≥ 4:** 30.8% win rate (39 races) — primary filter
+- **Prime Power underline:** 33.3% win rate (57 fires) — most reliable single signal
+- **Overlay Watch:** 5.6% win rate — **broken, do not use until CM-1 fixed**
+
+### Advisory integration
+CM is a supplemental confidence filter on R5 — not a replacement. When R5 top pick also has CM consensus ≥ 4 or Prime Power underline → elevated confidence. When R5/CM disagree and CM consensus < 4 → lean R5.
 
 ---
 
@@ -197,6 +233,7 @@ tj_n +0.832 > class_n +0.723 > fci_n +0.681 > form_n +0.364 > ped_n +0.217 > bia
 | 2026-05-15 | CDX0514 results + Issue 13 | 4/8 wins (50%). Issue 13 built (late scratch detection, --finalize, two-tier filter). PDF NameError fixed. 50 races in DB. |
 | 2026-05-16 | Preakness Day | LRL0516 scout + analysis run (14 races). HOT pace in Preakness. Memory + state files synced. Results pending. |
 | 2026-05-16 | LRL0516 Results | R1–R13 logged. 2 wins (R7 OBLITERATION rank 1 $3.40, R9 TURF STAR rank 1 $10.40, R2 WICKEDDIVINE rank 1 $5.20). Preakness: NAPOLEON SOLO (rank 11) won $17.80. Rank-3 horses won R1/R3/R4/R6/R10/R11/R12. pgm-number mismatch noted on R2 and R5 (DRF vs official chart). 63 races in DB. |
+| 2026-05-21 | CompareModels v1.0 | Built full BRIS Summary parallel system in `comparemodels/`. Backfill: 63 races, 7 cards, 669 picks, 631 results joined. Head-to-head: CM 25.4% vs R5 25.4% (tied). SP ROI: CM +50.6% vs R5 +93.0%. Disagreements: 43 races, 10-10-23 (R5/CM/Neither). CM outperforms on non-graded Stakes (38.5% vs 15.4%) and Dirt (30.0% vs 25.0%). Key CM signals: consensus ≥4 (30.8%), Prime Power underline (33.3%). Overlay Watch broken (5.6% win rate). Advisory: CM as supplemental confidence filter on R5. |
 | 2026-05-16 | Signal analysis + v3.5 | 63-race correlation analysis: prime_power, best_dist, best_life, best_fast, life_earn evaluated. best_fast eliminated (negative signal). Approved v3.5 weight rebalance: TJ 10→15%, best_dist_n NEW 8%, pp_n NEW 5%, bias 15→8%, val 10→5%, ped 10→7%, fci 25→22%. Commit 5678ff6. |
 | 2026-05-16 | Preakness v3.5 test + scratch audit | Ran v3.5 retroactively on LRL R13 (Preakness). TAJ MAHAL Rank 1 (6.88 FAIR, TJ=10.0, PP=144.6) — scratched race day. NAPOLEON SOLO (winner $17.80) Rank 10 — low TJ dragged score despite strong PP. HOT pace + CLOSER value alt correctly flagged. Scratch gate confirmed working via run_r5.py --auto-scout; gap noted: Rank 4+ scratches silent. |
 
