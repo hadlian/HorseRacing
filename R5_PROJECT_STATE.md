@@ -3,7 +3,7 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-05-21 (CompareModels v1.0 built, 63-race comparison complete)
+> **Last updated:** 2026-05-21 (CDX0521 live card — v3.5 first post-backfill card. Results loaded. CM run in parallel.)
 > **Current version:** R5 v3.5
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
@@ -20,10 +20,9 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| Races with results | 63 | Through LRL0516 (13 races logged) |
-| Total picks in DB | 65 | R14 LRL0516 still pending |
-| Top pick win rate | 26.7% | Up from 26.5% at 50 races |
-| Top-3 hit rate | 55.6% | Up from 52.0% at 50 races |
+| Races with results | 71 | Through CDX0521 (8 races added) |
+| Top pick win rate | 25.4% | 18/71 races |
+| Top-3 hit rate | 59.2% | 42/71 races — up from 55.6% at 63 races |
 | TJ signal strength | +0.83 | Class vs Par rising (+0.73), FCI +0.68 |
 | Value ROI | +165.2% | Correct metric for val_n (not win-rate differential) |
 | val_n win diff | −0.31 | EXPECTED — overlays designed to pay more, not win more |
@@ -37,9 +36,10 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 | BAQ 20260509 | 11 | 10 results loaded (R11 still missing — non-critical) |
 | CDX 20260514 | 8 | Results loaded — 4/8 wins (50%), best card to date |
 | LRL 20260516 | 14 | R1–R13 results logged; R14 pending |
+| CDX 20260521 | 8 | Results loaded — 2/8 wins. First v3.5 live card post-backfill. CM run in parallel. |
 
 ### 60-race threshold
-**60-race gate MET (63 races). Issue 3 (TJ reweight) implemented in v3.5.**
+**60-race gate MET (71 races). Issue 3 (TJ reweight) implemented in v3.5.**
 
 ---
 
@@ -233,6 +233,7 @@ tj_n +0.832 > class_n +0.723 > fci_n +0.681 > form_n +0.364 > ped_n +0.217 > bia
 | 2026-05-15 | CDX0514 results + Issue 13 | 4/8 wins (50%). Issue 13 built (late scratch detection, --finalize, two-tier filter). PDF NameError fixed. 50 races in DB. |
 | 2026-05-16 | Preakness Day | LRL0516 scout + analysis run (14 races). HOT pace in Preakness. Memory + state files synced. Results pending. |
 | 2026-05-16 | LRL0516 Results | R1–R13 logged. 2 wins (R7 OBLITERATION rank 1 $3.40, R9 TURF STAR rank 1 $10.40, R2 WICKEDDIVINE rank 1 $5.20). Preakness: NAPOLEON SOLO (rank 11) won $17.80. Rank-3 horses won R1/R3/R4/R6/R10/R11/R12. pgm-number mismatch noted on R2 and R5 (DRF vs official chart). 63 races in DB. |
+| 2026-05-21 | CDX0521 live card | First v3.5 live card post-backfill. R5 2/8 wins, CM 2/8 wins (tied). Both agree on R3 SHINING MOMENT (cons=7 DOM, 5-cat underline, won at $3.96). CM edge: R2 SASSY PRINCESS (cons=7 DOM, $5.14). R5 edge: R1 LACK OF RIESLING ($8.00). Massive scratches (R1 had 7 scratches). Results loaded to r5_results.db + CM DB. Daily xlsx: `comparemodels/reports/CDX_20260521_daily.xlsx`. R5 analysis xlsx: `results/r5_analysis_20260521_2156.xlsx`. |
 | 2026-05-21 | CompareModels v1.0 | Built full BRIS Summary parallel system in `comparemodels/`. Backfill: 63 races, 7 cards, 669 picks, 631 results joined. Head-to-head: CM 25.4% vs R5 25.4% (tied). SP ROI: CM +50.6% vs R5 +93.0%. Disagreements: 43 races, 10-10-23 (R5/CM/Neither). CM outperforms on non-graded Stakes (38.5% vs 15.4%) and Dirt (30.0% vs 25.0%). Key CM signals: consensus ≥4 (30.8%), Prime Power underline (33.3%). Overlay Watch broken (5.6% win rate). Advisory: CM as supplemental confidence filter on R5. |
 | 2026-05-16 | Signal analysis + v3.5 | 63-race correlation analysis: prime_power, best_dist, best_life, best_fast, life_earn evaluated. best_fast eliminated (negative signal). Approved v3.5 weight rebalance: TJ 10→15%, best_dist_n NEW 8%, pp_n NEW 5%, bias 15→8%, val 10→5%, ped 10→7%, fci 25→22%. Commit 5678ff6. |
 | 2026-05-16 | Preakness v3.5 test + scratch audit | Ran v3.5 retroactively on LRL R13 (Preakness). TAJ MAHAL Rank 1 (6.88 FAIR, TJ=10.0, PP=144.6) — scratched race day. NAPOLEON SOLO (winner $17.80) Rank 10 — low TJ dragged score despite strong PP. HOT pace + CLOSER value alt correctly flagged. Scratch gate confirmed working via run_r5.py --auto-scout; gap noted: Rank 4+ scratches silent. |
@@ -242,12 +243,13 @@ tj_n +0.832 > class_n +0.723 > fci_n +0.681 > form_n +0.364 > ped_n +0.217 > bia
 ## 📋 Immediate Next Steps
 
 1. **Log LRL0516 R14** — card had 14 races; R14 picks are in DB but result not yet logged.
-2. **v3.5 first-card validation** — run next card under v3.5, compare top-pick win rate and rank distribution vs v3.4 baseline (26.7% / 55.6%). Target: ~20 races before v3.6 decisions.
-3. **Issue 4 design session** — dynamic fci_n normalisation. No code proposed yet.
-4. **pgm-number mismatch** — R2 and R5 on LRL0516 had DRF pgm ≠ official chart pgm. Monitor for pattern on future cards.
-5. **best_dist_n / pp_n backfill** — historical rows have raw prime_power and best_dist but best_dist_n / pp_n columns are NULL. Backfill when needed for longitudinal analysis.
-6. **Scratch gate gap** — Rank 4+ scratches are silently removed with no notice in the report. Low priority but worth a one-line fix.
-7. **UI-2 ROI Dashboard** — 63 races now in DB, ready to build Analytics tab.
+2. **v3.5 validation in progress** — CDX0521 is card 1 of ~20 needed. 2/8 wins today. Continue running future cards; target ~20 before v3.6 decisions. Top-pick rate holding at 25.4% (18/71).
+3. **Run CM on every new card** — CDX0521 demonstrated the parallel workflow: score → log → results → finalize → daily xlsx. Repeat each race day.
+4. **Issue 4 design session** — dynamic fci_n normalisation. No code proposed yet.
+5. **pgm-number mismatch** — R2 and R5 on LRL0516 had DRF pgm ≠ official chart pgm. Monitor for pattern on future cards.
+6. **best_dist_n / pp_n backfill** — historical rows have raw prime_power and best_dist but best_dist_n / pp_n columns are NULL. Backfill when needed for longitudinal analysis.
+7. **Scratch gate gap** — Rank 4+ scratches are silently removed with no notice in the report. Low priority but worth a one-line fix.
+8. **UI-2 ROI Dashboard** — 71 races now in DB, ready to build Analytics tab.
 
 ---
 

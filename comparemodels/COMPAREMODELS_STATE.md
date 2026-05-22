@@ -4,7 +4,7 @@
 >
 > **Last updated:** 2026-05-21
 > **Version:** CM v1.0
-> **Status:** Backfill complete. 63-race comparison done. Analysis complete.
+> **Status:** Backfill complete. 63-race comparison done. CDX0521 live card run. 71 races total in system.
 
 ---
 
@@ -74,23 +74,25 @@ CATEGORY_WEIGHTS = {
 
 ---
 
-## Backfill Status
+## Card History
 
-| Card | Races (DB) | DRF Rows | Matched | Unmatched |
-|---|---|---|---|---|
-| CDX 20260502 | 14 | 169 | 169 | 0 |
-| DBY 20260502 | 1 | 24 | 24 | 0 |
-| CDX 20260507 | 8 | 88 | 88 | 0 |
-| BAQ 20260509 | 10 | 85 | 85 | 0 |
-| BAQ 20260510 | 9 | 78 | 78 | 0 |
-| CDX 20260514 | 8 | 86 | 66 | 20 |
-| LRL 20260516 | 13 | 139 | 121 | 18 |
-| **TOTAL** | **63** | **669** | **631** | **38** |
+| Card | Races | DRF Rows | Matched | Unmatched | Type |
+|---|---|---|---|---|---|
+| CDX 20260502 | 14 | 169 | 169 | 0 | Backfill |
+| DBY 20260502 | 1 | 24 | 24 | 0 | Backfill |
+| CDX 20260507 | 8 | 88 | 88 | 0 | Backfill |
+| BAQ 20260509 | 10 | 85 | 85 | 0 | Backfill |
+| BAQ 20260510 | 9 | 78 | 78 | 0 | Backfill |
+| CDX 20260514 | 8 | 86 | 66 | 20 | Backfill |
+| LRL 20260516 | 13 | 139 | 121 | 18 | Backfill |
+| **CDX 20260521** | **8** | **78** | **78** | **0** | **Live** |
+| **TOTAL** | **71** | **747** | **709** | **38** | |
 
 **Notes:**
-- BAQ0509 DRF has 11 races; BAQ0510 DRF has 9 races — DB is authoritative at 63
+- BAQ0509 DRF has 11 races; BAQ0510 DRF has 9 races — DB is authoritative
 - CDX0514 20 unmatched + LRL0516 18 unmatched = scratches/non-R5 horses
-- DB integrity: SHA-256 pre/post match confirmed (`79554cd1a4c4bb756e2d5ce7cd22489ab198defce83a049a492c747115615928`)
+- CDX0521: 46 scratches recorded (massive scratch day), 0 unmatched
+- Backfill DB integrity: SHA-256 pre/post match confirmed (`79554cd1a4c4bb756e2d5ce7cd22489ab198defce83a049a492c747115615928`)
 
 ---
 
@@ -177,6 +179,34 @@ Segments where CM outperforms R5 by win rate (min 3 races):
 | Field size 10+ | 25.8% | 22.6% | 31 | Large fields |
 
 R5 outperforms CM on: Turf (15.8% vs 10.5%), BAQ/Aqueduct (31.6% vs 21.1%), Allowance/Opt-Clm races.
+
+---
+
+## Live Card Results
+
+### CDX 20260521 — First Live Card
+
+| R | R5 Pick | CM Pick | Winner | SP | Both? |
+|---|---------|---------|--------|----|-------|
+| 1 | #8 LACK OF RIESLING ✓ | #11 Go New York Go | #8 LACK OF RIESLING | $8.00 | ≠ R5 edge |
+| 2 | #6 R Pretty Kitty | #1 SASSY PRINCESS ✓ | #1 SASSY PRINCESS | $5.14 | ≠ CM edge |
+| 3 | #5 SHINING MOMENT ✓ | #5 SHINING MOMENT ✓ | #5 SHINING MOMENT | $3.96 | ✓ BOTH |
+| 4 | #8 Keep On Moving | #1 Easy Dial | #2 BOB'S CARROT | $11.94 | ≠ neither |
+| 5 | #7 Barksdale | #7 Barksdale | #3 EXPLORATION | $5.66 | ≠ neither |
+| 6 | #8 Lambeth | #1 Encino | #5 DRESDEN ROW | $5.28 | ≠ neither |
+| 7 | #7 U Devil You | #2 Extra Anejo | #3 BUILT | $8.38 | ≠ neither |
+| 8 | #1 Blasphemous Rumors | #3 Queen Mckinzie | #5 GALATINA | $6.58 | ≠ neither |
+
+**R5: 2/8 (25.0%) · CM: 2/8 (25.0%) — tied, consistent with 25.4% baseline**
+
+Key signals validated live:
+- R3: Both agree + CM cons=7 DOMINANT + 5-category underline (Avg Speed, Dist Speed, Best Speed, Prime Power, Earnings) → **WON** — strongest signal pattern confirmed
+- R2: CM cons=7 DOMINANT vs R5 disagree at CDX → CM correct (backfill CDX-disagree pattern held)
+- Overlay Watch: not fired on this card
+
+Scratch note: R1 had 7 scratches, R3 had 8, R8 had 9 — both models built picks on horses that didn't run, reducing effective field sizes significantly.
+
+Daily report: `comparemodels/reports/CDX_20260521_daily.xlsx`
 
 ---
 

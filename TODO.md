@@ -3,9 +3,9 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-21
+> **Last updated:** 2026-05-21 (CDX0521 live card complete — R5 + CM both run, results loaded)
 > **Current version:** R5 v3.5 | CompareModels v1.0 (parallel system — see `comparemodels/`)
-> **Next planned session:** R5 Issue 4 (score ceiling) + v3.5 post-validation (~20 more races)
+> **Next planned session:** Continue v3.5 validation on future cards (~19 more needed). R5 Issue 4 (score ceiling) after validation gate.
 
 ---
 
@@ -141,7 +141,7 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 > See `comparemodels/COMPAREMODELS_STATE.md` for full spec and results.
 > All CM code in `comparemodels/`. Read-only access to `results/r5_results.db` and `files 2/*.DRF`.
 
-### ✅ CM v1.0 — Build + 63-race backfill + analysis `COMPLETE — 2026-05-21`
+### ✅ CM v1.0 — Build + 63-race backfill + analysis + CDX0521 live `COMPLETE — 2026-05-21`
 
 **Build complete.** Backfill: 7 cards, 63 races, 669 picks, 631 results joined.
 Report: `comparemodels/reports/comparemodels_vs_r5_63races_20260521_020626.xlsx`
@@ -166,6 +166,14 @@ Report: `comparemodels/reports/comparemodels_vs_r5_63races_20260521_020626.xlsx`
 - Overlay Watch → 5.6% win rate (18 fires) — **BROKEN, do not use**
 
 **Advisory:** CM is a supplemental confidence filter for R5, not a replacement. When R5 top pick has CM consensus ≥ 4 and/or Prime Power underline, increase confidence. When disagreement + CM consensus < 4, lean R5.
+
+**CDX0521 live validation (first card):**
+- R5: 2/8 wins, CM: 2/8 wins — tied again, consistent with 25.4% backfill baseline
+- R3 SHINING MOMENT: both agree, CM cons=7 DOM + 5-cat underline → won at $3.96 ✓ (key signal validated live)
+- R2 SASSY PRINCESS: CM edge (cons=7 DOM, $5.14) — CDX disagreement pattern held ✓
+- R1 LACK OF RIESLING: R5 edge at $8.00, CM liked 3-1 fav
+- Massive scratch counts (R1: 7, R3: 8, R8: 9) — both models affected
+- Workflow confirmed: score → log → results → finalize → daily xlsx each race day
 
 ### CM-1 — Overlay Watch definition broken `PROPOSED — post v3.6`
 - Current: consensus ≥ 5 AND ML ≥ 6.0 → 5.6% win rate

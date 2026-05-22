@@ -729,6 +729,42 @@
     /* ── Utility ───────────────────────────────────────────────────────── */
     .hidden { display: none !important; }
 
+
+    /* ── CompareModels panel ───────────────────────────────────────────────── */
+    .pick-box.cm-agree-box {
+      background: rgba(39,174,96,0.05);
+      border: 1px solid rgba(39,174,96,0.22);
+    }
+    .pick-box.cm-differ-box {
+      background: rgba(41,128,185,0.05);
+      border: 1px solid rgba(41,128,185,0.22);
+    }
+    .pick-box.cm-dominant-box {
+      background: rgba(201,168,76,0.07);
+      border: 1px solid rgba(201,168,76,0.35);
+    }
+    .cm-signal {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 9px;
+      border-radius: 10px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 7px;
+    }
+    .cm-signal-agree    { background: rgba(39,174,96,0.15);  color: #5ddb8e; border: 1px solid rgba(39,174,96,0.4); }
+    .cm-signal-strong   { background: rgba(201,168,76,0.18); color: var(--gold); border: 1px solid rgba(201,168,76,0.5); }
+    .cm-signal-differ   { background: rgba(41,128,185,0.15); color: #7abfff; border: 1px solid rgba(41,128,185,0.4); }
+    .cm-pick-lbl { color: var(--blue); }
+    .cm-dominant-lbl { color: var(--gold); }
+
+    /* CM column in overview */
+    .cm-agree-cell  { color: #5ddb8e; font-size: 0.78rem; }
+    .cm-differ-cell { color: var(--muted); font-size: 0.78rem; }
+    .cm-none-cell   { color: var(--border); font-size: 0.78rem; }
+
     /* ── Mobile expand button (hidden on desktop) ──────────────────────────── */
     .expand-btn { display: none; }
 
@@ -800,10 +836,11 @@
       }
       .hx-val { color: var(--text); font-size: 0.79rem; }
 
-      /* Summary table: hide Purse(3), Pace(4), ML(7) on mobile */
+      /* Summary table: hide Purse(3), Pace(4), ML(7), CM(8) on mobile */
       .summary-tbl th:nth-child(3), .summary-tbl td:nth-child(3),
       .summary-tbl th:nth-child(4), .summary-tbl td:nth-child(4),
-      .summary-tbl th:nth-child(7), .summary-tbl td:nth-child(7) { display: none; }
+      .summary-tbl th:nth-child(7), .summary-tbl td:nth-child(7),
+      .summary-tbl th:nth-child(8), .summary-tbl td:nth-child(8) { display: none; }
 
       /* Race header */
       .race-hdr  { padding: 11px 13px; gap: 5px 12px; }
@@ -852,6 +889,10 @@
         <label class="check-label">
           <input type="checkbox" id="scoutOpt">
           Auto Scout (scrape trainer quotes, scratches, sharp money — requires API key)
+        </label>
+        <label class="check-label" id="cmOptLabel">
+          <input type="checkbox" id="cmOpt">
+          Run CompareModels (BRIS consensus scoring — runs alongside R5)
         </label>
         <label class="check-label">
           <input type="checkbox" id="pdfOpt">
@@ -917,6 +958,7 @@ let files       = [];
 let jobId       = null;
 let races       = [];
 let pdfOk       = false;
+let cmRun       = false;
 let activeTab   = 0;
 let viewMode    = 'detail';   // 'summary' | 'detail'
 // Manual scratches: Map of raceIdx → Set of pgm strings
@@ -928,6 +970,7 @@ const fileInput    = document.getElementById('fileInput');
 const fileList     = document.getElementById('fileList');
 const analyzeBtn   = document.getElementById('analyzeBtn');
 const pdfOpt       = document.getElementById('pdfOpt');
+const cmOpt        = document.getElementById('cmOpt');
 const scoutOpt     = document.getElementById('scoutOpt');
 const loadingWrap  = document.getElementById('loadingWrap');
 const errorBanner  = document.getElementById('errorBanner');
@@ -1000,6 +1043,7 @@ async function runAnalysis() {
   files.forEach(f => fd.append('files', f));
   fd.append('pdf',   pdfOpt.checked   ? 'true' : 'false');
   fd.append('scout', scoutOpt.checked ? 'true' : 'false');
+  fd.append('cm',    cmOpt.checked    ? 'true' : 'false');
 
   try {
     const res  = await fetch('/api/analyze', { method: 'POST', body: fd });
@@ -1014,6 +1058,7 @@ async function runAnalysis() {
     jobId  = data.job_id;
     races  = data.races  || [];
     pdfOk  = data.pdf_available;
+    cmRun  = data.cm_run || false;
 
     renderResults(data);
 
@@ -1083,6 +1128,7 @@ function buildSummary() {
         </td>
         <td><span class="comp-val ${ccls}">${esc(top.composite || '?')}</span></td>
         <td>${esc(mlStr || '?')}</td>
+        <td>${cmSummaryCell(r, i)}</td>
         <td><span class="bet-verdict ${vcls}" style="padding:2px 10px;font-size:0.72rem">${icon} ${esc(rec.verdict || '?')}</span></td>
       </tr>`;
   }).join('');
@@ -1099,6 +1145,7 @@ function buildSummary() {
             <th>Top Pick / Value Alt</th>
             <th>Comp</th>
             <th>ML</th>
+            <th>CM</th>
             <th>Verdict</th>
           </tr>
         </thead>
@@ -1325,6 +1372,8 @@ function buildPicks(race, raceIdx) {
       </div>`);
   }
 
+  const cmHtml = buildCmPanel(race, raceIdx);
+  if (cmHtml) parts.push(cmHtml);
   return parts.length ? `<div class="picks-grid">${parts.join('')}</div>` : '';
 }
 
@@ -1569,6 +1618,21 @@ function calcBetRec(race, raceIdx) {
     cons.push(`tight speed cluster${spread} — low model separation, race is hard to call`);
   }
 
+  // 8 — CompareModels consensus
+  if (race.cm) {
+    const cm      = race.cm;
+    const agrees  = cm.pgm === topHorse.pgm;
+    if (agrees && cm.dominant) {
+      pts += 2;
+      pros.push(`CM model confirms with dominant signal — ${cm.consensus}/8 categories, ★ underline`);
+    } else if (agrees) {
+      pts += 1;
+      pros.push(`CM model agrees — #${cm.pgm} top pick in both systems (${cm.consensus}/8 categories)`);
+    } else {
+      cons.push(`CM model differs — picks #${cm.pgm} ${cm.name} (${cm.consensus}/8 categories)`);
+    }
+  }
+
   // ── Verdict ──────────────────────────────────────────────────────────────
   // Composite score is the verdict — secondary factors are context, not gatekeepers.
   //   comp >= 6.0  → PLAY  (threshold met)
@@ -1645,6 +1709,65 @@ function buildBetRec(race, raceIdx) {
 }
 
 
+
+/* ── CompareModels helpers ─────────────────────────────────────────────────── */
+function cmSummaryCell(race, raceIdx) {
+  const cm = race.cm;
+  if (!cm) return '<span class="cm-none-cell">—</span>';
+  const scratched   = getScratchSet(raceIdx);
+  const activeHorses = (race.horses || []).filter(h => !scratched.has(h.pgm));
+  const r5TopPgm    = activeHorses[0]?.pgm;
+  const agrees      = r5TopPgm && cm.pgm === r5TopPgm;
+  if (agrees) {
+    const flag = cm.dominant ? ' ★' : '';
+    return `<span class="cm-agree-cell">✅ #${esc(cm.pgm)} ${esc(cm.name)}${flag}</span>`;
+  }
+  return `<span class="cm-differ-cell">#${esc(cm.pgm)} ${esc(cm.name)}</span>`;
+}
+
+function buildCmPanel(race, raceIdx) {
+  const cm = race.cm;
+  if (!cm) return '';
+  const scratched    = getScratchSet(raceIdx);
+  const activeHorses = (race.horses || []).filter(h => !scratched.has(h.pgm));
+  const r5TopPgm     = activeHorses[0]?.pgm;
+  const agrees       = r5TopPgm && cm.pgm === r5TopPgm;
+  const isDominant   = cm.dominant;
+
+  let signalHtml, boxCls, lblCls;
+  if (agrees && isDominant) {
+    signalHtml = `<div class="cm-signal cm-signal-strong">🔥 Strong Consensus — ${esc(String(cm.consensus))}/8 categories + underline</div>`;
+    boxCls = 'cm-dominant-box'; lblCls = 'cm-dominant-lbl';
+  } else if (agrees) {
+    signalHtml = `<div class="cm-signal cm-signal-agree">✅ Models Agree — ${esc(String(cm.consensus))}/8 categories</div>`;
+    boxCls = 'cm-agree-box'; lblCls = 'cm-pick-lbl';
+  } else {
+    signalHtml = `<div class="cm-signal cm-signal-differ">⚡ CM Picks Different Horse — ${esc(String(cm.consensus))}/8</div>`;
+    boxCls = 'cm-differ-box'; lblCls = 'cm-pick-lbl';
+  }
+
+  const paceNote = [
+    cm.early_pace_leader ? `Early pace: #${esc(cm.early_pace_leader)}` : '',
+    cm.late_pace_leader  ? `Late pace: #${esc(cm.late_pace_leader)}`   : '',
+  ].filter(Boolean).join('  ·  ');
+
+  return `
+    <div class="pick-box ${boxCls}">
+      <div class="pick-lbl ${lblCls}">📊 CompareModels</div>
+      ${signalHtml}
+      <div class="pick-pgm-name">
+        <span class="pick-pgm-num">#${esc(cm.pgm)}</span>
+        <span class="pick-horse-name">${esc(cm.name)}</span>
+      </div>
+      <div class="pick-stats">
+        <span>Comp <span class="sv">${esc(String(cm.composite))}</span></span>
+        <span>Consensus <span class="sv">${esc(String(cm.consensus))}/8</span></span>
+        ${cm.dominant ? '<span class="sv" style="color:var(--gold)">★ Dominant</span>' : ''}
+      </div>
+      ${paceNote ? `<div style="font-size:0.72rem;color:var(--muted);margin-top:6px">${paceNote}</div>` : ''}
+    </div>`;
+}
+
 /* ── Mobile: expand/collapse horse metrics row ─────────────────────────── */
 function toggleExpand(btn) {
   const row  = btn.closest('tr');
@@ -1696,6 +1819,19 @@ function setLoading(on) {
 function show(el) { el.classList.remove('hidden'); }
 function hide(el) { el.classList.add('hidden'); }
 function showBanner(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
+
+/* ── Check CM availability on load ────────────────────────────────────────── */
+(async () => {
+  try {
+    const r = await fetch('/api/status');
+    const d = await r.json();
+    if (!d.cm_available) {
+      const lbl = document.getElementById('cmOptLabel');
+      if (lbl) lbl.style.display = 'none';
+    }
+  } catch(e) {}
+})();
+
 </script>
 
 </body>
