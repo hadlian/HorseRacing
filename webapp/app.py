@@ -27,6 +27,15 @@ WORK_BASE.mkdir(exist_ok=True)
 _PROJECT_PYTHON = HERE.parent / "venv" / "bin" / "python3"
 R5_PYTHON = str(_PROJECT_PYTHON) if _PROJECT_PYTHON.exists() else sys.executable
 
+# ── CompareModels (optional — same project, direct import) ────────────────────
+try:
+    sys.path.insert(0, str(HERE.parent))
+    from comparemodels.drf_to_csv import convert_drf_to_csv as _cm_convert
+    from comparemodels.comparemodels_engine import score_card as _cm_score
+    CM_AVAILABLE = True
+except ImportError:
+    CM_AVAILABLE = False
+
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB
@@ -87,6 +96,32 @@ def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = Fa
             pdf_path = candidate
 
     return text, pdf_path, warning
+
+
+def run_cm(drf_path: Path, work_dir: Path) -> dict:
+    """Run CompareModels against a DRF. Returns {race_num: cm_data_dict}."""
+    if not CM_AVAILABLE:
+        raise RuntimeError("comparemodels package not found")
+    csv_path = work_dir / (drf_path.stem + "_cm.csv")
+    _cm_convert(str(drf_path), str(csv_path))
+    results = _cm_score(str(csv_path))
+
+    cm_by_race: dict = {}
+    for race_num, r in results.items():
+        horses = r.get("ranked_horses", [])
+        if not horses:
+            continue
+        top = horses[0]
+        cm_by_race[race_num] = {
+            "pgm":              top["pgm"],
+            "name":             top["name"],
+            "composite":        top["composite"],
+            "consensus":        top["consensus_count"],
+            "dominant":         top["is_dominant"],
+            "early_pace_leader": r.get("early_pace_leader"),
+            "late_pace_leader":  r.get("late_pace_leader"),
+        }
+    return cm_by_race
 
 
 # ── Output parser ─────────────────────────────────────────────────────────────
@@ -302,6 +337,11 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/api/status")
+def status():
+    return jsonify({"cm_available": CM_AVAILABLE})
+
+
 @app.route("/api/analyze", methods=["POST"])
 def analyze():
     files = request.files.getlist("files")
@@ -310,6 +350,7 @@ def analyze():
 
     want_pdf   = request.form.get("pdf",   "false").lower() == "true"
     want_scout = request.form.get("scout", "false").lower() == "true"
+    want_cm    = request.form.get("cm",    "false").lower() == "true" and CM_AVAILABLE
 
     job_id  = str(uuid.uuid4())
     work_dir = WORK_BASE / job_id
@@ -342,8 +383,21 @@ def analyze():
         for drf in drfs:
             try:
                 text, pdf_path, warning = run_r5(drf, work_dir, want_pdf, want_scout)
+                drf_races = parse_output(text)
+
+                # Merge CompareModels picks into each race
+                if want_cm:
+                    try:
+                        cm_data = run_cm(drf, work_dir)
+                        for race in drf_races:
+                            rn = race.get("race_num")
+                            if rn and rn in cm_data:
+                                race["cm"] = cm_data[rn]
+                    except Exception as cm_exc:
+                        errors.append(f"{drf.name} (CM): {cm_exc}")
+
                 all_text += text + "\n"
-                all_races.extend(parse_output(text))
+                all_races.extend(drf_races)
                 if pdf_path:
                     pdf_paths.append(str(pdf_path))
                 if warning:
@@ -363,6 +417,7 @@ def analyze():
         "races":         all_races,
         "text":          all_text,
         "pdf_available": len(pdf_paths) > 0,
+        "cm_run":        want_cm,
         "errors":        errors,
     })
 
