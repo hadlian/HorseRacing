@@ -3,8 +3,8 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-05-24 (UI-2 Analytics tab shipped — Chart.js dashboard, 4 charts)
-> **Current version:** R5 v3.5
+> **Last updated:** 2026-05-24 (R5 v3.6 shipped — Issue 4 par-anchored normalisation; CDX0524 run)
+> **Current version:** R5 v3.6
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
 
@@ -37,6 +37,7 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 | CDX 20260514 | 8 | Results loaded — 4/8 wins (50%), best card to date |
 | LRL 20260516 | 14 | R1–R13 results logged; R14 pending |
 | CDX 20260521 | 8 | Results loaded — 2/8 wins. First v3.5 live card post-backfill. CM run in parallel. |
+| CDX 20260524 | 10 | Picks logged — results PENDING. First v3.6 live card. CM run in parallel. 6 scratches. |
 
 ### 60-race threshold
 **60-race gate MET (71 races). Issue 3 (TJ reweight) implemented in v3.5.**
@@ -105,7 +106,7 @@ All weight changes require explicit approval + version bump per spec rules.
 
 | Issue | Description | Status | Priority |
 |-------|-------------|--------|----------|
-| 4 | Composite score ceiling — dynamic fci_n normalisation | Under discussion | HIGH |
+| 4 | Composite score ceiling — par-anchored fci_n + best_dist_n | **FIXED — v3.6, 2026-05-24** | ✅ |
 | 6 | Crowded Room Penalty — score deduction (flag is live) | Pending post-Preakness validation | MODERATE |
 | 7 | Surface-specific WS4 weights (dirt vs turf) | Gate lifted post-Preakness | MODERATE |
 | 8 | Data scarcity confidence cap (per-horse, < 2 starts) | Proposed | MODERATE |
@@ -135,6 +136,8 @@ All weight changes require explicit approval + version bump per spec rules.
 | UI-1 | Mobile responsive design | v4.0 | 2026-05-10 |
 | UI-webapp | PDF error surfacing, scratch notice regex fix, scratch-map pre-collection | v4.0 | 2026-05-16 |
 | UI-2 | Analytics tab — Chart.js dashboard (4 charts: tier hits, val ROI, score dist, track/surface splits) | v4.0 | 2026-05-24 |
+| 4 | Composite ceiling — par-anchored fci_n + best_dist_n; race header shows Par value | v3.6 | 2026-05-24 |
+| auto-scout | --auto-scout path bug fixed (subprocess now uses _scout_path, not CWD) | v3.6 | 2026-05-24 |
 
 ---
 
@@ -144,7 +147,7 @@ All UI work in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| UI-2 | Analytics tab — Chart.js dashboard (tier hits, val ROI, score dist, track splits) | **COMPLETE — 2026-05-24, commit 872db8b** |
+| UI-2 | Analytics tab — Chart.js dashboard (tier hits, val ROI, score dist, track splits) | **COMPLETE — commit 872db8b** |
 | UI-3 | Live odds divergence alerts | Not started |
 
 ---
