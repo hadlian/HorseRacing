@@ -1,11 +1,11 @@
 # R5 Horse Racing Handicapping System
 
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-3.3-gold)]()
+[![Version](https://img.shields.io/badge/version-3.6-gold)]()
 [![Status](https://img.shields.io/badge/status-Active%20Development-brightgreen)]()
 [![License](https://img.shields.io/badge/license-Proprietary-blue)](#-license)
 
-**Version:** 3.3
+**Version:** 3.6
 
 **Status:** Active Development
 
@@ -44,25 +44,30 @@ files 2/TRACK_MMDD.DRF   ← BRIS DRF input
 
 ---
 
-## R5 Composite Score (0–10)
+## R5 Composite Score (0–10) — v3.6
 
-| Component        | Weight | Source |
-|------------------|--------|--------|
-| FCI (Speed+Trend)| 25%    | BRIS speed figs, same surface |
-| Class vs Par     | 20%    | Race class vs pace pars |
-| Bias/Pace Fit    | 15%    | Track post bias + pace scenario fit |
-| Trainer/Jockey   | 10%    | Actual win % (min 20 starts) |
-| Form Angle       | 10%    | Recent race pattern |
-| Pedigree         | 10%    | Distance/surface suitability |
-| Value vs ML      | 10%    | Model rank divergence from morning line |
+| Component           | Weight | Source |
+|---------------------|--------|--------|
+| FCI (Speed+Trend)   | 22%    | BRIS speed figs, par-anchored normalisation |
+| Class vs Par        | 13%    | Race class vs pace pars |
+| Bias/Pace Fit       | 8%     | Track post bias + pace scenario fit |
+| Trainer/Jockey      | 15%    | Actual win % (min 20 starts) |
+| Form Angle          | 10%    | Recent race pattern |
+| Pedigree            | 7%     | Distance/surface suitability |
+| Value vs ML         | 5%     | Model rank divergence from morning line |
+| Best @ Distance     | 8%     | BRIS best speed figure at today's distance |
+| Prime Power         | 5%     | BRIS Prime Power figure |
 
 **Confidence Tiers:** `HIGH ≥8.5` | `SOLID 7.5–8.4` | `FAIR 6.5–7.4` | `SPECULATIVE <6.5`
 
 ### WS4 (Weighted Speed)
 ```
 WS4 = 0.4×S1 + 0.3×S2 + 0.2×S3 + 0.1×S4   (last 4 BRIS figs, same surface)
-Trend = continuous: (S1 − avg_rest) / 2.0, capped ±5
+Trend = +5 if improving ≥4 pts, −5 if declining ≥4 pts, else 0
 FCI = WS4 + Trend
+
+fci_n = 5.0 + (fci − par_eff) / 5.0   where par_eff = clamp(par, 70, 105)
+Debut / no figures: fci_n = 4.0
 ```
 
 ---
@@ -171,6 +176,7 @@ python app.py
 | Exotics | Win / Exacta / Trifecta / Superfecta |
 | Raw text | Full formatted output in collapsible block |
 | Downloads | TXT (always) + PDF (tick "Generate PDF" before uploading) |
+| Analytics tab | 📊 Chart.js dashboard: tier hit rates, value ROI curve, score distribution, track/surface splits (requires logged results) |
 
 See [`webapp/README.md`](webapp/README.md) for full options and troubleshooting.
 
@@ -264,33 +270,34 @@ Applied to composite score before final ranking:
 
 ## 🗺️ Roadmap
 
-### Current Version: v3.3 (May 2026)
-- ✅ **DRF Parser** — Fixed-format BRIS DRF parsing (1496 fields per record), full 7-component scoring pipeline
-- ✅ **WS4™ Speed Formula** — Weighted 4-race speed figure with continuous trend, surface-matched
+### Current Version: v3.6 (May 2026)
+- ✅ **DRF Parser** — Fixed-format BRIS DRF parsing (1496 fields per record), 9-component scoring pipeline
+- ✅ **WS4™ Speed Formula** — Weighted 4-race speed figure, surface-matched; par-anchored `fci_n` normalisation (v3.6)
 - ✅ **Pace Scenario Engine** — HOT / NML / PRESS classification; speed horse vs closer fit scoring
 - ✅ **Web Scout** — Live pre-race intel from Horse Racing Nation, Blood-Horse, TDN via Claude API
-- ✅ **Results Tracker** — SQLite-backed logger with manual entry, CSV bulk load, and auto-fetch from Equibase/HRN
+- ✅ **Results Tracker** — SQLite-backed logger; `--finalize` late-scratch detection; two-tier NULL filter in analyzer
 - ✅ **Performance Analyzer** — Excel workbook with 5 sheets: Summary, Race by Race, Component Correlations, Value ROI, Scout Impact
-- ✅ **Web Frontend** — Flask upload UI with structured race cards, colour-coded horse table, pick boxes, and exotic suggestions
+- ✅ **Web Frontend** — Flask upload UI with structured race cards, colour-coded horse table, pick boxes, exotic suggestions
 - ✅ **Bet Recommendation** — PLAY / NEAR / SKIP verdict driven by R5 Composite Score™ with For/Against rationale bullets
-- ✅ **Overview Toggle** — Card-level summary table (📋 Overview) alongside full tabbed race detail (🏇 Race Detail)
+- ✅ **Overview Toggle** — Card-level summary (📋 Overview) alongside full tabbed race detail (🏇 Race Detail)
+- ✅ **Analytics Tab** — Chart.js dashboard (📊 Analytics): tier hit rates, value ROI curve, score distribution, track/surface splits
+- ✅ **Mobile Responsive** — Horse table, race tabs, summary table all adapt to phone-width screens
 - ✅ **PDF Download** — ReportLab-generated PDF reports via `--pdf` flag or web UI checkbox
-- ✅ **Maiden/Firster Class Fix** — First-time starters with no BRIS speed figures now receive `class_n=0.0`; `[DEBUT]` flag surfaced in report output
+- ✅ **Maiden/Firster Class Fix** — First-time starters receive `class_n=0.0`; `[DEBUT]` flag in output
+- ✅ **Value Score Fix** — One-sided floor: underlays neutral at 5.0, overlays rewarded up to 10.0; val_n ROI +172% validated
+- ✅ **T/J Weight Raised** — 10% → 15% (v3.5); Best @ Distance (8%) and Prime Power (5%) added as new components
+- ✅ **Par-Anchored Normalisation** — `fci_n` and `best_dist_n` relative to par rather than fixed floor; mid-week cards score correctly (v3.6)
+- ✅ **CompareModels v1.0** — Parallel BRIS Summary system; 63-race backfill; consensus ≥4 and Prime Power underline are actionable filters
 
-### Upcoming: v3.4 — Remaining Engine Fixes
-- 🔲 **Value Score Inversion** — Formula direction inverted; ML-favoured horses the model ranks low receive suppressed value scores instead of elevated ones
-- 🔲 **T/J Weight Recalibration** — Raise T/J from 10% → 15%; offset via Class, Bias, Ped reductions (pending value fix first)
-- 🔲 **Composite Ceiling** — Scores rarely exceed 8.5; `fci_n` normalisation calibrated for higher-class horses than typical mid-week undercards
-- 🔲 **Scratch Gate** — No automatic fallback to next active ranked horse when top pick scratches
-- 🔲 **Crowded Room Penalty** — Top-3 within ≤1.5 comp points gets no low-conviction flag; validate threshold against results data before implementing
-- 🔲 **Data Scarcity Cap** — Per-horse confidence reduction when horse has < 2 lifetime starts; field-level `LOW INFO` warning when >30% of field is low-data
+### Active: v3.x — Engine Improvements
+- 🔲 **Crowded Room Penalty** — ⚠️ TIGHT CLUSTER display flag live; score deduction pending results validation
+- 🔲 **Surface-Specific WS4** — Dirt: weight recent form more; Turf: lean on Trend/FCI. Validate against 60+ race DB before implementing
+- 🔲 **Data Scarcity Cap** — Per-horse confidence reduction when horse has < 2 lifetime starts; `LOW INFO FIELD` header warning
 
-### Upcoming: v4.0 — UI Enhancements
-- 🔲 **Mobile Refinement** — Responsive CSS for the horse table; readable on phone at the track
-- 🔲 **Historical ROI Dashboard** — Pull logged races from `r5_tracker.py` SQLite DB and display interactive ROI and hit-rate charts directly in the web UI
-- 🔲 **Live Odds Integration** — Compare morning line prices against a live odds feed; surface divergence alerts when the board moves significantly off the R5 model rank
+### Active: v4.x — UI Enhancements
+- 🔲 **Live Odds Divergence Alerts** — Compare morning line vs live board; flag strong overlays in real time (UI-3)
 
-### Upcoming: v5.0 — Intelligence Layer
+### Future: v5.0 — Intelligence Layer
 - 🔲 ML-powered lap time prediction and pattern recognition
 - 🔲 Anomaly detection for workout and form angle outliers
 - 🔲 Optional LLM coaching summaries per race

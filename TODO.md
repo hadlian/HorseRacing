@@ -3,15 +3,13 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-21 (CDX0521 live card complete — R5 + CM both run, results loaded)
-> **Current version:** R5 v3.5 | CompareModels v1.0 (parallel system — see `comparemodels/`)
-> **Next planned session:** Continue v3.5 validation on future cards (~19 more needed). R5 Issue 4 (score ceiling) after validation gate.
+> **Last updated:** 2026-05-24 (CDX0524 live card complete — R5 v3.6 + CM both run; 10 races, results pending)
+> **Current version:** R5 v3.6 | CompareModels v1.0 (parallel system — see `comparemodels/`)
+> **Next planned session:** Log CDX0524 results, run --finalize CDX 20260524. Continue v3.6 validation (Issues 6, 7, 8 pending).
 
 ---
 
-## 🔴 v3.3 — Engine Fixes (Priority Order)
-
-These must be resolved in order. Do not change TJ weights (Issue 3) until Issues 1 and 2 are fixed.
+## 🔴 v3.x — Engine Fixes (Priority Order)
 
 ### ~~Issue 1 — Maiden / First-Time Starter Class Bug~~ `FIXED — v3.3`
 - **File:** `Claude/r5_parser_v2.py`
@@ -24,21 +22,20 @@ These must be resolved in order. Do not change TJ weights (Issue 3) until Issues
 - **De' Medici case:** Was val_n=1.5 → now val_n=5.0. The composite loss from this horse's val_n goes from −0.35 to 0.0.
 - **Commit:** 2026-05-10 (evening)
 
-### Issue 3 — T/J Weight Underperforming `MODERATE`
+### ~~Issue 3 — T/J Weight Underperforming~~ `FIXED — v3.5 (2026-05-16)`
 - **File:** `Claude/r5_parser_v2.py`
-- **Problem:** At 10% weight, T/J cannot overcome FCI/Class even when winners have field-leading T/J scores. 3 of 8 winners in the CDX 05/07 audit had the highest or near-highest T/J in the field.
-- **Proposed fix:** Raise T/J from 10% → 15%. Offset: Class 20% → 13%, Bias 15% → 10%, Ped 10% → 7%.
-- **Status:** Candidate. Issues 1 & 2 now resolved — this is next in queue. Requires explicit approval before code change. Validate after Preakness week data collected.
+- **Fix applied:** T/J raised 10% → 15%. Best @ Distance (8%) and Prime Power (5%) added as new components. Offsets: FCI 25→22%, Bias 15→8%, Val 10→5%, Ped 10→7%, Class 20→13%. Now a 9-component composite.
 
 ### ~~Issue 3a — result_fetched Flag Not Set on Direct SQL Logging~~ `FIXED — 2026-05-12`
 - **File:** `Claude/r5_tracker.py`
 - **Fix applied:** Safety net UPDATE added to `load_csv()` after the bulk loop. Sets `result_fetched=1` for any race with `finish_pos` populated, regardless of how results were written. `apply_result()` was already correct on all code paths. Commit `2dfc3c2`.
 
-### Issue 4 — Composite Score Ceiling `MODERATE`
+### ~~Issue 4 — Composite Score Ceiling~~ `FIXED — v3.6 (2026-05-24, commit 5c103ff)`
 - **File:** `Claude/r5_parser_v2.py`
-- **Problem:** No race on CDX 05/07 reached SOLID tier (7.5). Best composite was 6.08. The `fci_n` normalisation (baseline=60, scale÷6) was calibrated for higher-class horses. Mid-week undercards with lower speed figures will always grade SPECULATIVE.
-- **Proposed fix:** Card-quality tier adjustment or dynamic normalisation based on field average FCI.
-- **Status:** Under discussion. No code change proposed yet.
+- **Fix applied:** `fci_n` and `best_dist_n` replaced with par-relative formula: `5.0 + (fci − par_eff) / 5.0` where `par_eff = clamp(par, 70, 105)`. Debut/no figures: `fci_n = 4.0`. Race header prints Par value. Mid-week allowance cards lift ~+1.0 pt.
+
+### ~~Auto-Scout Path Bug~~ `FIXED — run_r5.py (2026-05-24)`
+- **Fix applied:** `subprocess.run` was looking for `r5_scout.py` in CWD. Fixed to use `_scout_path` (absolute path). API key env-var still requires manual pre-run of scout.
 
 ### ~~Issue 5 — No Scratch Gate~~ `FIXED — v3.3`
 - **File:** `Claude/run_r5.py`
@@ -121,11 +118,9 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 - **File:** `webapp/templates/index.html`
 - **What was built:** `@media (max-width: 639px)` block. Horse table hides columns 3–11 on mobile, showing only `#`, `Horse`, `Comp`, `Tier`. Each row has a `▶` tap-to-expand button that reveals a 3-column metrics grid (ML, WS4, Trend, FCI, vPar, Ped, T/J, Pce, Val). Race tabs scroll horizontally instead of wrapping. Summary table hides Purse/Pace/ML columns. Picks grid goes single-column. Reduced padding throughout. Desktop layout unchanged.
 
-### UI-2 — Historical ROI Dashboard
+### ~~UI-2 — Historical ROI Dashboard~~ `DONE — 2026-05-24 (commit 872db8b)`
 - **Files:** `webapp/app.py`, `webapp/templates/index.html`
-- **Problem:** Performance data is logged to SQLite via `r5_tracker.py` but only accessible via CLI or Excel export.
-- **Proposed fix:** Add an "Analytics" tab in the web UI. Pull SQLite data via a new Flask route and display interactive ROI and hit-rate charts by confidence tier.
-- **Status:** Not started. Requires sufficient logged races to be meaningful.
+- **What was built:** Chart.js 4.4.1 Analytics tab integrated as a 3rd view toggle (alongside Overview / Race Detail). `/api/analytics` Flask endpoint added. Four charts: tier hit rates (horizontal bar), value ROI curve (line), score distribution + win% (grouped bar + dual y-axis), track/surface splits (grouped bar). Data cached via `analyticsLoaded` flag. Empty state for < 10 races or no DB. Mobile-responsive via matchMedia.
 
 ### UI-3 — Live Odds Divergence Alerts
 - **Files:** `webapp/app.py`, `webapp/templates/index.html`
@@ -140,6 +135,12 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 
 > See `comparemodels/COMPAREMODELS_STATE.md` for full spec and results.
 > All CM code in `comparemodels/`. Read-only access to `results/r5_results.db` and `files 2/*.DRF`.
+
+### ✅ CM v1.0 — CDX0524 live card `COMPLETE — 2026-05-24`
+- R5 v3.6 and CM both run on CDX0524 (10 races). Results pending.
+- Double-consensus (R5 + CM agree): 2 of 10 races.
+- Best double-consensus play: R9 LAZLO (8-1 ML, R5 6.87 FAIR, CM cons=8) — strongest single play on card.
+- R5 logged to DB; CDX0524_R5_analysis.txt saved to repo.
 
 ### ✅ CM v1.0 — Build + 63-race backfill + analysis + CDX0521 live `COMPLETE — 2026-05-21`
 
