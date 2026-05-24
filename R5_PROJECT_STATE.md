@@ -3,7 +3,7 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-05-21 (CDX0521 live card — v3.5 first post-backfill card. Results loaded. CM run in parallel.)
+> **Last updated:** 2026-05-24 (UI-2 Analytics tab shipped — Chart.js dashboard, 4 charts)
 > **Current version:** R5 v3.5
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
@@ -134,6 +134,7 @@ All weight changes require explicit approval + version bump per spec rules.
 | Scout | API model fix, track keyword expansion, auto-scout matching, stacking cap | v3.3 | 2026-05-09 |
 | UI-1 | Mobile responsive design | v4.0 | 2026-05-10 |
 | UI-webapp | PDF error surfacing, scratch notice regex fix, scratch-map pre-collection | v4.0 | 2026-05-16 |
+| UI-2 | Analytics tab — Chart.js dashboard (4 charts: tier hits, val ROI, score dist, track/surface splits) | v4.0 | 2026-05-24 |
 
 ---
 
@@ -143,8 +144,8 @@ All UI work in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| UI-2 | Historical ROI Dashboard (Analytics tab in web UI) | 60-race gate now met — ready to start |
-| UI-3 | Live odds divergence alerts | Ready (Issue 2 resolved) |
+| UI-2 | Analytics tab — Chart.js dashboard (tier hits, val ROI, score dist, track splits) | **COMPLETE — 2026-05-24, commit 872db8b** |
+| UI-3 | Live odds divergence alerts | Not started |
 
 ---
 
