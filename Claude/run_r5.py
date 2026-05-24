@@ -172,15 +172,47 @@ def main():
         print(f"Error: {drf_path} not found")
         sys.exit(1)
 
-    # Auto-run scout if requested
-    if args.auto_scout:
-        print("🔍 Running R5 Scout first...")
-        track = Path(drf_path).stem[:3].upper()
-        subprocess.run([sys.executable, str(_scout_path), "--track", track])
-
-    # Parse DRF
+    # Parse DRF first — needed before scout so we can pass horse names
     print(f"\n📂 Parsing: {drf_path}")
     horses = parse_drf(drf_path)
+
+    # Auto-run scout if requested — pass top horse names for targeted scraping
+    if args.auto_scout:
+        track   = Path(drf_path).stem[:3].upper()
+        mmdd    = Path(drf_path).stem[3:7]
+        from datetime import date as _date_cls
+        date_str = str(_date_cls.today().year) + mmdd
+
+        # Collect top 3 horses per race by raw WS4 (pre-finalize best proxy)
+        _by_race_raw = _dd(list)
+        for h in horses:
+            _by_race_raw[h["race"]].append(h)
+
+        seen_names, top_names = set(), []
+        for rnum in sorted(_by_race_raw.keys(), key=lambda x: int(x)):
+            ranked = sorted(
+                _by_race_raw[rnum],
+                key=lambda h: h.get("ws4") or h.get("prime_power") or 0,
+                reverse=True,
+            )
+            for h in ranked[:3]:
+                key = h["name"].upper()
+                # Skip very short names (single word < 4 chars) to avoid noisy keywords
+                if key not in seen_names and len(h["name"].strip()) >= 4:
+                    seen_names.add(key)
+                    top_names.append(h["name"].strip())
+
+        top_names = top_names[:30]           # cap: 10-race card × 3 = 30 max
+        horses_arg = ",".join(top_names)
+
+        print(f"🔍 Running R5 Scout — track: {track}  date: {date_str}  horses: {len(top_names)}")
+        print(f"   Top horses: {', '.join(top_names[:8])}{'...' if len(top_names) > 8 else ''}")
+        subprocess.run([
+            sys.executable, str(_scout_path),
+            "--track",  track,
+            "--date",   date_str,
+            "--horses", horses_arg,
+        ])
 
     # Finalize each race independently — pace fit and value need full-field context
     by_race = _dd(list)
