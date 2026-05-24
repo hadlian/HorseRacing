@@ -195,10 +195,14 @@ def parse_drf(path):
             trend = calc_trend(same_surf[:4])
             fci   = (ws4 + trend) if ws4 else None
 
-            fci_n = max(0.0, min(10.0, (fci - 60) / 6)) if fci else 0.0
-
-            # CLASS vs speed par
+            # CLASS vs speed par (moved up — needed by fci_n)
             par = h['speed_par']
+
+            if fci is None or fci <= 0:
+                fci_n = 4.0  # debut/no figures — slight negative bias vs neutral 5.0
+            else:
+                par_eff = max(70.0, min(105.0, par)) if par else 78.0
+                fci_n = max(0.0, min(10.0, 5.0 + (fci - par_eff) / 5.0))
             h['debut'] = ws4 is None  # no BRIS speed figures on any surface
             if par and ws4:
                 par_diff = ws4 - par
@@ -266,15 +270,16 @@ def parse_drf(path):
                 if any(s in h['sire'].upper() for s in classic_sires):
                     ped_n = 7.0
 
-            # === NEW NORMALIZED COMPONENTS (v3.5) ===
+            # === NEW NORMALIZED COMPONENTS (v3.5 / updated v3.6) ===
 
             # best_dist_n: at-distance BRIS speed figure, normalized to 0–10
             # Fallback: fci_n (so missing data doesn't crater composite)
             bd = h['best_dist']
             if bd and bd > 0:
-                best_dist_n = max(0.0, min(10.0, (bd - 60) / 6))
+                par_eff_bd = max(70.0, min(105.0, par)) if par else 78.0
+                best_dist_n = max(0.0, min(10.0, 5.0 + (bd - par_eff_bd) / 5.0))
             else:
-                best_dist_n = fci_n
+                best_dist_n = fci_n  # fallback to new par-anchored fci_n
 
             # pp_n: Prime Power rating, normalized to 0–10
             # Fallback: 5.0 (neutral)
@@ -369,7 +374,7 @@ def finalize_field(horses):
         # Floor at 5.0: overlays rewarded, underlays neutral — never penalise market favourites model ranks low
         h['val_n'] = round(max(5.0, min(10.0, 5.0 + diff * 0.7)), 1)
 
-    # ── FINAL COMPOSITE — v3.5 weights ───────────────────────────────────────
+    # ── FINAL COMPOSITE — v3.5 weights (fci_n/best_dist_n updated v3.6) ─────
     for h in horses:
         h['comp'] = round(
             h['fci_n']        * 0.22 +
@@ -397,9 +402,11 @@ def report(horses):
     )
 
     print("=" * 114)
-    print(f"  🏇  R5 v3.5 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
+    par_val = horses[0].get('speed_par')
+    par_str = f"Par {par_val:.0f}" if par_val else "Par N/A"
+    print(f"  🏇  R5 v3.6 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
           f"{horses[0]['date']}  |  {dist_f}f  {horses[0]['surface']}  |  "
-          f"Purse ${horses[0]['purse']:,.0f}  |  {pace_label}")
+          f"Purse ${horses[0]['purse']:,.0f}  |  {par_str}  |  {pace_label}")
     print("=" * 114)
     print(f"\n{'#':<4} {'Horse':<22} {'ML':>5}  {'Spd 1-4':>22}  "
           f"{'WS4':>5}  {'T':>4}  {'FCI':>5}  {'vPar':>5}  "
