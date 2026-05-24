@@ -176,7 +176,7 @@ def main():
     if args.auto_scout:
         print("🔍 Running R5 Scout first...")
         track = Path(drf_path).stem[:3].upper()
-        subprocess.run([sys.executable, "r5_scout.py", "--track", track])
+        subprocess.run([sys.executable, str(_scout_path), "--track", track])
 
     # Parse DRF
     print(f"\n📂 Parsing: {drf_path}")

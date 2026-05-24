@@ -7,6 +7,7 @@ Then: open http://localhost:5050
 """
 import io
 import re
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -448,6 +449,129 @@ def download_txt(job_id):
         as_attachment=True,
         download_name="r5_analysis.txt",
     )
+
+
+@app.route("/api/analytics")
+def analytics():
+    db_path = HERE.parent / "results" / "r5_results.db"
+    if not db_path.exists():
+        return jsonify({"error": "no_db"})
+
+    conn = sqlite3.connect(str(db_path))
+    conn.row_factory = sqlite3.Row
+
+    # ── tier_hits ─────────────────────────────────────────────────────────────
+    tier_order = ["HIGH", "SOLID", "FAIR", "SPEC"]
+    rows = conn.execute("""
+        SELECT p.tier, COUNT(*) AS races, SUM(p.won) AS wins
+        FROM picks p
+        JOIN races r ON p.race_id = r.id
+        WHERE p.model_rank = 1
+          AND r.result_fetched = 1
+          AND p.finish_pos != -1
+        GROUP BY p.tier
+    """).fetchall()
+    tier_map = {r["tier"]: dict(r) for r in rows}
+    tier_hits = []
+    for t in tier_order:
+        if t in tier_map:
+            d = tier_map[t]
+            races = d["races"]
+            wins  = d["wins"] or 0
+            tier_hits.append({
+                "tier":     t,
+                "races":    races,
+                "wins":     wins,
+                "win_pct":  round(wins / races * 100, 1) if races else 0,
+            })
+
+    # ── val_roi ───────────────────────────────────────────────────────────────
+    val_roi = []
+    threshold = 6.0
+    while threshold <= 10.01:
+        row = conn.execute("""
+            SELECT COUNT(*) AS plays,
+                   SUM(p.won) AS wins,
+                   AVG(CASE WHEN p.won = 1 THEN p.sp_odds ELSE NULL END) AS avg_sp
+            FROM picks p
+            JOIN races r ON p.race_id = r.id
+            WHERE p.val_n >= ?
+              AND p.model_rank <= 5
+              AND r.result_fetched = 1
+              AND p.finish_pos != -1
+        """, (threshold,)).fetchone()
+        plays  = row["plays"] or 0
+        wins   = row["wins"]  or 0
+        avg_sp = row["avg_sp"] or 0.0
+        roi    = round((wins * avg_sp - plays) / plays * 100, 1) if plays else None
+        val_roi.append({
+            "threshold": round(threshold, 1),
+            "plays":     plays,
+            "wins":      wins,
+            "win_pct":   round(wins / plays * 100, 1) if plays else 0,
+            "roi":       roi,
+        })
+        threshold += 0.5
+
+    # ── score_dist ────────────────────────────────────────────────────────────
+    buckets_def = [("4-5", 4, 5), ("5-6", 5, 6), ("6-7", 6, 7),
+                   ("7-8", 7, 8), ("8-9", 8, 9), ("9-10", 9, 10)]
+    score_dist = []
+    for label, lo, hi in buckets_def:
+        row = conn.execute("""
+            SELECT COUNT(*) AS cnt, SUM(won) AS wins
+            FROM picks
+            WHERE finish_pos > 0
+              AND comp IS NOT NULL
+              AND CAST(comp AS REAL) >= ?
+              AND CAST(comp AS REAL) < ?
+        """, (lo, hi)).fetchone()
+        cnt  = row["cnt"]  or 0
+        wins = row["wins"] or 0
+        score_dist.append({
+            "bucket":   label,
+            "count":    cnt,
+            "wins":     wins,
+            "win_pct":  round(wins / cnt * 100, 1) if cnt else 0,
+        })
+
+    # ── track_splits ──────────────────────────────────────────────────────────
+    rows = conn.execute("""
+        SELECT r.track,
+               UPPER(COALESCE(r.surface, 'UNKNOWN')) AS surface,
+               COUNT(DISTINCT r.id) AS races,
+               SUM(CASE WHEN p.model_rank = 1 AND p.won = 1 THEN 1 ELSE 0 END) AS top_wins,
+               COUNT(DISTINCT CASE WHEN p.model_rank <= 3 AND p.won = 1 THEN r.id ELSE NULL END) AS top3
+        FROM races r
+        JOIN picks p ON p.race_id = r.id
+        WHERE r.result_fetched = 1
+          AND p.finish_pos != -1
+        GROUP BY r.track, UPPER(COALESCE(r.surface, 'UNKNOWN'))
+        ORDER BY races DESC, r.track
+    """).fetchall()
+
+    track_splits = []
+    for row in rows:
+        races     = row["races"]
+        top_wins  = row["top_wins"] or 0
+        top3      = row["top3"]     or 0
+        track_splits.append({
+            "track":    row["track"],
+            "surface":  row["surface"],
+            "races":    races,
+            "top_wins": top_wins,
+            "top_pct":  round(top_wins / races * 100, 1) if races else 0,
+            "top3":     top3,
+            "top3_pct": round(top3 / races * 100, 1) if races else 0,
+        })
+
+    conn.close()
+    return jsonify({
+        "tier_hits":    tier_hits,
+        "val_roi":      val_roi,
+        "score_dist":   score_dist,
+        "track_splits": track_splits,
+    })
 
 
 # ── Entry ─────────────────────────────────────────────────────────────────────
