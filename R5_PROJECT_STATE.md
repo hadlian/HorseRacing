@@ -21,10 +21,10 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 | Metric | Value | Notes |
 |--------|-------|-------|
 | Races with results | 81 | Through CDX0524 (10 races added) |
-| Top pick win rate | 25.7% | ~21/81 races |
+| Top pick win rate | 24.3% | Issue 14 fix applied — 5th+ finishers now counted as losses |
 | Top-3 hit rate | 54.3% | ~44/81 races |
-| TJ signal strength | +0.63 | FCI +0.61, Class +0.59 — all three leading |
-| Value ROI | +163.8% | Correct metric for val_n (not win-rate differential) |
+| TJ signal strength | +0.70 | Class +0.67, FCI +0.66 — all three leading |
+| Value ROI | +140.1% | Correct metric for val_n (not win-rate differential) |
 | val_n win diff | −0.31 | EXPECTED — overlays designed to pay more, not win more |
 
 ### Cards logged
@@ -251,7 +251,7 @@ tj_n +0.63 > fci_n +0.61 > class_n +0.59 > form_n +0.26 > ped_n +0.13 > bias_n �
 3. **Run CM on every new card** — established parallel workflow: score → log → results → finalize → daily xlsx. Repeat each race day.
 4. **Issue 6 validation** — Crowded Room score deduction pending results data. CDX0524 had multiple TIGHT CLUSTER flags. Monitor.
 5. **Issue 7 (surface WS4)** — gate lifted. Needs structured validation session comparing dirt vs turf top-pick rates from the 81-race DB.
-6. **Tracker 5th+ finisher bug** — --manual only records top 4; anything lower gets auto-marked -1 (excluded from stats). Inflates win rate slightly when top pick finishes 5th-7th. Flag as Issue 14 candidate.
+6. ~~**Issue 14 — Tracker 5th+ finisher bug**~~ **FIXED** — apply_result() now marks non-top-4 as finish_pos=5 (loss, counted) not -1 (excluded). CDX0524 retroactively corrected. Commit 81ce32d.
 7. **pgm-number mismatch** — R2 and R5 on LRL0516 had DRF pgm ≠ official chart pgm. Monitor for pattern on future cards.
 
 ---
