@@ -3,9 +3,9 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-24 (CDX0524 live card complete — R5 v3.6 + CM both run; 10 races, results pending)
+> **Last updated:** 2026-05-24 (CDX0524 results logged; Scout-1 + Issue 14 fixed; 81 races in DB)
 > **Current version:** R5 v3.6 | CompareModels v1.0 (parallel system — see `comparemodels/`)
-> **Next planned session:** Log CDX0524 results, run --finalize CDX 20260524. Continue v3.6 validation (Issues 6, 7, 8 pending).
+> **Next planned session:** Run more races this week. Continue v3.6 validation (Issues 6, 7, 8 pending). Log LRL0516 R14.
 
 ---
 
@@ -227,11 +227,10 @@ Report: `comparemodels/reports/comparemodels_vs_r5_63races_20260521_020626.xlsx`
 - **Validated:** BAQ 2026-05-10 — 13 scratches found including #4 FORT NELSON R7.
 - **DRF URL:** `https://www.drf.com/entries/entryDetails/id/{TRACK}/country/USA/date/{MM-DD-YYYY}`
 
-### Scout-1 — Horse Name Expansion
-- **File:** `Claude/run_r5.py`, `Claude/r5_scout.py`
-- **Problem:** Scout queries only use track keywords. DRF horse names are never passed to the scraper, so Claude extracts no horse-specific trainer quotes or workout notes.
-- **Fix:** Pass top-ranked horse names from the parsed DRF to `gather_raw_intel()` at runtime via `--auto-scout`.
-- **Status:** Not started. Do after first live scout card to confirm base extraction is working.
+### ~~Scout-1 — Horse Name Expansion~~ `FIXED — run_r5.py (2026-05-24, commit 8c49d4d)`
+- **File:** `Claude/run_r5.py`
+- **Fix applied:** `parse_drf()` now runs BEFORE the scout subprocess in `--auto-scout` mode. Top 3 horses per race (sorted by WS4) are collected and passed as `--horses` to `r5_scout.py`. Also passes `--date` so scout targets the correct race day. Names capped at 30 (10 races × 3), deduplicated, min length 4 chars. Scout already had `--horses` support — this wires it from `run_r5.py`.
+- **Effect:** Scout now extracts horse-specific trainer quotes, workout notes, and equipment changes in addition to track-level articles.
 
 ### Scout-2 — Sentiment Confidence Score
 - **File:** `Claude/r5_scout.py`
