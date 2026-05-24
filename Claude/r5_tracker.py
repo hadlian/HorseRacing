@@ -330,20 +330,21 @@ def apply_result(track, date_str, race_num, finish_pgms, sp_winner=None):
                 (sp_winner, race_id, pgm)
             )
 
-    # Auto-detect late scratches: any pick still NULL after position loop
-    # = horse was in morning analysis but did not appear in the results
-    late = conn.execute(
+    # Any pick still NULL after the top-4 loop = ran but finished outside the
+    # recorded positions.  Mark as finish_pos=5 so they count as losses in
+    # stats (not excluded like confirmed scratches).
+    # True late scratches (horse never left the gate) should be handled by the
+    # scout scratch gate before logging, or corrected via --finalize afterwards.
+    unplaced = conn.execute(
         "SELECT pgm, horse_name FROM picks WHERE race_id=? AND finish_pos IS NULL",
         (race_id,)
     ).fetchall()
-    if late:
-        for ls in late:
-            conn.execute(
-                "UPDATE picks SET finish_pos=-1 WHERE race_id=? AND pgm=?",
-                (race_id, ls["pgm"])
-            )
-        names = ", ".join(f"#{ls['pgm']} {ls['horse_name']}" for ls in late)
-        print(f"  ⚠️  LATE SCRATCH: {names} → finish_pos=-1 (excluded from stats)")
+    if unplaced:
+        pgms = [u["pgm"] for u in unplaced]
+        conn.execute(
+            f"UPDATE picks SET finish_pos=5 WHERE race_id=? AND pgm IN ({','.join('?'*len(pgms))})",
+            [race_id] + pgms
+        )
 
     conn.execute("UPDATE races SET result_fetched=1 WHERE id=?", (race_id,))
     conn.commit()
