@@ -2202,7 +2202,7 @@ const resDateInput    = document.getElementById('resDate');
 function updateLogBtn() {
   const hasTarget = resTrackInput.value.trim().length >= 2 && resDateInput.value.trim().length === 8;
   const hasData   = !!resultFile || Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
-  logResultsBtn.disabled = !(hasTarget && (hasData || !!resultFile));
+  logResultsBtn.disabled = !(hasTarget && hasData);
 }
 resTrackInput.addEventListener('input', updateLogBtn);
 resDateInput.addEventListener('input',  updateLogBtn);
@@ -2271,8 +2271,15 @@ function setupResultsLogger() {
 logResultsBtn.addEventListener('click', async () => {
   const trackVal = resTrackInput.value.trim().toUpperCase();
   const dateVal  = resDateInput.value.trim();
+  const hasManual = Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
+
   if (!trackVal || dateVal.length !== 8) {
     resultsLogOut.innerHTML = '<span style="color:var(--red)">❌ Enter a valid Track and Date (YYYYMMDD) first.</span>';
+    show(resultsLogOut);
+    return;
+  }
+  if (!resultFile && !hasManual) {
+    resultsLogOut.innerHTML = '<span style="color:var(--red)">❌ Drop a results PDF or enter finish orders manually first.</span>';
     show(resultsLogOut);
     return;
   }
