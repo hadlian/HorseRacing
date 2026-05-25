@@ -3,7 +3,7 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-24 (CDX0524 results logged; Scout-1 + Issue 14 fixed; 81 races in DB)
+> **Last updated:** 2026-05-24 (CDX0524 results logged; Scout-1 + Issue 14 fixed; Issue 15 (Wager Construction) added as RESEARCH; 81 races in DB)
 > **Current version:** R5 v3.6 | CompareModels v1.0 (parallel system — see `comparemodels/`)
 > **Next planned session:** Run more races this week. Continue v3.6 validation (Issues 6, 7, 8 pending). Log LRL0516 R14.
 
@@ -104,6 +104,37 @@
 - **Proposed fix:** Secondary flag only — not a composite weight. Flag horses where career avg class significantly exceeds recent class (dropdown angle) or falls below (ceiling horse). Display as a table annotation rather than affecting score.
 - **Note:** Raw earnings normalisation is poor across age/track/era — do not use money earned as a direct signal. Career class via par comparison is cleaner.
 - **Status:** Proposed 2026-05-11. Low priority — do not start until Issues 3 and 11 are evaluated.
+
+### ~~Issue 14 — Tracker Non-Top-4 Finisher Bug~~ `FIXED — 2026-05-24 (commit 81ce32d)`
+- **File:** `Claude/r5_tracker.py`
+- **Problem:** `apply_result()` was auto-marking any horse not in the provided top-4 finish list as `finish_pos=-1` (excluded from stats, treated like a scratch). Legitimate 5th–9th finishers silently inflated win rate by not counting as losses.
+- **Fix applied:** Non-top-4 horses now get `finish_pos=5` (runs but unplaced) and correctly count in the denominator as losses. True pre-race scratches (handled by scout gate) and late scratches (handled by `--finalize`) correctly remain at `-1`.
+- **DB retroactive correction (CDX0524):** 43 horses corrected `-1 → 5`; 16 kept at `-1` (confirmed pre-race scratches from PDF cross-check).
+- **Corrected stats baseline:** 81 races, 636 horses, 24.3% top-pick win rate (was 25.7% pre-fix), val_n ROI +140.1% (was +163.8%). More accurate going forward.
+
+---
+
+## 🟣 v4.1 — Wager Construction (Research, POST-SARATOGA)
+
+### Issue 15 — Wager Construction Module `RESEARCH`
+- **Philosophy / framing:** R5 is a *handicapping* system, not a *wagering* system. The composite score identifies solid contenders ranked by quality — it does not pick single winners. The current PLAY/NEAR/SKIP bet recommendation is single-horse, win-focused, which throws away the model's actual edge when Rank 2 and Rank 3 hit the board (as they frequently do at a ~24% top-pick win rate). A real-world example: a recent race where R5's #1 and #3 finished 1st-3rd and the exacta paid $200 — the model worked; the wagering structure didn't capture it.
+- **Goal:** Translate ranked composite output into appropriate exotic wagering structures (EX box, EX key, TRI key, DD/P3 keys, WIN-only) instead of forcing single-horse win bets. The Wager Construction Module is the missing layer that honors the "solid contenders, not winners" philosophy.
+- **Sequencing — do NOT build before:**
+  1. Issue 4 (composite ceiling fix → v3.6) is implemented and validated over ~20 races
+  2. Issue 3 (TJ weight → v3.7) is approved and validated
+  3. Saratoga 2026 calibration confirms the handicapping signal is sound
+
+  Rationale: building wagering logic on a miscalibrated composite amplifies bad picks into bad bets with real money. Handicapping has to be right first.
+- **First milestone (research, no engine code change):** Write a backtest script against the existing race DB (currently 81 races, will be larger post-Saratoga) that computes ROI for several wagering structures applied uniformly to every logged race:
+  - EX box Rank 1 + Rank 2
+  - EX key Rank 1 over Rank 2-4
+  - TRI key Rank 1 with Rank 2-5
+  - TRI box Rank 1-3
+  - WIN-only on Rank 1 (baseline for comparison)
+- **Output:** ROI per structure, hit rate per structure, distribution of which Ranks actually finished 1-2-3. This either validates the wagering-layer thesis cheaply or kills it before any production build.
+- **Priority:** Medium (gated on v3.6/v3.7 calibration validation at Saratoga)
+- **Target version:** v4.1 (post-Saratoga, post-calibration)
+- **Status:** RESEARCH — Not started 2026-05-24
 
 ---
 
