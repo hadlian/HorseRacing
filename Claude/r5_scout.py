@@ -60,6 +60,7 @@ TRACK_KEYWORDS = {
     "LRL": ["Laurel Park", "Laurel"],
     "MTH": ["Monmouth"],
     "AP":  ["Arlington"],
+    "SAX": ["Santa Anita", "Santa Anita Park"],
 }
 
 # ── SOURCES ──────────────────────────────────────────────────────────────────
@@ -104,6 +105,7 @@ DRF_TRACK_MAP = {
     "OP":  "OP",
     "MTH": "MTH",
     "LRL": "LRL",
+    "SAX": "SA",   # Santa Anita — DRF uses SA
 }
 
 # ── EQUIBASE / DRF OFFICIAL SCRATCH FETCHER ──────────────────────────────────
