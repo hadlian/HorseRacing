@@ -931,7 +931,7 @@
           Generate PDF (slower — requires reportlab)
         </label>
         <label class="check-label">
-          <input type="checkbox" id="logDbOpt">
+          <input type="checkbox" id="logDbOpt" checked>
           📋 Log picks to DB (enables Results logging after races run)
         </label>
       </div>
@@ -997,17 +997,36 @@
 
   </div>
 
-  <!-- ── Results Logger ───────────────────────────────────────────────── -->
-  <div class="card hidden" id="resultsLogCard" style="margin-top:18px">
+  <!-- ── Results Logger (always visible) ─────────────────────────────── -->
+  <div class="card" id="resultsLogCard" style="margin-top:18px">
     <div class="card-head">
       <span class="card-title">📋 Log Race Results</span>
-      <span style="font-size:0.75rem;color:var(--muted);margin-left:8px" id="resultsLogSub"></span>
     </div>
     <div class="card-body">
-      <p style="font-size:0.83rem;color:var(--muted);margin:0 0 12px">
-        Upload the BRIS results chart PDF — finish orders and payouts are extracted automatically.
-        Both R5 and CompareModels DBs are updated in one step.
+      <p style="font-size:0.83rem;color:var(--muted);margin:0 0 14px">
+        Upload the BRIS results chart PDF after races run — finish orders and payouts are
+        extracted automatically. Works whether you analyzed here or from the terminal.
       </p>
+
+      <!-- Track / Date row — always editable, pre-filled from analysis if available -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+        <div>
+          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:3px">TRACK</label>
+          <input type="text" id="resTrack" maxlength="4" placeholder="SAX"
+                 style="width:70px;background:var(--card-bg);border:1px solid var(--border);
+                        border-radius:6px;padding:6px 10px;color:var(--text);
+                        font-size:0.9rem;text-transform:uppercase">
+        </div>
+        <div>
+          <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:3px">DATE (YYYYMMDD)</label>
+          <input type="text" id="resDate" maxlength="8" placeholder="20260525"
+                 style="width:120px;background:var(--card-bg);border:1px solid var(--border);
+                        border-radius:6px;padding:6px 10px;color:var(--text);font-size:0.9rem">
+        </div>
+        <div style="font-size:0.75rem;color:var(--muted);padding-top:18px">
+          ← pre-filled from analysis, or type manually
+        </div>
+      </div>
 
       <div class="drop-zone" id="resultDropZone" tabindex="0" role="button"
            aria-label="Drop results PDF here" style="padding:20px;min-height:80px">
@@ -2170,13 +2189,23 @@ function _renderTrackSplit(rows) {
 /* ── Results Logger ─────────────────────────────────────────────────────── */
 
 const resultsLogCard  = document.getElementById('resultsLogCard');
-const resultsLogSub   = document.getElementById('resultsLogSub');
 const resultDropZone  = document.getElementById('resultDropZone');
 const resultFileInput = document.getElementById('resultFileInput');
 const resultFileName  = document.getElementById('resultFileName');
 const logResultsBtn   = document.getElementById('logResultsBtn');
 const resultsLogOut   = document.getElementById('resultsLogOutput');
 const manualGrid      = document.getElementById('manualResultsGrid');
+const resTrackInput   = document.getElementById('resTrack');
+const resDateInput    = document.getElementById('resDate');
+
+// Enable Log button whenever track+date are filled AND (PDF or manual entry present)
+function updateLogBtn() {
+  const hasTarget = resTrackInput.value.trim().length >= 2 && resDateInput.value.trim().length === 8;
+  const hasData   = !!resultFile || Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
+  logResultsBtn.disabled = !(hasTarget && (hasData || !!resultFile));
+}
+resTrackInput.addEventListener('input', updateLogBtn);
+resDateInput.addEventListener('input',  updateLogBtn);
 
 // Wire up result drop zone
 resultDropZone.addEventListener('click', () => resultFileInput.click());
@@ -2195,15 +2224,15 @@ resultFileInput.addEventListener('change', () => {
 function updateResultFile() {
   if (!resultFile) return;
   resultFileName.textContent = `📄 ${resultFile.name}`;
-  logResultsBtn.disabled = false;
+  updateLogBtn();
 }
 
 function setupResultsLogger() {
-  // Always show logger card after analysis — picks need to be in DB first
-  show(resultsLogCard);
-  resultsLogSub.textContent = `${currentTrack} ${currentDate}`;
+  // Pre-fill track/date from the just-analyzed DRF (user can still edit)
+  if (currentTrack) resTrackInput.value = currentTrack;
+  if (currentDate)  resDateInput.value  = currentDate;
 
-  // Build manual entry rows for each race
+  // Build manual entry rows for each parsed race
   manualGrid.innerHTML = '';
   if (races.length) {
     races.forEach((r, i) => {
@@ -2221,33 +2250,40 @@ function setupResultsLogger() {
       `;
       manualGrid.appendChild(row);
     });
-
-    // Enable log button when any manual entry is filled
-    manualGrid.addEventListener('input', () => {
-      const hasEntry = races.some((r, i) => {
-        const rn = r.race_num || (i + 1);
-        const el = document.getElementById(`man_${rn}`);
-        return el && el.value.trim();
-      });
-      logResultsBtn.disabled = !hasEntry && !resultFile;
-    });
+    manualGrid.addEventListener('input', updateLogBtn);
   }
 
+  // Warn (prominently) if picks weren't logged this session
   if (!loggedToDB) {
-    resultsLogOut.innerHTML = '<span style="color:var(--gold)">⚠️ Picks were not logged to DB during analysis. ' +
-      'Re-run with "Log picks to DB" checked first — otherwise results cannot be matched to picks.</span>';
+    resultsLogOut.innerHTML =
+      '<div style="background:rgba(231,76,60,.15);border:1px solid rgba(231,76,60,.4);' +
+      'border-radius:6px;padding:10px 12px;color:#e74c3c">' +
+      '⚠️ <strong>Picks not logged this session.</strong> If you ran analysis from the terminal ' +
+      '(r5_card.py), picks are already in the DB — proceed normally. ' +
+      'If you ran the webapp without "Log picks to DB" checked, re-run with it checked first.' +
+      '</div>';
     show(resultsLogOut);
   }
+
+  updateLogBtn();
 }
 
 logResultsBtn.addEventListener('click', async () => {
+  const trackVal = resTrackInput.value.trim().toUpperCase();
+  const dateVal  = resDateInput.value.trim();
+  if (!trackVal || dateVal.length !== 8) {
+    resultsLogOut.innerHTML = '<span style="color:var(--red)">❌ Enter a valid Track and Date (YYYYMMDD) first.</span>';
+    show(resultsLogOut);
+    return;
+  }
+
   logResultsBtn.disabled = true;
   resultsLogOut.innerHTML = '⏳ Logging results…';
   show(resultsLogOut);
 
   const fd = new FormData();
-  fd.append('track', currentTrack);
-  fd.append('date',  currentDate);
+  fd.append('track', trackVal);
+  fd.append('date',  dateVal);
 
   if (resultFile) {
     fd.append('pdf', resultFile);
