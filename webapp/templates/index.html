@@ -930,6 +930,10 @@
           <input type="checkbox" id="pdfOpt">
           Generate PDF (slower — requires reportlab)
         </label>
+        <label class="check-label">
+          <input type="checkbox" id="logDbOpt">
+          📋 Log picks to DB (enables Results logging after races run)
+        </label>
       </div>
 
       <button class="btn-primary" id="analyzeBtn" disabled>
@@ -978,6 +982,9 @@
 
     <!-- Analytics view -->
     <div id="analyticsView" class="hidden">
+      <div style="text-align:right;margin-bottom:8px">
+        <button class="btn-outline" id="btnRefreshAnalytics" onclick="refreshAnalytics()" style="font-size:0.75rem;padding:4px 10px">↻ Refresh</button>
+      </div>
       <div class="an-grid" id="anGrid">
         <div class="an-empty" style="grid-column:1/-1;padding:40px 0">Loading…</div>
       </div>
@@ -990,17 +997,60 @@
 
   </div>
 
+  <!-- ── Results Logger ───────────────────────────────────────────────── -->
+  <div class="card hidden" id="resultsLogCard" style="margin-top:18px">
+    <div class="card-head">
+      <span class="card-title">📋 Log Race Results</span>
+      <span style="font-size:0.75rem;color:var(--muted);margin-left:8px" id="resultsLogSub"></span>
+    </div>
+    <div class="card-body">
+      <p style="font-size:0.83rem;color:var(--muted);margin:0 0 12px">
+        Upload the BRIS results chart PDF — finish orders and payouts are extracted automatically.
+        Both R5 and CompareModels DBs are updated in one step.
+      </p>
+
+      <div class="drop-zone" id="resultDropZone" tabindex="0" role="button"
+           aria-label="Drop results PDF here" style="padding:20px;min-height:80px">
+        <div class="drop-icon" style="font-size:1.6rem">📄</div>
+        <p class="drop-main" style="margin:4px 0">Drop results <strong>.PDF</strong> here</p>
+        <p class="drop-hint" style="margin:0">or click to browse</p>
+        <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
+      </div>
+      <div id="resultFileName" style="font-size:0.8rem;color:var(--muted);margin:6px 0 0"></div>
+
+      <!-- Manual fallback -->
+      <details style="margin-top:12px">
+        <summary style="font-size:0.8rem;color:var(--muted);cursor:pointer">
+          No PDF? Enter finish orders manually ▸
+        </summary>
+        <div id="manualResultsGrid" style="margin-top:10px;display:grid;gap:6px"></div>
+      </details>
+
+      <button class="btn-primary" id="logResultsBtn" disabled style="margin-top:14px">
+        Log Results to DB
+      </button>
+
+      <!-- Result of logging -->
+      <div id="resultsLogOutput" class="hidden" style="margin-top:14px;padding:12px;
+           background:rgba(0,0,0,.25);border-radius:8px;font-size:0.8rem;line-height:1.6"></div>
+    </div>
+  </div>
+
 </div><!-- /container -->
 
 <script>
 /* ── State ─────────────────────────────────────────────────────────────── */
-let files       = [];
-let jobId       = null;
-let races       = [];
-let pdfOk       = false;
-let cmRun       = false;
-let activeTab   = 0;
-let viewMode    = 'detail';   // 'summary' | 'detail'
+let files        = [];
+let jobId        = null;
+let races        = [];
+let pdfOk        = false;
+let cmRun        = false;
+let loggedToDB   = false;
+let activeTab    = 0;
+let viewMode     = 'detail';   // 'summary' | 'detail'
+let currentTrack = '';
+let currentDate  = '';
+let resultFile   = null;
 // Manual scratches: Map of raceIdx → Set of pgm strings
 const manualScratches = {};
 
@@ -1012,6 +1062,7 @@ const analyzeBtn   = document.getElementById('analyzeBtn');
 const pdfOpt       = document.getElementById('pdfOpt');
 const cmOpt        = document.getElementById('cmOpt');
 const scoutOpt     = document.getElementById('scoutOpt');
+const logDbOpt     = document.getElementById('logDbOpt');
 const loadingWrap  = document.getElementById('loadingWrap');
 const errorBanner  = document.getElementById('errorBanner');
 const warnBanner   = document.getElementById('warnBanner');
@@ -1084,9 +1135,10 @@ async function runAnalysis() {
 
   const fd = new FormData();
   files.forEach(f => fd.append('files', f));
-  fd.append('pdf',   pdfOpt.checked   ? 'true' : 'false');
-  fd.append('scout', scoutOpt.checked ? 'true' : 'false');
-  fd.append('cm',    cmOpt.checked    ? 'true' : 'false');
+  fd.append('pdf',    pdfOpt.checked    ? 'true' : 'false');
+  fd.append('scout',  scoutOpt.checked  ? 'true' : 'false');
+  fd.append('cm',     cmOpt.checked     ? 'true' : 'false');
+  fd.append('log_db', logDbOpt.checked  ? 'true' : 'false');
 
   try {
     const res  = await fetch('/api/analyze', { method: 'POST', body: fd });
@@ -1098,12 +1150,23 @@ async function runAnalysis() {
       showBanner(warnBanner, '⚠ ' + data.errors.join('  |  '));
     }
 
-    jobId  = data.job_id;
-    races  = data.races  || [];
-    pdfOk  = data.pdf_available;
-    cmRun  = data.cm_run || false;
+    jobId        = data.job_id;
+    races        = data.races  || [];
+    pdfOk        = data.pdf_available;
+    cmRun        = data.cm_run || false;
+    loggedToDB   = data.logged_to_db || false;
+
+    // Extract track/date from first DRF filename for Results Logger
+    if (files.length) {
+      const stem = files[0].name.replace(/\.drf$/i,'').toUpperCase();
+      currentTrack = stem.slice(0,3);
+      const mmdd   = stem.slice(3,7);
+      const year   = new Date().getFullYear();
+      currentDate  = String(year) + mmdd;
+    }
 
     renderResults(data);
+    setupResultsLogger();
 
   } catch (err) {
     showBanner(errorBanner, '✖ ' + err.message);
@@ -1157,6 +1220,11 @@ async function loadAnalytics() {
   } catch(e) {
     grid.innerHTML = `<div class="an-empty" style="grid-column:1/-1;padding:40px 0">Error loading analytics: ${esc(e.message)}</div>`;
   }
+}
+
+function refreshAnalytics() {
+  analyticsLoaded = false;
+  loadAnalytics();
 }
 
 function navOpenAnalytics() {
@@ -1240,6 +1308,7 @@ function buildSummary() {
 
 /* ── Render results ────────────────────────────────────────────────────── */
 function renderResults(data) {
+  analyticsLoaded = false;  // new analysis — bust the cache
   rawPre.textContent = data.text || '';
 
   const tracks = [...new Set((data.races || []).map(r => r.track).filter(Boolean))];
@@ -2096,6 +2165,152 @@ function _renderTrackSplit(rows) {
     },
   });
 }
+
+
+/* ── Results Logger ─────────────────────────────────────────────────────── */
+
+const resultsLogCard  = document.getElementById('resultsLogCard');
+const resultsLogSub   = document.getElementById('resultsLogSub');
+const resultDropZone  = document.getElementById('resultDropZone');
+const resultFileInput = document.getElementById('resultFileInput');
+const resultFileName  = document.getElementById('resultFileName');
+const logResultsBtn   = document.getElementById('logResultsBtn');
+const resultsLogOut   = document.getElementById('resultsLogOutput');
+const manualGrid      = document.getElementById('manualResultsGrid');
+
+// Wire up result drop zone
+resultDropZone.addEventListener('click', () => resultFileInput.click());
+resultDropZone.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') resultFileInput.click(); });
+resultDropZone.addEventListener('dragover',  e => { e.preventDefault(); resultDropZone.classList.add('over'); });
+resultDropZone.addEventListener('dragleave', () => resultDropZone.classList.remove('over'));
+resultDropZone.addEventListener('drop', e => {
+  e.preventDefault(); resultDropZone.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.name.match(/\.pdf$/i)) { resultFile = f; updateResultFile(); }
+});
+resultFileInput.addEventListener('change', () => {
+  if (resultFileInput.files[0]) { resultFile = resultFileInput.files[0]; updateResultFile(); }
+});
+
+function updateResultFile() {
+  if (!resultFile) return;
+  resultFileName.textContent = `📄 ${resultFile.name}`;
+  logResultsBtn.disabled = false;
+}
+
+function setupResultsLogger() {
+  // Always show logger card after analysis — picks need to be in DB first
+  show(resultsLogCard);
+  resultsLogSub.textContent = `${currentTrack} ${currentDate}`;
+
+  // Build manual entry rows for each race
+  manualGrid.innerHTML = '';
+  if (races.length) {
+    races.forEach((r, i) => {
+      const rn = r.race_num || (i + 1);
+      const row = document.createElement('div');
+      row.style = 'display:grid;grid-template-columns:60px 1fr 80px;gap:6px;align-items:center';
+      row.innerHTML = `
+        <label style="font-size:0.78rem;color:var(--muted)">R${rn}</label>
+        <input type="text" id="man_${rn}" placeholder="1st,2nd,3rd,4th pgm#s (e.g. 6,5,4,7)"
+               style="background:var(--card-bg);border:1px solid var(--border);border-radius:5px;
+                      padding:4px 8px;color:var(--text);font-size:0.78rem">
+        <input type="number" id="sp_${rn}" placeholder="SP $" step="0.01" min="0"
+               style="background:var(--card-bg);border:1px solid var(--border);border-radius:5px;
+                      padding:4px 6px;color:var(--text);font-size:0.78rem">
+      `;
+      manualGrid.appendChild(row);
+    });
+
+    // Enable log button when any manual entry is filled
+    manualGrid.addEventListener('input', () => {
+      const hasEntry = races.some((r, i) => {
+        const rn = r.race_num || (i + 1);
+        const el = document.getElementById(`man_${rn}`);
+        return el && el.value.trim();
+      });
+      logResultsBtn.disabled = !hasEntry && !resultFile;
+    });
+  }
+
+  if (!loggedToDB) {
+    resultsLogOut.innerHTML = '<span style="color:var(--gold)">⚠️ Picks were not logged to DB during analysis. ' +
+      'Re-run with "Log picks to DB" checked first — otherwise results cannot be matched to picks.</span>';
+    show(resultsLogOut);
+  }
+}
+
+logResultsBtn.addEventListener('click', async () => {
+  logResultsBtn.disabled = true;
+  resultsLogOut.innerHTML = '⏳ Logging results…';
+  show(resultsLogOut);
+
+  const fd = new FormData();
+  fd.append('track', currentTrack);
+  fd.append('date',  currentDate);
+
+  if (resultFile) {
+    fd.append('pdf', resultFile);
+  }
+
+  // Collect manual entries
+  const manual = {};
+  races.forEach((r, i) => {
+    const rn = r.race_num || (i + 1);
+    const el = document.getElementById(`man_${rn}`);
+    if (el && el.value.trim()) {
+      manual[rn] = el.value.trim();
+      const sp = document.getElementById(`sp_${rn}`);
+      if (sp && sp.value) fd.append(`sp_${rn}`, sp.value);
+    }
+  });
+  if (Object.keys(manual).length) {
+    fd.append('manual', JSON.stringify(manual));
+  }
+
+  try {
+    const res  = await fetch('/api/results', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      resultsLogOut.innerHTML = `<span style="color:var(--red)">❌ ${data.error || 'Error logging results'}</span>` +
+        (data.details ? `<br><small>${data.details.join('<br>')}</small>` : '');
+      return;
+    }
+
+    let html = `<span style="color:var(--green)">✅ ${data.logged}/${data.logged + data.skipped} races logged`;
+    if (data.cm_done) html += ' · CM updated';
+    html += '</span><br><br>';
+
+    html += '<table style="border-collapse:collapse;width:100%">';
+    html += '<tr style="color:var(--muted);font-size:0.75rem"><th style="text-align:left;padding:2px 8px">Race</th>' +
+            '<th style="text-align:left;padding:2px 8px">Winner</th>' +
+            '<th style="text-align:left;padding:2px 8px">Finish</th>' +
+            '<th style="text-align:right;padding:2px 8px">SP</th></tr>';
+
+    (data.race_log || []).forEach(r => {
+      const fin = (r.finish || []).map(p => `#${p}`).join(' → ');
+      const sp  = r.sp ? `$${r.sp.toFixed(2)}` : '—';
+      html += `<tr style="font-size:0.78rem;border-top:1px solid rgba(255,255,255,.05)">
+        <td style="padding:3px 8px">R${r.race}</td>
+        <td style="padding:3px 8px">#${r.winner}</td>
+        <td style="padding:3px 8px;color:var(--muted)">${fin}</td>
+        <td style="padding:3px 8px;text-align:right">${sp}</td>
+      </tr>`;
+    });
+    html += '</table>';
+
+    if (data.errors && data.errors.length) {
+      html += `<br><small style="color:var(--gold)">⚠ ${data.errors.join(' · ')}</small>`;
+    }
+
+    resultsLogOut.innerHTML = html;
+  } catch(err) {
+    resultsLogOut.innerHTML = `<span style="color:var(--red)">❌ ${err.message}</span>`;
+  } finally {
+    logResultsBtn.disabled = false;
+  }
+});
 
 
 </script>

@@ -33,9 +33,24 @@ try:
     sys.path.insert(0, str(HERE.parent))
     from comparemodels.drf_to_csv import convert_drf_to_csv as _cm_convert
     from comparemodels.comparemodels_engine import score_card as _cm_score
+    from comparemodels.comparemodels_tracker import (
+        log_card_with_ml as _cm_log_card,
+        pull_results     as _cm_pull_results,
+        finalize         as _cm_finalize,
+    )
     CM_AVAILABLE = True
 except ImportError:
     CM_AVAILABLE = False
+
+# ── Lazy-load R5 modules (avoid circular imports) ──────────────────────────────
+import importlib.util as _ilu
+
+def _load_claude(name):
+    path = HERE.parent / "Claude" / f"{name}.py"
+    spec = _ilu.spec_from_file_location(name, path)
+    mod  = _ilu.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 # ── App ───────────────────────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -63,13 +78,16 @@ def extract_drfs(zip_path: Path, dest: Path) -> list[Path]:
     return drfs
 
 
-def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = False) -> tuple[str, Path | None, str]:
+def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = False,
+           log_to_db: bool = False) -> tuple[str, Path | None, str]:
     """Returns (stdout_text, pdf_path_or_None, warning_string)."""
     cmd = [R5_PYTHON, str(CLAUDE_DIR / "run_r5.py"), str(drf_path)]
     if want_scout:
         cmd.append("--auto-scout")
     if want_pdf:
         cmd.append("--pdf")
+    if log_to_db:
+        cmd.append("--track")
 
     result = subprocess.run(
         cmd,
@@ -349,9 +367,10 @@ def analyze():
     if not files or all(f.filename == "" for f in files):
         return jsonify({"error": "No files provided"}), 400
 
-    want_pdf   = request.form.get("pdf",   "false").lower() == "true"
-    want_scout = request.form.get("scout", "false").lower() == "true"
-    want_cm    = request.form.get("cm",    "false").lower() == "true" and CM_AVAILABLE
+    want_pdf    = request.form.get("pdf",      "false").lower() == "true"
+    want_scout  = request.form.get("scout",   "false").lower() == "true"
+    want_cm     = request.form.get("cm",      "false").lower() == "true" and CM_AVAILABLE
+    log_to_db   = request.form.get("log_db",  "false").lower() == "true"
 
     job_id  = str(uuid.uuid4())
     work_dir = WORK_BASE / job_id
@@ -383,17 +402,45 @@ def analyze():
 
         for drf in drfs:
             try:
-                text, pdf_path, warning = run_r5(drf, work_dir, want_pdf, want_scout)
+                text, pdf_path, warning = run_r5(drf, work_dir, want_pdf, want_scout, log_to_db)
                 drf_races = parse_output(text)
 
-                # Merge CompareModels picks into each race
+                # Extract track/date from DRF stem for DB ops
+                drf_stem  = drf.stem.upper()            # e.g. SAX0525
+                drf_track = drf_stem[:3]
+                drf_mmdd  = drf_stem[3:7]
+                from datetime import date as _date_cls
+                drf_date  = str(_date_cls.today().year) + drf_mmdd
+
+                # Merge CompareModels picks into each race + optionally log to CM DB
                 if want_cm:
                     try:
-                        cm_data = run_cm(drf, work_dir)
+                        cm_score_data = run_cm(drf, work_dir)
                         for race in drf_races:
                             rn = race.get("race_num")
-                            if rn and rn in cm_data:
-                                race["cm"] = cm_data[rn]
+                            if rn and rn in cm_score_data:
+                                race["cm"] = cm_score_data[rn]
+                        # Log CM picks to DB if requested
+                        if log_to_db and CM_AVAILABLE:
+                            try:
+                                # Build ML map from parsed R5 races
+                                ml_map = {}
+                                for race in drf_races:
+                                    rn = race.get("race_num")
+                                    for h in race.get("horses", []):
+                                        try:
+                                            ml_map[(str(rn), str(h["pgm"]))] = float(h.get("ml") or 0)
+                                        except (ValueError, TypeError):
+                                            pass
+                                # Get raw CM score dict
+                                from comparemodels.drf_to_csv import convert_drf_to_csv as _c
+                                csv_p = work_dir / (drf.stem + "_cm.csv")
+                                _c(str(drf), str(csv_p))
+                                from comparemodels.comparemodels_engine import score_card as _sc
+                                cm_raw = _sc(str(csv_p))
+                                _cm_log_card(cm_raw, drf_track, drf_date)
+                            except Exception as cm_log_exc:
+                                errors.append(f"{drf.name} (CM log): {cm_log_exc}")
                     except Exception as cm_exc:
                         errors.append(f"{drf.name} (CM): {cm_exc}")
 
@@ -419,6 +466,7 @@ def analyze():
         "text":          all_text,
         "pdf_available": len(pdf_paths) > 0,
         "cm_run":        want_cm,
+        "logged_to_db":  log_to_db,
         "errors":        errors,
     })
 
@@ -449,6 +497,117 @@ def download_txt(job_id):
         as_attachment=True,
         download_name="r5_analysis.txt",
     )
+
+
+@app.route("/api/results", methods=["POST"])
+def log_results():
+    """
+    POST /api/results
+    Accepts a BRIS results PDF (or manual finish data) and runs the full
+    post-race pipeline: parse → R5 log → R5 finalize → CM results → CM finalize.
+
+    Form fields:
+        track      (str)   e.g. "SAX"
+        date       (str)   e.g. "20260525"
+        pdf        (file)  BRIS chart PDF  (optional if manual provided)
+        manual     (JSON)  {"1": "6,5,4,7", "2": "3,1,8,2", ...}  (optional)
+
+    Returns JSON summary.
+    """
+    track    = (request.form.get("track") or "").strip().upper()
+    date_str = (request.form.get("date")  or "").strip()
+
+    if not track or not date_str:
+        return jsonify({"error": "track and date are required"}), 400
+
+    tracker    = _load_claude("r5_tracker")
+    pdf_parser = _load_claude("r5_pdf_results")
+
+    results_by_race: dict = {}   # {race_num (int): {"finish": [...], "sp": float|None}}
+    parse_errors: list   = []
+
+    # ── Parse PDF if provided ─────────────────────────────────────────────────
+    pdf_file = request.files.get("pdf")
+    if pdf_file and pdf_file.filename:
+        work_dir = WORK_BASE / "results"
+        work_dir.mkdir(exist_ok=True)
+        pdf_tmp = work_dir / safe_filename(pdf_file.filename)
+        pdf_file.save(str(pdf_tmp))
+        try:
+            parsed = pdf_parser.parse_results_pdf(str(pdf_tmp))
+            results_by_race.update(parsed)
+        except Exception as e:
+            parse_errors.append(f"PDF parse error: {e}")
+
+    # ── Accept manual finish orders as override / supplement ─────────────────
+    import json as _json
+    manual_raw = request.form.get("manual", "")
+    if manual_raw:
+        try:
+            manual = _json.loads(manual_raw)
+            for rnum_str, finish_str in manual.items():
+                rnum   = int(rnum_str)
+                pgms   = [p.strip() for p in str(finish_str).split(",") if p.strip()]
+                sp_raw = request.form.get(f"sp_{rnum_str}")
+                sp     = float(sp_raw) if sp_raw else None
+                results_by_race[rnum] = {"finish": pgms, "sp": sp}
+        except Exception as e:
+            parse_errors.append(f"Manual parse error: {e}")
+
+    if not results_by_race:
+        return jsonify({"error": "No results data — provide a PDF or manual finish orders",
+                        "details": parse_errors}), 400
+
+    # ── Log to R5 DB ──────────────────────────────────────────────────────────
+    logged, skipped = 0, 0
+    race_log = []
+    for race_num in sorted(results_by_race):
+        r      = results_by_race[race_num]
+        finish = r["finish"]
+        sp     = r.get("sp")
+        if not finish:
+            skipped += 1
+            continue
+        ok = tracker.apply_result(track, date_str, str(race_num), finish, sp)
+        if ok:
+            logged += 1
+            winner = finish[0] if finish else "?"
+            race_log.append({
+                "race":   race_num,
+                "finish": finish[:4],
+                "winner": winner,
+                "sp":     sp,
+            })
+        else:
+            skipped += 1
+            parse_errors.append(f"R{race_num}: no picks logged — run analysis with Log to DB first")
+
+    # ── Finalize R5 ───────────────────────────────────────────────────────────
+    try:
+        tracker.finalize_card(track, date_str)
+    except Exception as e:
+        parse_errors.append(f"R5 finalize error: {e}")
+
+    # ── CM results + finalize ─────────────────────────────────────────────────
+    cm_done = False
+    if CM_AVAILABLE:
+        try:
+            _cm_pull_results(track, date_str)
+            _cm_finalize(track, date_str)
+            cm_done = True
+        except Exception as e:
+            parse_errors.append(f"CM results error: {e}")
+
+    return jsonify({
+        "ok":        True,
+        "track":     track,
+        "date":      date_str,
+        "logged":    logged,
+        "skipped":   skipped,
+        "cm_done":   cm_done,
+        "race_log":  race_log,
+        "errors":    parse_errors,
+    })
 
 
 @app.route("/api/analytics")
