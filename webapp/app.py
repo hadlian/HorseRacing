@@ -438,7 +438,7 @@ def analyze():
                                 _c(str(drf), str(csv_p))
                                 from comparemodels.comparemodels_engine import score_card as _sc
                                 cm_raw = _sc(str(csv_p))
-                                _cm_log_card(cm_raw, drf_track, drf_date)
+                                _cm_log_card(cm_raw, drf_track, drf_date, ml_map)
                             except Exception as cm_log_exc:
                                 errors.append(f"{drf.name} (CM log): {cm_log_exc}")
                     except Exception as cm_exc:
