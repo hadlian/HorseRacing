@@ -548,9 +548,17 @@ def log_results():
         # Server reads directly from local path — avoids browser upload I/O issues
         p = Path(pdf_path_str)
         if not p.exists():
-            # Try relative to HorseRacing root
-            p = HERE.parent / pdf_path_str
+            p = HERE.parent / pdf_path_str          # try relative to HorseRacing root
+        if not p.exists() and len(track) == 3:
+            # BRIS sometimes uses 2-char track code in filename (e.g. SA not SAX)
+            p2 = Path(str(p).replace(track, track[:2], 1))
+            if not p2.exists():
+                p2 = Path(str(p).replace(track, track[:2]))  # all occurrences
+            if p2.exists():
+                p = p2
         try:
+            if not p.exists():
+                raise FileNotFoundError(f"No such file or directory: '{p}'")
             parsed = pdf_parser.parse_results_pdf(str(p))
             results_by_race.update(parsed)
         except Exception as e:
