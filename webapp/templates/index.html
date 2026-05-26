@@ -2218,10 +2218,14 @@ window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload();
 
 // Standard results path pattern for this machine
 const RESULTS_ROOT = '/Users/harryadalian/Documents/HorseRacing/Results';
+// BRIS result filenames use a shortened track code — SAX→SA, CDX→CD, LRL→LRL etc.
+// Server will also try the 2-char variant automatically if exact path not found.
+const TRACK_SHORT = { SAX:'SA', CDX:'CD', TAM:'TAM', GP:'GP', AQU:'AQ', BEL:'BL' };
 function suggestPdfPath(track, date) {
   if (!track || !date || date.length !== 8) return '';
-  const yr = date.slice(0, 4);
-  return `${RESULTS_ROOT}/${yr}/${date}${track}USA0.pdf`;
+  const yr   = date.slice(0, 4);
+  const code = TRACK_SHORT[track] || track;
+  return `${RESULTS_ROOT}/${yr}/${date}${code}USA0.pdf`;
 }
 function refreshPathSuggestion() {
   if (!resPdfPath.value.trim()) {
