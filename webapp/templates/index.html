@@ -1030,6 +1030,7 @@
         </div>
       </div>
 
+      <!-- Drop zone — display only, captures filename for the path field below -->
       <div class="drop-zone" id="resultDropZone" tabindex="0" role="button"
            aria-label="Drop results PDF here" style="padding:20px;min-height:80px">
         <div class="drop-icon" style="font-size:1.6rem">📄</div>
@@ -1037,9 +1038,19 @@
         <p class="drop-hint" style="margin:0">or click to browse</p>
         <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
       </div>
-      <div id="resPdfStatus" style="font-size:0.8rem;margin:6px 0 0;min-height:1.2em"></div>
-      <!-- hidden path field — populated by drop/browse, sent to server -->
-      <input type="hidden" id="resPdfPath">
+
+      <!-- Path field — server reads from this path directly (avoids browser upload I/O error) -->
+      <div style="margin-top:10px">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:4px">
+          PDF PATH <span style="font-weight:normal">— auto-filled from drop, or paste full path</span>
+        </label>
+        <input type="text" id="resPdfPath" autocomplete="off" spellcheck="false"
+               placeholder="e.g. /Users/…/Results/2026/20260525SAXUSA0.pdf"
+               style="width:100%;background:var(--card-bg);border:1px solid var(--border);
+                      border-radius:6px;padding:7px 10px;color:var(--text);
+                      font-size:0.78rem;font-family:monospace">
+      </div>
+      <div id="resPdfStatus" style="font-size:0.78rem;margin:4px 0 0;min-height:1.2em"></div>
 
       <!-- Manual fallback -->
       <details style="margin-top:12px">
@@ -2198,24 +2209,39 @@ const resultsLogOut   = document.getElementById('resultsLogOutput');
 const manualGrid      = document.getElementById('manualResultsGrid');
 const resTrackInput   = document.getElementById('resTrack');
 const resDateInput    = document.getElementById('resDate');
+const resPdfPath      = document.getElementById('resPdfPath');
 const resPdfStatus    = document.getElementById('resPdfStatus');
 const resultDropZone  = document.getElementById('resultDropZone');
-
-let resultFile = null;  // File object from drop/browse
 
 // Force a full reload when restored from bfcache — guarantees clean state
 window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
 
-// Enable Log button whenever track+date are filled AND (PDF file or manual entry present)
+// Standard results path pattern for this machine
+const RESULTS_ROOT = '/Users/harryadalian/Documents/HorseRacing/Results';
+function suggestPdfPath(track, date) {
+  if (!track || !date || date.length !== 8) return '';
+  const yr = date.slice(0, 4);
+  return `${RESULTS_ROOT}/${yr}/${date}${track}USA0.pdf`;
+}
+function refreshPathSuggestion() {
+  if (!resPdfPath.value.trim()) {
+    const s = suggestPdfPath(resTrackInput.value.trim().toUpperCase(), resDateInput.value.trim());
+    if (s) { resPdfPath.value = s; updateLogBtn(); }
+  }
+}
+
+// Enable Log button: track+date filled AND (pdf path set OR manual entry present)
 function updateLogBtn() {
   const hasTarget = resTrackInput.value.trim().length >= 2 && resDateInput.value.trim().length === 8;
-  const hasData   = !!resultFile || Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
-  logResultsBtn.disabled = !(hasTarget && hasData);
+  const hasPdf    = resPdfPath.value.trim().length > 4;
+  const hasManual = Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
+  logResultsBtn.disabled = !(hasTarget && (hasPdf || hasManual));
 }
-resTrackInput.addEventListener('input', updateLogBtn);
-resDateInput.addEventListener('input',  updateLogBtn);
+resTrackInput.addEventListener('input', () => { updateLogBtn(); refreshPathSuggestion(); });
+resDateInput.addEventListener('input',  () => { updateLogBtn(); refreshPathSuggestion(); });
+resPdfPath.addEventListener('input', updateLogBtn);
 
-// Wire up result drop zone
+// Wire up result drop zone — captures filename for display + auto-fills path
 function getResultFileInput() { return document.getElementById('resultFileInput'); }
 
 resultDropZone.addEventListener('click', () => getResultFileInput().click());
@@ -2225,23 +2251,27 @@ resultDropZone.addEventListener('dragleave', () => resultDropZone.classList.remo
 resultDropZone.addEventListener('drop', e => {
   e.preventDefault(); resultDropZone.classList.remove('over');
   const f = e.dataTransfer.files[0];
-  if (f && f.name.match(/\.pdf$/i)) { resultFile = f; updateResultFile(); }
+  if (f && f.name.match(/\.pdf$/i)) updateResultFile(f.name);
   else resPdfStatus.textContent = '⚠ Drop a .pdf file';
 });
-resultDropZone.addEventListener('change', e => {   // bubbled from hidden input
+resultDropZone.addEventListener('change', e => {
   const f = e.target.files[0];
-  if (f) { resultFile = f; updateResultFile(); }
+  if (f) updateResultFile(f.name);
 });
 
-function updateResultFile() {
-  if (!resultFile) return;
+function updateResultFile(filename) {
+  // Show file confirmed in drop zone
   resultDropZone.innerHTML = `
     <div class="drop-icon" style="font-size:1.6rem">✅</div>
-    <p class="drop-main" style="margin:4px 0;color:var(--green)"><strong>${resultFile.name}</strong></p>
+    <p class="drop-main" style="margin:4px 0;color:var(--green)"><strong>${filename}</strong></p>
     <p class="drop-hint" style="margin:0">Click to choose a different file</p>
     <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
   `;
-  resPdfStatus.textContent = '';
+  // Auto-fill path from track+date if not already set, else keep existing
+  const suggested = suggestPdfPath(resTrackInput.value.trim().toUpperCase(), resDateInput.value.trim());
+  if (!resPdfPath.value.trim() && suggested) resPdfPath.value = suggested;
+  resPdfStatus.textContent = '📍 Confirm path below is correct before logging';
+  resPdfStatus.style.color = 'var(--gold)';
   updateLogBtn();
 }
 
@@ -2289,6 +2319,7 @@ function setupResultsLogger() {
 logResultsBtn.addEventListener('click', async () => {
   const trackVal  = resTrackInput.value.trim().toUpperCase();
   const dateVal   = resDateInput.value.trim();
+  const pdfPath   = resPdfPath.value.trim();
   const hasManual = Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
 
   if (!trackVal || dateVal.length !== 8) {
@@ -2296,8 +2327,8 @@ logResultsBtn.addEventListener('click', async () => {
     show(resultsLogOut);
     return;
   }
-  if (!resultFile && !hasManual) {
-    resultsLogOut.innerHTML = '<span style="color:var(--red)">❌ Drop a results PDF or enter finish orders manually first.</span>';
+  if (!pdfPath && !hasManual) {
+    resultsLogOut.innerHTML = '<span style="color:var(--red)">❌ Confirm the PDF path below the drop zone, or enter finish orders manually.</span>';
     show(resultsLogOut);
     return;
   }
@@ -2310,8 +2341,8 @@ logResultsBtn.addEventListener('click', async () => {
   fd.append('track', trackVal);
   fd.append('date',  dateVal);
 
-  if (resultFile) {
-    fd.append('pdf', resultFile);
+  if (pdfPath) {
+    fd.append('pdf_path', pdfPath);  // server reads from disk — no upload stream, no Errno 5
   }
 
   // Collect manual entries (works with or without prior analysis)
