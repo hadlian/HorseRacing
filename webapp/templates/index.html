@@ -2228,20 +2228,24 @@ resPdfPath.addEventListener('input', () => {
   updateLogBtn();
 });
 
-// Clear all Results Logger state on every page show (covers fresh load AND
-// bfcache/session-restore, which replays dynamic form values from the prior session)
+// Clear all Results Logger state.
+// Called immediately AND deferred via pageshow — the defer ensures we run
+// AFTER the browser finishes replaying bfcache/session form values.
 function clearResultsLogger() {
   resTrackInput.value      = '';
   resDateInput.value       = '';
   resPdfPath.value         = '';
   resPdfStatus.textContent = '';
   resPdfStatus.style.color = '';
-  manualGrid.innerHTML     = '';   // nuke dynamically-built manual rows
+  manualGrid.innerHTML     = '';
   hide(resultsLogOut);
   updateLogBtn();
 }
-window.addEventListener('pageshow', clearResultsLogger);
-clearResultsLogger();   // also run immediately for initial load
+clearResultsLogger();  // immediate: fresh load
+window.addEventListener('pageshow', () => {
+  clearResultsLogger();               // instant pass
+  setTimeout(clearResultsLogger, 50); // deferred: wins the race against bfcache restore
+});
 
 function setupResultsLogger() {
   // Pre-fill track/date from the just-analyzed DRF (user can still edit)
