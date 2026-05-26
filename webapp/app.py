@@ -514,14 +514,17 @@ def log_results():
 
     Returns JSON summary.
     """
+    try:
+        tracker    = _load_claude("r5_tracker")
+        pdf_parser = _load_claude("r5_pdf_results")
+    except Exception as e:
+        return jsonify({"error": f"Server setup error: {e}. Check webapp venv dependencies."}), 500
+
     track    = (request.form.get("track") or "").strip().upper()
     date_str = (request.form.get("date")  or "").strip()
 
     if not track or not date_str:
         return jsonify({"error": "track and date are required"}), 400
-
-    tracker    = _load_claude("r5_tracker")
-    pdf_parser = _load_claude("r5_pdf_results")
 
     results_by_race: dict = {}   # {race_num (int): {"finish": [...], "sp": float|None}}
     parse_errors: list   = []
