@@ -1030,18 +1030,16 @@
         </div>
       </div>
 
-      <div style="margin-bottom:4px">
-        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:5px">
-          PDF FILE PATH
-          <span style="color:var(--muted);font-weight:normal"> — paste or drag a file from Finder into this field</span>
-        </label>
-        <input type="text" id="resPdfPath" placeholder="/Users/…/Results/2026/20260525SAXUSA0.pdf"
-               autocomplete="off" spellcheck="false"
-               style="width:100%;background:var(--card-bg);border:1px solid var(--border);
-                      border-radius:6px;padding:8px 12px;color:var(--text);font-size:0.82rem;
-                      font-family:monospace">
-        <div id="resPdfStatus" style="font-size:0.78rem;margin-top:5px;min-height:1.2em"></div>
+      <div class="drop-zone" id="resultDropZone" tabindex="0" role="button"
+           aria-label="Drop results PDF here" style="padding:20px;min-height:80px">
+        <div class="drop-icon" style="font-size:1.6rem">📄</div>
+        <p class="drop-main" style="margin:4px 0">Drop results <strong>.PDF</strong> here</p>
+        <p class="drop-hint" style="margin:0">or click to browse</p>
+        <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
       </div>
+      <div id="resPdfStatus" style="font-size:0.8rem;margin:6px 0 0;min-height:1.2em"></div>
+      <!-- hidden path field — populated by drop/browse, sent to server -->
+      <input type="hidden" id="resPdfPath">
 
       <!-- Manual fallback -->
       <details style="margin-top:12px">
@@ -2200,52 +2198,52 @@ const resultsLogOut   = document.getElementById('resultsLogOutput');
 const manualGrid      = document.getElementById('manualResultsGrid');
 const resTrackInput   = document.getElementById('resTrack');
 const resDateInput    = document.getElementById('resDate');
-const resPdfPath      = document.getElementById('resPdfPath');
 const resPdfStatus    = document.getElementById('resPdfStatus');
+const resultDropZone  = document.getElementById('resultDropZone');
 
-// Enable Log button whenever track+date are filled AND (PDF path or manual entry present)
+let resultFile = null;  // File object from drop/browse
+
+// Force a full reload when restored from bfcache — guarantees clean state
+window.addEventListener('pageshow', (e) => { if (e.persisted) location.reload(); });
+
+// Enable Log button whenever track+date are filled AND (PDF file or manual entry present)
 function updateLogBtn() {
   const hasTarget = resTrackInput.value.trim().length >= 2 && resDateInput.value.trim().length === 8;
-  const hasPdf    = resPdfPath.value.trim().length > 0;
-  const hasManual = Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
-  logResultsBtn.disabled = !(hasTarget && (hasPdf || hasManual));
+  const hasData   = !!resultFile || Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
+  logResultsBtn.disabled = !(hasTarget && hasData);
 }
 resTrackInput.addEventListener('input', updateLogBtn);
 resDateInput.addEventListener('input',  updateLogBtn);
-resPdfPath.addEventListener('input', () => {
-  const v = resPdfPath.value.trim();
-  if (!v) {
-    resPdfStatus.textContent = '';
-    resPdfStatus.style.color = '';
-  } else if (!v.toLowerCase().endsWith('.pdf')) {
-    resPdfStatus.textContent = '⚠ Path should end in .pdf';
-    resPdfStatus.style.color = 'var(--gold)';
-  } else {
-    const name = v.split('/').pop();
-    resPdfStatus.textContent = `📄 ${name}`;
-    resPdfStatus.style.color = 'var(--green)';
-  }
-  updateLogBtn();
+
+// Wire up result drop zone
+function getResultFileInput() { return document.getElementById('resultFileInput'); }
+
+resultDropZone.addEventListener('click', () => getResultFileInput().click());
+resultDropZone.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') getResultFileInput().click(); });
+resultDropZone.addEventListener('dragover',  e => { e.preventDefault(); resultDropZone.classList.add('over'); });
+resultDropZone.addEventListener('dragleave', () => resultDropZone.classList.remove('over'));
+resultDropZone.addEventListener('drop', e => {
+  e.preventDefault(); resultDropZone.classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.name.match(/\.pdf$/i)) { resultFile = f; updateResultFile(); }
+  else resPdfStatus.textContent = '⚠ Drop a .pdf file';
+});
+resultDropZone.addEventListener('change', e => {   // bubbled from hidden input
+  const f = e.target.files[0];
+  if (f) { resultFile = f; updateResultFile(); }
 });
 
-// Clear all Results Logger state.
-// Called immediately AND deferred via pageshow — the defer ensures we run
-// AFTER the browser finishes replaying bfcache/session form values.
-function clearResultsLogger() {
-  resTrackInput.value      = '';
-  resDateInput.value       = '';
-  resPdfPath.value         = '';
+function updateResultFile() {
+  if (!resultFile) return;
+  resultDropZone.innerHTML = `
+    <div class="drop-icon" style="font-size:1.6rem">✅</div>
+    <p class="drop-main" style="margin:4px 0;color:var(--green)"><strong>${resultFile.name}</strong></p>
+    <p class="drop-hint" style="margin:0">Click to choose a different file</p>
+    <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
+  `;
   resPdfStatus.textContent = '';
-  resPdfStatus.style.color = '';
-  manualGrid.innerHTML     = '';
-  hide(resultsLogOut);
   updateLogBtn();
 }
-clearResultsLogger();  // immediate: fresh load
-window.addEventListener('pageshow', () => {
-  clearResultsLogger();               // instant pass
-  setTimeout(clearResultsLogger, 50); // deferred: wins the race against bfcache restore
-});
 
 function setupResultsLogger() {
   // Pre-fill track/date from the just-analyzed DRF (user can still edit)
@@ -2291,7 +2289,6 @@ function setupResultsLogger() {
 logResultsBtn.addEventListener('click', async () => {
   const trackVal  = resTrackInput.value.trim().toUpperCase();
   const dateVal   = resDateInput.value.trim();
-  const pdfPath   = resPdfPath.value.trim();
   const hasManual = Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
 
   if (!trackVal || dateVal.length !== 8) {
@@ -2299,8 +2296,8 @@ logResultsBtn.addEventListener('click', async () => {
     show(resultsLogOut);
     return;
   }
-  if (!pdfPath && !hasManual) {
-    resultsLogOut.innerHTML = '<span style="color:var(--red)">❌ Paste the results PDF path or enter finish orders manually first.</span>';
+  if (!resultFile && !hasManual) {
+    resultsLogOut.innerHTML = '<span style="color:var(--red)">❌ Drop a results PDF or enter finish orders manually first.</span>';
     show(resultsLogOut);
     return;
   }
@@ -2313,8 +2310,8 @@ logResultsBtn.addEventListener('click', async () => {
   fd.append('track', trackVal);
   fd.append('date',  dateVal);
 
-  if (pdfPath) {
-    fd.append('pdf_path', pdfPath);
+  if (resultFile) {
+    fd.append('pdf', resultFile);
   }
 
   // Collect manual entries (works with or without prior analysis)
