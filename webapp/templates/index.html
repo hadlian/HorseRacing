@@ -1030,14 +1030,18 @@
         </div>
       </div>
 
-      <div class="drop-zone" id="resultDropZone" tabindex="0" role="button"
-           aria-label="Drop results PDF here" style="padding:20px;min-height:80px">
-        <div class="drop-icon" style="font-size:1.6rem">📄</div>
-        <p class="drop-main" style="margin:4px 0">Drop results <strong>.PDF</strong> here</p>
-        <p class="drop-hint" style="margin:0">or click to browse</p>
-        <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
+      <div style="margin-bottom:4px">
+        <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:5px">
+          PDF FILE PATH
+          <span style="color:var(--muted);font-weight:normal"> — paste or drag a file from Finder into this field</span>
+        </label>
+        <input type="text" id="resPdfPath" placeholder="/Users/…/Results/2026/20260525SAXUSA0.pdf"
+               autocomplete="off" spellcheck="false"
+               style="width:100%;background:var(--card-bg);border:1px solid var(--border);
+                      border-radius:6px;padding:8px 12px;color:var(--text);font-size:0.82rem;
+                      font-family:monospace">
+        <div id="resPdfStatus" style="font-size:0.78rem;margin-top:5px;min-height:1.2em"></div>
       </div>
-      <div id="resultFileName" style="font-size:0.8rem;color:var(--muted);margin:6px 0 0"></div>
 
       <!-- Manual fallback -->
       <details style="margin-top:12px">
@@ -1071,7 +1075,7 @@ let activeTab    = 0;
 let viewMode     = 'detail';   // 'summary' | 'detail'
 let currentTrack = '';
 let currentDate  = '';
-let resultFile   = null;
+// resultFile: deprecated (was used for browser upload; now using pdf_path disk read)
 // Manual scratches: Map of raceIdx → Set of pgm strings
 const manualScratches = {};
 
@@ -2191,59 +2195,43 @@ function _renderTrackSplit(rows) {
 /* ── Results Logger ─────────────────────────────────────────────────────── */
 
 const resultsLogCard  = document.getElementById('resultsLogCard');
-const resultDropZone  = document.getElementById('resultDropZone');
-const resultFileInput = document.getElementById('resultFileInput');
-const resultFileName  = document.getElementById('resultFileName');
 const logResultsBtn   = document.getElementById('logResultsBtn');
 const resultsLogOut   = document.getElementById('resultsLogOutput');
 const manualGrid      = document.getElementById('manualResultsGrid');
 const resTrackInput   = document.getElementById('resTrack');
 const resDateInput    = document.getElementById('resDate');
+const resPdfPath      = document.getElementById('resPdfPath');
+const resPdfStatus    = document.getElementById('resPdfStatus');
 
-// Enable Log button whenever track+date are filled AND (PDF or manual entry present)
+// Enable Log button whenever track+date are filled AND (PDF path or manual entry present)
 function updateLogBtn() {
   const hasTarget = resTrackInput.value.trim().length >= 2 && resDateInput.value.trim().length === 8;
-  const hasData   = !!resultFile || Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
-  logResultsBtn.disabled = !(hasTarget && hasData);
+  const hasPdf    = resPdfPath.value.trim().length > 0;
+  const hasManual = Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
+  logResultsBtn.disabled = !(hasTarget && (hasPdf || hasManual));
 }
 resTrackInput.addEventListener('input', updateLogBtn);
 resDateInput.addEventListener('input',  updateLogBtn);
+resPdfPath.addEventListener('input', () => {
+  const v = resPdfPath.value.trim();
+  if (!v) {
+    resPdfStatus.textContent = '';
+    resPdfStatus.style.color = '';
+  } else if (!v.toLowerCase().endsWith('.pdf')) {
+    resPdfStatus.textContent = '⚠ Path should end in .pdf';
+    resPdfStatus.style.color = 'var(--gold)';
+  } else {
+    const name = v.split('/').pop();
+    resPdfStatus.textContent = `📄 ${name}`;
+    resPdfStatus.style.color = 'var(--green)';
+  }
+  updateLogBtn();
+});
 
 // Clear on load so browser autocomplete doesn't carry over stale values
 resTrackInput.value = '';
 resDateInput.value  = '';
-
-// Wire up result drop zone
-resultDropZone.addEventListener('click', () => resultFileInput.click());
-resultDropZone.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') resultFileInput.click(); });
-resultDropZone.addEventListener('dragover',  e => { e.preventDefault(); resultDropZone.classList.add('over'); });
-resultDropZone.addEventListener('dragleave', () => resultDropZone.classList.remove('over'));
-resultDropZone.addEventListener('drop', e => {
-  e.preventDefault(); resultDropZone.classList.remove('over');
-  const f = e.dataTransfer.files[0];
-  if (f && f.name.match(/\.pdf$/i)) { resultFile = f; updateResultFile(); }
-});
-resultFileInput.addEventListener('change', () => {
-  if (resultFileInput.files[0]) { resultFile = resultFileInput.files[0]; updateResultFile(); }
-});
-
-function updateResultFile() {
-  if (!resultFile) return;
-  // Update the drop zone itself to show the file is loaded
-  resultDropZone.innerHTML = `
-    <div class="drop-icon" style="font-size:1.6rem">✅</div>
-    <p class="drop-main" style="margin:4px 0;color:var(--green)"><strong>${resultFile.name}</strong></p>
-    <p class="drop-hint" style="margin:0">Click to choose a different file</p>
-    <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
-  `;
-  // Re-wire the new input element
-  document.getElementById('resultFileInput').addEventListener('change', () => {
-    const f = document.getElementById('resultFileInput').files[0];
-    if (f) { resultFile = f; updateResultFile(); }
-  });
-  resultFileName.textContent = '';
-  updateLogBtn();
-}
+resPdfPath.value    = '';
 
 function setupResultsLogger() {
   // Pre-fill track/date from the just-analyzed DRF (user can still edit)
@@ -2287,8 +2275,9 @@ function setupResultsLogger() {
 }
 
 logResultsBtn.addEventListener('click', async () => {
-  const trackVal = resTrackInput.value.trim().toUpperCase();
-  const dateVal  = resDateInput.value.trim();
+  const trackVal  = resTrackInput.value.trim().toUpperCase();
+  const dateVal   = resDateInput.value.trim();
+  const pdfPath   = resPdfPath.value.trim();
   const hasManual = Array.from(document.querySelectorAll('[id^="man_"]')).some(el => el.value.trim());
 
   if (!trackVal || dateVal.length !== 8) {
@@ -2296,8 +2285,8 @@ logResultsBtn.addEventListener('click', async () => {
     show(resultsLogOut);
     return;
   }
-  if (!resultFile && !hasManual) {
-    resultsLogOut.innerHTML = '<span style="color:var(--red)">❌ Drop a results PDF or enter finish orders manually first.</span>';
+  if (!pdfPath && !hasManual) {
+    resultsLogOut.innerHTML = '<span style="color:var(--red)">❌ Paste the results PDF path or enter finish orders manually first.</span>';
     show(resultsLogOut);
     return;
   }
@@ -2310,20 +2299,18 @@ logResultsBtn.addEventListener('click', async () => {
   fd.append('track', trackVal);
   fd.append('date',  dateVal);
 
-  if (resultFile) {
-    fd.append('pdf', resultFile);
+  if (pdfPath) {
+    fd.append('pdf_path', pdfPath);
   }
 
-  // Collect manual entries
+  // Collect manual entries (works with or without prior analysis)
   const manual = {};
-  races.forEach((r, i) => {
-    const rn = r.race_num || (i + 1);
-    const el = document.getElementById(`man_${rn}`);
-    if (el && el.value.trim()) {
-      manual[rn] = el.value.trim();
-      const sp = document.getElementById(`sp_${rn}`);
-      if (sp && sp.value) fd.append(`sp_${rn}`, sp.value);
-    }
+  document.querySelectorAll('[id^="man_"]').forEach(el => {
+    if (!el.value.trim()) return;
+    const rn = el.id.replace('man_', '');
+    manual[rn] = el.value.trim();
+    const sp = document.getElementById(`sp_${rn}`);
+    if (sp && sp.value) fd.append(`sp_${rn}`, sp.value);
   });
   if (Object.keys(manual).length) {
     fd.append('manual', JSON.stringify(manual));

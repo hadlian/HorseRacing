@@ -540,13 +540,25 @@ def log_results():
     results_by_race: dict = {}   # {race_num (int): {"finish": [...], "sp": float|None}}
     parse_errors: list   = []
 
-    # ── Parse PDF if provided ─────────────────────────────────────────────────
-    pdf_file = request.files.get("pdf")
-    if pdf_file and pdf_file.filename:
+    # ── Parse PDF — prefer disk path, fall back to file upload ───────────────
+    pdf_path_str = (request.form.get("pdf_path") or "").strip()
+    pdf_file     = request.files.get("pdf")
+
+    if pdf_path_str:
+        # Server reads directly from local path — avoids browser upload I/O issues
+        p = Path(pdf_path_str)
+        if not p.exists():
+            # Try relative to HorseRacing root
+            p = HERE.parent / pdf_path_str
         try:
-            import io, tempfile
-            # Read upload into memory then write to a proper temp file
-            # (avoids Errno 5 I/O errors from parsing a Werkzeug stream directly)
+            parsed = pdf_parser.parse_results_pdf(str(p))
+            results_by_race.update(parsed)
+        except Exception as e:
+            parse_errors.append(f"PDF parse error ({p.name}): {e}")
+
+    elif pdf_file and pdf_file.filename:
+        try:
+            import tempfile
             pdf_bytes = pdf_file.read()
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
                 tmp.write(pdf_bytes)
