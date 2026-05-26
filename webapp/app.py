@@ -648,6 +648,55 @@ def log_results():
     })
 
 
+@app.route("/api/report", methods=["POST"])
+def generate_report():
+    """Run r5_analyze.py and return the path of the generated Excel file."""
+    import subprocess, json as _json
+
+    analyze_script = CLAUDE_DIR / "r5_analyze.py"
+    if not analyze_script.exists():
+        return jsonify({"error": "r5_analyze.py not found"}), 500
+
+    track_filter = (request.form.get("track") or "").strip().upper() or None
+    cmd = [R5_PYTHON, str(analyze_script)]
+    if track_filter:
+        cmd += ["--track", track_filter]
+
+    try:
+        result = subprocess.run(
+            cmd,
+            cwd=str(HERE.parent),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        output = result.stdout + result.stderr
+
+        # Extract saved path from output line "💾 Saved → /path/to/file.xlsx"
+        saved_path = None
+        for line in output.splitlines():
+            if "Saved" in line and ".xlsx" in line:
+                # grab everything after the arrow
+                parts = line.split("→")
+                if len(parts) > 1:
+                    saved_path = parts[-1].strip()
+                break
+
+        if result.returncode != 0 and not saved_path:
+            return jsonify({"error": output or "r5_analyze.py failed"}), 500
+
+        return jsonify({
+            "ok":         True,
+            "path":       saved_path,
+            "filename":   saved_path.split("/")[-1] if saved_path else None,
+            "output":     output,
+        })
+    except subprocess.TimeoutExpired:
+        return jsonify({"error": "Report generation timed out (>60s)"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/analytics")
 def analytics():
     db_path = HERE.parent / "results" / "r5_results.db"
