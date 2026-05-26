@@ -1070,6 +1070,31 @@
     </div>
   </div>
 
+  <!-- ── Generate Report ──────────────────────────────────────────────────── -->
+  <div class="card" style="margin-top:18px">
+    <div class="card-head">
+      <span class="card-title">📊 Generate Performance Report</span>
+    </div>
+    <div class="card-body">
+      <p style="font-size:0.83rem;color:var(--muted);margin:0 0 14px">
+        Builds a new Excel workbook from all logged results — Summary, Race-by-Race,
+        Component Correlations, Value ROI, Scout Impact. Never overwrites; each run
+        creates a timestamped file in <code>results/</code>.
+      </p>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn-primary" id="reportBtn">📊 Generate Report</button>
+        <span style="font-size:0.78rem;color:var(--muted)">Optional: filter by track</span>
+        <input type="text" id="reportTrack" maxlength="4" placeholder="all tracks"
+               autocomplete="off"
+               style="width:90px;background:var(--card-bg);border:1px solid var(--border);
+                      border-radius:6px;padding:5px 9px;color:var(--text);
+                      font-size:0.85rem;text-transform:uppercase">
+      </div>
+      <div id="reportOutput" class="hidden" style="margin-top:14px;padding:12px;
+           background:rgba(0,0,0,.25);border-radius:8px;font-size:0.8rem;line-height:1.6"></div>
+    </div>
+  </div>
+
 </div><!-- /container -->
 
 <script>
@@ -2403,6 +2428,42 @@ logResultsBtn.addEventListener('click', async () => {
     resultsLogOut.innerHTML = `<span style="color:var(--red)">❌ ${err.message}</span>`;
   } finally {
     logResultsBtn.disabled = false;
+  }
+});
+
+
+/* ── Generate Report ────────────────────────────────────────────────────────── */
+const reportBtn    = document.getElementById('reportBtn');
+const reportOutput = document.getElementById('reportOutput');
+const reportTrack  = document.getElementById('reportTrack');
+
+reportBtn.addEventListener('click', async () => {
+  reportBtn.disabled = true;
+  reportOutput.innerHTML = '⏳ Generating Excel report… (may take a few seconds)';
+  show(reportOutput);
+
+  const fd = new FormData();
+  const t  = reportTrack.value.trim().toUpperCase();
+  if (t) fd.append('track', t);
+
+  try {
+    const res  = await fetch('/api/report', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (!res.ok || !data.ok) {
+      reportOutput.innerHTML = `<span style="color:var(--red)">❌ ${data.error || 'Report failed'}</span>`;
+      return;
+    }
+
+    reportOutput.innerHTML =
+      `<span style="color:var(--green)">✅ Report saved:</span><br>` +
+      `<code style="font-size:0.78rem;word-break:break-all">${data.path}</code>` +
+      `<br><br><pre style="font-size:0.72rem;color:var(--muted);white-space:pre-wrap;` +
+      `max-height:180px;overflow-y:auto">${data.output}</pre>`;
+  } catch(err) {
+    reportOutput.innerHTML = `<span style="color:var(--red)">❌ ${err.message}</span>`;
+  } finally {
+    reportBtn.disabled = false;
   }
 });
 
