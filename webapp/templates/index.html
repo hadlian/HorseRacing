@@ -2228,10 +2228,20 @@ resPdfPath.addEventListener('input', () => {
   updateLogBtn();
 });
 
-// Clear on load so browser autocomplete doesn't carry over stale values
-resTrackInput.value = '';
-resDateInput.value  = '';
-resPdfPath.value    = '';
+// Clear all Results Logger state on every page show (covers fresh load AND
+// bfcache/session-restore, which replays dynamic form values from the prior session)
+function clearResultsLogger() {
+  resTrackInput.value      = '';
+  resDateInput.value       = '';
+  resPdfPath.value         = '';
+  resPdfStatus.textContent = '';
+  resPdfStatus.style.color = '';
+  manualGrid.innerHTML     = '';   // nuke dynamically-built manual rows
+  hide(resultsLogOut);
+  updateLogBtn();
+}
+window.addEventListener('pageshow', clearResultsLogger);
+clearResultsLogger();   // also run immediately for initial load
 
 function setupResultsLogger() {
   // Pre-fill track/date from the just-analyzed DRF (user can still edit)
