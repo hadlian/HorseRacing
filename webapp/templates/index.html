@@ -1013,6 +1013,7 @@
         <div>
           <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:3px">TRACK</label>
           <input type="text" id="resTrack" maxlength="4" placeholder="SAX"
+                 autocomplete="off"
                  style="width:70px;background:var(--card-bg);border:1px solid var(--border);
                         border-radius:6px;padding:6px 10px;color:var(--text);
                         font-size:0.9rem;text-transform:uppercase">
@@ -1020,6 +1021,7 @@
         <div>
           <label style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:3px">DATE (YYYYMMDD)</label>
           <input type="text" id="resDate" maxlength="8" placeholder="20260525"
+                 autocomplete="off"
                  style="width:120px;background:var(--card-bg);border:1px solid var(--border);
                         border-radius:6px;padding:6px 10px;color:var(--text);font-size:0.9rem">
         </div>
@@ -2207,6 +2209,10 @@ function updateLogBtn() {
 resTrackInput.addEventListener('input', updateLogBtn);
 resDateInput.addEventListener('input',  updateLogBtn);
 
+// Clear on load so browser autocomplete doesn't carry over stale values
+resTrackInput.value = '';
+resDateInput.value  = '';
+
 // Wire up result drop zone
 resultDropZone.addEventListener('click', () => resultFileInput.click());
 resultDropZone.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') resultFileInput.click(); });
@@ -2223,7 +2229,19 @@ resultFileInput.addEventListener('change', () => {
 
 function updateResultFile() {
   if (!resultFile) return;
-  resultFileName.textContent = `📄 ${resultFile.name}`;
+  // Update the drop zone itself to show the file is loaded
+  resultDropZone.innerHTML = `
+    <div class="drop-icon" style="font-size:1.6rem">✅</div>
+    <p class="drop-main" style="margin:4px 0;color:var(--green)"><strong>${resultFile.name}</strong></p>
+    <p class="drop-hint" style="margin:0">Click to choose a different file</p>
+    <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
+  `;
+  // Re-wire the new input element
+  document.getElementById('resultFileInput').addEventListener('change', () => {
+    const f = document.getElementById('resultFileInput').files[0];
+    if (f) { resultFile = f; updateResultFile(); }
+  });
+  resultFileName.textContent = '';
   updateLogBtn();
 }
 
