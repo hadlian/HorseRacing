@@ -543,13 +543,17 @@ def log_results():
     # ── Parse PDF if provided ─────────────────────────────────────────────────
     pdf_file = request.files.get("pdf")
     if pdf_file and pdf_file.filename:
-        work_dir = WORK_BASE / "results"
-        work_dir.mkdir(exist_ok=True)
-        pdf_tmp = work_dir / safe_filename(pdf_file.filename)
-        pdf_file.save(str(pdf_tmp))
         try:
-            parsed = pdf_parser.parse_results_pdf(str(pdf_tmp))
+            import io, tempfile
+            # Read upload into memory then write to a proper temp file
+            # (avoids Errno 5 I/O errors from parsing a Werkzeug stream directly)
+            pdf_bytes = pdf_file.read()
+            with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp:
+                tmp.write(pdf_bytes)
+                tmp_path = tmp.name
+            parsed = pdf_parser.parse_results_pdf(tmp_path)
             results_by_race.update(parsed)
+            Path(tmp_path).unlink(missing_ok=True)
         except Exception as e:
             parse_errors.append(f"PDF parse error: {e}")
 
