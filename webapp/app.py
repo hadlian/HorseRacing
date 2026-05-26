@@ -62,6 +62,17 @@ ALLOWED_EXT = {".drf", ".zip"}
 _jobs: dict = {}
 
 
+# ── Global error handler — always return JSON, never HTML ─────────────────────
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    return jsonify({
+        "error": str(e),
+        "type":  type(e).__name__,
+        "trace": traceback.format_exc().splitlines()[-3:],
+    }), 500
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def safe_filename(name: str) -> str:
