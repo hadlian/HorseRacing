@@ -94,6 +94,7 @@ def parse_drf(path):
             h['jockey']         = pf(row, 33)
             h['jockey_starts']  = num(row, 35) or 0
             h['jockey_wins']    = num(row, 36) or 0
+            h['ae_indicator']   = pf(row, 41)   # 'A'=also-eligible, 'M'=MTO
             h['ml_odds']        = num(row, 44)
             h['name']           = pf(row, 45)
             h['sex']            = pf(row, 49)
@@ -101,6 +102,9 @@ def parse_drf(path):
             h['sire']           = pf(row, 52)
             h['sire_sire']      = pf(row, 53)
             h['dam_sire']       = pf(row, 55)
+            h['program_post']   = pf(row, 58)   # updated post after early scratches
+            h['medication']     = num(row, 62)  # 4=1st-time Lasix, 5=Bute+1st Lasix
+            h['equipment_change'] = num(row, 64)  # 1=blinkers on, 2=blinkers off
 
             # === LIFETIME STATS ===
             h['life_starts'] = num(row, 97) or 0
@@ -158,6 +162,7 @@ def parse_drf(path):
             # === BEST SPEEDS ===
             h['best_life'] = num(row, 1328)
             h['best_fast'] = num(row, 1178)
+            h['best_turf'] = num(row, 1179)
             h['best_off']  = num(row, 1180)
             h['best_dist'] = num(row, 1181)
 
@@ -181,6 +186,12 @@ def parse_drf(path):
 
             # === EXTENDED TRIP NOTES ===
             h['ext_trip'] = [pf(row, 1383 + i) for i in range(5)]
+
+            # ── DERIVED FLAGS ────────────────────────────────────────────────
+            # AE from DRF field 41 (supplements scout JSON when scout not run)
+            if h['ae_indicator'] == 'A':
+                h['also_eligible'] = True
+            h['first_time_lasix'] = h['medication'] in (4.0, 5.0)
 
             # ── R5 CALCULATIONS ──────────────────────────────────────────────
 
@@ -217,9 +228,11 @@ def parse_drf(path):
                 class_n = 9.0 if g1_hist else 7.0
 
             # POST POSITION: track-aware scoring
+            # Use program_post (field 58, updated after early scratches) when available
             bias_style = TRACK_POST_BIAS.get(h['track'].upper(), 'neutral')
             try:
-                post = int(h['pgm'])
+                post_raw = (h.get('program_post') or '').strip() or h['pgm']
+                post = int(post_raw)
                 if bias_style == 'inside':
                     post_score = 8.0 if post <= 5 else (7.0 if post <= 9 else (6.0 if post <= 14 else 5.0))
                 elif bias_style == 'outside':
@@ -272,9 +285,13 @@ def parse_drf(path):
 
             # === NEW NORMALIZED COMPONENTS (v3.5 / updated v3.6) ===
 
-            # best_dist_n: at-distance BRIS speed figure, normalized to 0–10
+            # best_dist_n: surface-aware best BRIS speed, normalized to 0–10
+            # Turf races use best_turf (field 1179); others use best_dist (field 1181)
             # Fallback: fci_n (so missing data doesn't crater composite)
-            bd = h['best_dist']
+            if surf_today == 'T' and h.get('best_turf') and h['best_turf'] > 0:
+                bd = h['best_turf']
+            else:
+                bd = h['best_dist']
             if bd and bd > 0:
                 par_eff_bd = max(70.0, min(105.0, par)) if par else 78.0
                 best_dist_n = max(0.0, min(10.0, 5.0 + (bd - par_eff_bd) / 5.0))
@@ -388,6 +405,47 @@ def finalize_field(horses):
             h['val_n']        * 0.05, 2)
         h['tier'] = tier(h['comp'])
 
+    # ── v3.8 — FIRST-TIME LASIX / EQUIPMENT ADJUSTMENTS ─────────────────────
+    # Applied after composite so val_n rank divergence is unaffected.
+    # Caps: +0.20 Lasix, +0.10 blinkers on, -0.05 blinkers off (not capped vs scout)
+    for h in horses:
+        adj = 0.0
+        if h.get('first_time_lasix'):
+            adj += 0.20
+        ec = h.get('equipment_change')
+        if ec == 1.0:
+            adj += 0.10
+        elif ec == 2.0:
+            adj -= 0.05
+        if adj:
+            h['equipment_adj'] = round(adj, 2)
+            h['comp'] = round(h['comp'] + adj, 2)
+            h['tier'] = tier(h['comp'])
+
+    # ── ISSUE 6 v3.7 — TIGHT CLUSTER DEDUCTION (2026-05-28) ─────────────────
+    # Evidence (99-race DB):
+    #   spread ≤0.5: Rank 1 wins 17.1% | Rank 2 wins 25.7%  ← Rank 2 BEATS Rank 1
+    #   spread 0.5-1.5: normal (Rank 1 wins ~25%)
+    #   spread >1.5: high conviction (Rank 1 wins 50.0%)
+    # Action: when spread ≤0.5, apply -0.40 deduction to top horse only.
+    # This typically slips top horse one tier (HIGH→SOLID, SOLID→FAIR, FAIR→SPEC)
+    # so downstream consumers (CLI, webapp PLAY/NEAR/SKIP, DB) all see the
+    # reduced confidence. May also swap Rank 1↔Rank 2 when both are close,
+    # which is the desired behaviour given the win-rate data.
+    if len(horses) >= 3:
+        ranked_by_comp = sorted(horses, key=lambda h: h['comp'], reverse=True)
+        spread_top3 = round(ranked_by_comp[0]['comp'] - ranked_by_comp[2]['comp'], 2)
+        if spread_top3 <= 0.5:
+            top = ranked_by_comp[0]
+            top['tight_cluster_severe'] = True
+            top['tight_cluster_spread'] = spread_top3
+            top['pre_tight_comp']       = top['comp']
+            top['comp'] = round(top['comp'] - 0.40, 2)
+            top['tier'] = tier(top['comp'])
+            # Tag top 3 with a moderate flag so UI/exotics can downweight win plays
+            for h in ranked_by_comp[:3]:
+                h['tight_cluster_flag'] = True
+
     return horses
 
 
@@ -404,7 +462,7 @@ def report(horses):
     print("=" * 114)
     par_val = horses[0].get('speed_par')
     par_str = f"Par {par_val:.0f}" if par_val else "Par N/A"
-    print(f"  🏇  R5 v3.6 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
+    print(f"  🏇  R5 v3.8 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
           f"{horses[0]['date']}  |  {dist_f}f  {horses[0]['surface']}  |  "
           f"Purse ${horses[0]['purse']:,.0f}  |  {par_str}  |  {pace_label}")
     print("=" * 114)
@@ -421,12 +479,16 @@ def report(horses):
         vp  = f"{h['par_diff']:+.1f}" if h['par_diff'] is not None else "  ?"
         tr  = f"{h['trend']:+.1f}"
         pce = h.get('pace_style', '?')[:3].upper()
-        debut_tag = "  [DEBUT]" if h.get('debut') else ""
+        debut_tag = "  [DEBUT]"    if h.get('debut') else ""
+        ae_tag    = "  [AE]"       if h.get('also_eligible') else ""
+        ftl_tag   = "  [1stLasix]" if h.get('first_time_lasix') else ""
+        ec = h.get('equipment_change')
+        blk_tag   = "  [BlkON]" if ec == 1.0 else ("  [BlkOFF]" if ec == 2.0 else "")
         print(f"{h['pgm']:<4} {h['name']:<22} {ml:>5}  {s4:>22}  "
               f"{ws:>5}  {tr:>4}  {fc:>5}  {vp:>5}  "
               f"{h['ped_n']:>4.1f}  {h['tj_n']:>4.1f}  {pce:>4}  "
               f"{h['best_dist_n']:>4.1f}  {h['pp_n']:>4.1f}  "
-              f"{h['val_n']:>4.1f}  {h['comp']:>5.2f}  {h['tier']}{debut_tag}")
+              f"{h['val_n']:>4.1f}  {h['comp']:>5.2f}  {h['tier']}{debut_tag}{ae_tag}{ftl_tag}{blk_tag}")
 
     print()
 
@@ -437,15 +499,46 @@ def report(horses):
         print(f"⚠️   DEBUT FLAG: {names} — no BRIS speed figures, class_n=0.0. Do not bet on class score alone.")
         print()
 
-    # ── TIGHT CLUSTER WARNING ──
+    # ── ALSO-ELIGIBLE WARNING (Scout-3 fix, 2026-05-28) ──
+    ae_horses = [h for h in ranked if h.get('also_eligible')]
+    if ae_horses:
+        names = ", ".join(f"#{h['pgm']} {h['name']}" for h in ae_horses)
+        print(f"⏳  ALSO-ELIGIBLE: {names} — on wait list; will only run if a regular entrant scratches. "
+              f"Confirm gate status at MTP before betting.")
+        print()
+
+    # ── TIGHT CLUSTER WARNING (v3.7 two-tier — Issue 6 fix) ──
     if len(ranked) >= 3:
-        cluster_spread = round(ranked[0]['comp'] - ranked[2]['comp'], 2)
-        if cluster_spread <= 1.5:
-            print(f"⚠️   TIGHT CLUSTER: top 3 within {cluster_spread} pts "
+        # Severity is a property of the original Rank 1, not the current top
+        # (deduction may have swapped Rank 1 ↔ Rank 2). Find the deducted horse.
+        demoted = next((h for h in ranked if h.get('tight_cluster_severe')), None)
+        rank2_comp = ranked[1]['comp']
+        rank3_comp = ranked[2]['comp']
+        current_spread = round(ranked[0]['comp'] - ranked[2]['comp'], 2)
+
+        if demoted:
+            # ≤0.5 spread — Rank 2 historically wins more than Rank 1 here.
+            pre_top         = demoted['pre_tight_comp']
+            original_spread = demoted.get('tight_cluster_spread', current_spread)
+            top_now         = ranked[0]
+            swapped         = (top_now['pgm'] != demoted['pgm'])
+            print(f"🚨  VERY TIGHT CLUSTER: original top 3 within {original_spread} pts — "
+                  f"model conviction very low.")
+            print(f"     #{demoted['pgm']} {demoted['name']} comp deducted -0.40 "
+                  f"({pre_top} → {demoted['comp']}, tier → {demoted['tier']}).")
+            if swapped:
+                print(f"     → Top pick promoted to #{top_now['pgm']} {top_now['name']} "
+                      f"(comp {top_now['comp']}, tier {top_now['tier']}).")
+            print(f"     Historical edge (99-race DB): Rank 2 wins 25.7% vs Rank 1 17.1% in this spread band.")
+            print(f"     → Recommendation: SKIP win bet. Build EX box / TRI key around top 3.")
+            print()
+        elif current_spread <= 1.5:
+            # Moderate-tight — show advisory only, no deduction
+            print(f"⚠️   TIGHT CLUSTER: top 3 within {current_spread} pts "
                   f"(#{ranked[0]['pgm']} {ranked[0]['comp']} / "
-                  f"#{ranked[1]['pgm']} {ranked[1]['comp']} / "
-                  f"#{ranked[2]['pgm']} {ranked[2]['comp']}) — "
-                  f"low model conviction. Consider value alt over top pick.")
+                  f"#{ranked[1]['pgm']} {rank2_comp} / "
+                  f"#{ranked[2]['pgm']} {rank3_comp}) — "
+                  f"moderate conviction. Consider value alt over top pick.")
             print()
 
     # ── TOP WIN PICK ──
@@ -460,8 +553,18 @@ def report(horses):
         print(f"    Speed Par for class: {top['speed_par']:.0f}  →  WS4 vs Par: {top['par_diff']:+.1f}")
     if top['prime_power']:
         print(f"    Prime Power Rating: {top['prime_power']:.1f}")
-    if top['best_dist']:
+    surf_top = normalize_surf(top.get('surface', ''))
+    if surf_top == 'T' and top.get('best_turf'):
+        print(f"    Best BRIS Turf: {top['best_turf']:.0f}")
+    elif top['best_dist']:
         print(f"    Best BRIS @ distance: {top['best_dist']:.0f}")
+    if top.get('first_time_lasix'):
+        print(f"    ⚡ FIRST-TIME LASIX (+0.20 comp)")
+    ec_top = top.get('equipment_change')
+    if ec_top == 1.0:
+        print(f"    🔧 BLINKERS ON (+0.10 comp)")
+    elif ec_top == 2.0:
+        print(f"    🔧 BLINKERS OFF (−0.05 comp)")
     print(f"    Sire: {top['sire']}  |  Dist Ped: {top['ped_dist']}  |  Dirt Ped: {top['ped_dirt']}")
     print(f"    Pace style: {top.get('pace_style','?').upper()}  |  "
           f"Pace fit score: {top.get('pace_fit', 5):.1f}  |  Value score: {top['val_n']:.1f}")

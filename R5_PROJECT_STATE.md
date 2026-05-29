@@ -3,10 +3,26 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-05-24 (CDX0524 results logged — 0 wins, sloppy track, 3 top-3 hits)
-> **Current version:** R5 v3.6
+> **Last updated:** 2026-05-29 (R5 v3.8 — Stage 1 DRF field additions: AE from DRF, program post, 1st-time Lasix, blinkers, best turf speed; CDX0529 picks logged; 91+ races in DB)
+> **Current version:** R5 v3.8
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
+
+---
+
+## 🆕 v3.8 — Stage 1 DRF Field Additions — 2026-05-29
+
+- **Fields added:** 41 (AE/MTO from DRF), 58 (program post), 62 (medication/1st-time Lasix), 64 (equipment/blinkers), 1179 (best BRIS speed turf)
+- **Scoring:** 1st-time Lasix +0.20; blinkers ON +0.10; blinkers OFF −0.05; turf `best_dist_n` uses best_turf; post bias uses updated program post when available
+- **Display:** `[1stLasix]`, `[BlkON]`, `[BlkOFF]` row tags; "Best BRIS Turf" in top pick on turf; AE flag now available without scout
+- **Stage 2 pending:** distance record into val_n, beaten-favorite signal, T/J meet blend, per-race class pars — all require 91-race backtest + val_n weight resolution first
+
+## v3.7 — Tight Cluster Deduction (Issue 6) + Scout-3 AE Fix — 2026-05-28
+
+- **Issue 6:** When top-3 composite spread ≤ 0.5 pts, apply -0.40 deduction to top horse (slips one tier, often swaps Rank 1↔Rank 2). Validated against 99-race DB: severe-cluster Rank 1 wins 17.1% vs Rank 2 wins 25.7%. Backtest delta: +3.0 pts overall win rate, +8.3 pts on severe subset.
+- **Scout-3:** Fixed `scratchIndicator='A'` (Also-Eligible) being treated as scratch. AEs now scored and tagged `[AE]` in report. CDX0528 R7 #13 OUR STARRY NIGHT was the trigger case — drew in, finished 2nd at $8.04, missed entirely under old logic.
+- **Report enhancements:** Field disclosure line (entries → starters); ALSO-ELIGIBLE warning; VERY TIGHT CLUSTER advisory with Rank 2 promotion notice.
+- **Pending investigation:** val_n component winners avg -0.23 lower than losers across 99 races → chalk-heavy bias. Consider weight reduction or formula reformulation. Issue 16 (live odds) is the upstream fix.
 
 ---
 
@@ -166,7 +182,7 @@ All UI work in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
 ## 🏗️ Architecture
 
 ```
-files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1496 fields per record)
+files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1435 fields per record)
          │
   r5_parser_v2.py        ← Parse + score (9-component composite — v3.5)
          │
