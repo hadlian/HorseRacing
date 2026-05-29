@@ -76,6 +76,9 @@ def apply_scout_adjustments(horses, intel):
 
     log = []
     scratch_list = {_strip_country(s["horse"]) for s in intel.get("scratches", [])}
+    # Also-Eligibles (Scout-3 fix, 2026-05-28): horses on the wait list — NOT scratched.
+    # Tag them so report() can annotate; do NOT skip scoring.
+    ae_list = {_strip_country(ae["horse"]) for ae in intel.get("also_eligibles", [])}
 
     for h in horses:
         name = _strip_country(h["name"])
@@ -85,6 +88,11 @@ def apply_scout_adjustments(horses, intel):
             h["scratched"] = True
             log.append(f"  ✗ SCRATCH: {h['name']}")
             continue
+
+        # Flag Also-Eligibles — scored normally, annotated in report
+        if name in ae_list:
+            h["also_eligible"] = True
+            log.append(f"  ⏳ AE: {h['name']} (also-eligible — will run only if a scratch occurs)")
 
         adj = 0.0
 
@@ -284,6 +292,20 @@ def main():
                 print(f"    REVISED TOP PICK: #{new_top['pgm']} {new_top['name']}  "
                       f"Composite {new_top['comp']}  {new_top['tier']}")
                 print()
+
+        # FIELD COUNT DISCLOSURE — always print when scratches present so user can verify
+        # entry count vs gate count against the official track program.
+        if scratched:
+            def _pgm_sort_key(h):
+                p = str(h.get("pgm", ""))
+                return (int(p) if p.isdigit() else 99, p)
+            scr_list = ", ".join(f"#{s['pgm']}" for s in sorted(scratched, key=_pgm_sort_key))
+            race_num = active_field[0]['race']
+            print(f"🐎  R{race_num} FIELD: {len(ranked_full)} entries → "
+                  f"{len(active_field)} starters  ({len(scratched)} removed by scout: {scr_list})")
+            print("    ⚠️   Verify against official track program — scout may include "
+                  "Also-Eligible (AE) horses that draw in if scratches occur.")
+            print()
 
         report(active_field)
 

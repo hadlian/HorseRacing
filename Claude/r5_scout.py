@@ -118,8 +118,17 @@ def fetch_official_scratches(track, date_str):
         date_str : date in YYYYMMDD format (e.g. '20260510')
 
     Returns:
-        List of dicts: [{"race": 7, "pgm": "4", "name": "FORT NELSON"}, ...]
-        Returns [] on any error — never raises.
+        Tuple (scratches, also_eligibles):
+          scratches      : list of confirmed scratches (scratchIndicator == 'Y')
+          also_eligibles : list of AE horses (scratchIndicator == 'A')
+            AEs are on the waiting list — they draw in to start if scratches occur.
+            They are NOT scratched and MUST be scored.
+        Each list entry: {"race": 7, "pgm": "4", "name": "FORT NELSON", "source": "DRF official"}
+        Returns ([], []) on any error — never raises.
+
+        Backwards-compat note: callers expecting a flat list will break. Update them
+        to unpack the tuple. See Scout-3 fix (TODO.md) for the CDX0528 R7 incident
+        that motivated this change.
     """
     drf_track = DRF_TRACK_MAP.get(track.upper(), track.upper())
     # Convert YYYYMMDD → MM-DD-YYYY for DRF URL
@@ -143,28 +152,44 @@ def fetch_official_scratches(track, date_str):
         json_node = soup.find(string=lambda t: t and '"raceKey"' in t)
         if not json_node:
             print(f"  [scratch] No race JSON found on page")
-            return []
+            return [], []
 
         data = json.loads(json_node.string)
-        scratches = []
+        scratches      = []
+        also_eligibles = []
+        unknown_inds   = []  # any value other than N/Y/A — log for visibility, do not auto-scratch
         for race in data.get("races", []):
             rnum = race["raceKey"]["raceNumber"]
             for runner in race.get("runners", []):
-                if runner.get("scratchIndicator", "N") != "N":
-                    pgm  = str(runner.get("programNumberStripped",
-                               runner.get("programNumber", "?"))).strip()
-                    name = runner.get("horseName", "?").upper()
-                    scratches.append({"race": rnum, "pgm": pgm, "name": name,
-                                      "source": "DRF official"})
+                ind  = runner.get("scratchIndicator", "N")
+                pgm  = str(runner.get("programNumberStripped",
+                           runner.get("programNumber", "?"))).strip()
+                name = runner.get("horseName", "?").upper()
+                entry = {"race": rnum, "pgm": pgm, "name": name, "source": "DRF official"}
+                if ind == "Y":
+                    scratches.append(entry)
+                elif ind == "A":
+                    also_eligibles.append(entry)
+                elif ind != "N":
+                    # Unknown indicator — record but do not treat as scratch (Scout-3 lesson).
+                    unknown_inds.append({**entry, "indicator": ind})
 
         print(f"  [scratch] Found {len(scratches)} official scratch(es)")
         for s in scratches:
             print(f"    ✗ R{s['race']} #{s['pgm']} {s['name']}")
-        return scratches
+        if also_eligibles:
+            print(f"  [scratch] Found {len(also_eligibles)} Also-Eligible (AE) horse(s) — NOT scratched, will be scored")
+            for s in also_eligibles:
+                print(f"    ⏳ R{s['race']} #{s['pgm']} {s['name']} (AE)")
+        if unknown_inds:
+            print(f"  [scratch] {len(unknown_inds)} runner(s) with unknown scratchIndicator — kept in field:")
+            for s in unknown_inds:
+                print(f"    ? R{s['race']} #{s['pgm']} {s['name']} (indicator={s['indicator']!r})")
+        return scratches, also_eligibles
 
     except Exception as e:
         print(f"  [scratch] Error fetching scratch list: {e}")
-        return []
+        return [], []
 
 
 # ── SCRAPER ───────────────────────────────────────────────────────────────────
@@ -626,10 +651,10 @@ def main():
             "raw_articles": articles[:20],
         }
 
-    # Merge official scratch list — always runs if track is specified
+    # Merge official scratch list + AE list — always runs if track is specified
     if args.track:
         print("\n🔍 Fetching official scratch list...")
-        official_scratches = fetch_official_scratches(args.track, run_date)
+        official_scratches, official_aes = fetch_official_scratches(args.track, run_date)
         if official_scratches:
             # Deduplicate against any scratches Claude already found from articles
             existing_names = {s["horse"].upper() for s in intel.get("scratches", [])}
@@ -644,6 +669,19 @@ def main():
                         "source": "DRF official"
                     })
             print(f"  ✓ {len(official_scratches)} official scratch(es) merged into intel")
+
+        # Also-Eligibles: surface as a separate intel key so run_r5 can flag them
+        # in the report without removing them from the field. Scout-3 fix (2026-05-28).
+        if official_aes:
+            for ae in official_aes:
+                intel.setdefault("also_eligibles", []).append({
+                    "horse":  ae["name"],
+                    "track":  args.track.upper(),
+                    "race":   str(ae["race"]),
+                    "pgm":    ae["pgm"],
+                    "source": "DRF official"
+                })
+            print(f"  ✓ {len(official_aes)} Also-Eligible(s) recorded in intel (will be scored, not scratched)")
 
     # Format for R5
     r5_text = format_for_r5(intel, horses_list)

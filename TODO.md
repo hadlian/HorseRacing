@@ -3,9 +3,39 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-24 (CDX0524 results logged; Scout-1 + Issue 14 fixed; Issue 15 (Wager Construction) added as RESEARCH; 81 races in DB)
-> **Current version:** R5 v3.6 | CompareModels v1.0 (parallel system — see `comparemodels/`)
-> **Next planned session:** Run more races this week. Continue v3.6 validation (Issues 6, 7, 8 pending). Log LRL0516 R14.
+> **Last updated:** 2026-05-29 (R5 v3.8 — Stage 1 DRF field additions shipped; Stage 2 pending backtest; CDX0529 picks logged)
+> **Current version:** R5 v3.8 | CompareModels v1.0 (parallel system — see `comparemodels/`)
+> **Next planned session:** Validate v3.8 on upcoming cards. Run Stage 2 backtest against 91-race DB. Resolve val_n weight reduction (5%→0–2%) before adding distance-record to val_n.
+
+---
+
+## 🚨 URGENT — Fix before next live card
+
+### ~~Scout-3 — `scratchIndicator='A'` (Also-Eligible) Incorrectly Treated as Scratch~~ `FIXED — 2026-05-28`
+- **File:** `Claude/r5_scout.py`, `Claude/run_r5.py`, `Claude/r5_parser_v2.py`
+- **Bug:** Old code: `if runner.get("scratchIndicator", "N") != "N":` — treated any non-"N" value as a scratch. The DRF API uses `"A"` for Also-Eligible horses (on the wait list, draw in when scratches occur). They are NOT scratched.
+- **Live incident:** CDX 2026-05-28 R7. #13 OUR STARRY NIGHT had `scratchIndicator='A'`. Scout marked it scratched. R5 dropped it from the field. 6 other R7 horses actually scratched → AE drew in → #13 finished 2nd at $8.04 place. Exacta #3-#13 paid $133.60. Trifecta $260.50. R5 missed it entirely because the horse wasn't even scored.
+- **Fix applied (multi-file):**
+  1. `r5_scout.py` `fetch_official_scratches()` — now returns `(scratches, also_eligibles)` tuple. Only `'Y'` = scratch. `'A'` = AE (recorded separately). Unknown indicators logged but kept in field.
+  2. `r5_scout.py` `main()` — AEs written to scout JSON under new `also_eligibles[]` key (parallel structure to `scratches[]`).
+  3. `run_r5.py` `apply_scout_adjustments()` — AE horses get `h["also_eligible"] = True`, are scored normally (not removed from field).
+  4. `r5_parser_v2.py` `report()` — table row prints `[AE]` tag after tier; race block prints `⏳ ALSO-ELIGIBLE: #N HORSE — on wait list; will only run if a regular entrant scratches. Confirm gate status at MTP before betting.` warning.
+- **End-to-end test:** Re-ran scout on CDX0528. R7 now shows 6 scratches + 1 AE (#13 OUR STARRY NIGHT). Re-ran R5 R7. Field disclosure: "13 entries → 7 starters (6 removed)". #13 scored at rank 7, comp 4.41 SPEC, tagged `[AE]`, ALSO-ELIGIBLE warning printed.
+
+### ~~Scout-4 — Name-Match Bug~~ `NOT A BUG — 2026-05-28`
+- **Initial suspicion:** CDX 5/28 R7: scout JSON listed #5 SWEET DANI BOY as scratched but R5 output still showed it in the field.
+- **Root cause:** Stale JSON. Original R5 analysis was saved at 17:29; scout JSON was re-fetched at 19:49 with an updated scratch list. The 17:29 R5 run loaded an *earlier* scout JSON that didn't yet include #5. Re-running R5 with the current JSON correctly removes #5.
+- **Lesson:** Scout JSON timestamps matter. Field-disclosure line (above) will surface scratch deltas at run time. Consider stamping the loaded scout JSON's mtime into the R5 report header so it's clear which intel version was applied.
+
+### ~~R5 Report — Field Count Disclosure Line~~ `FIXED — 2026-05-28`
+- **File:** `Claude/run_r5.py`
+- **Fix applied:** When any horse is removed by scout, the race report now prints:
+  ```
+  🐎  R7 FIELD: 13 entries → 7 starters  (6 removed by scout: #1, #5, #7, #9, #11, #12, #13)
+       ⚠️  Verify against official track program — scout may include Also-Eligible (AE)
+           horses that draw in if scratches occur.
+  ```
+  This makes the entry-vs-starter gap visible at race time, so AE/name-match bugs can't hide. Cosmetic transparency — does not fix Scout-3/Scout-4, just exposes them.
 
 ---
 
@@ -42,11 +72,55 @@
 - **Fix applied:** Per-race scratch notice prints when any scratched horse held pre-scratch Rank 1-3. Shows scratched horse name, pre-scratch rank, and revised top pick with composite and tier. Scratched horses excluded from DB logging. Scout JSON scratches feed this automatically.
 - **Note:** Scout must be run race-morning to catch day-of scratches reported in articles. Manual cross-check against official scratch list still recommended for high-stakes races.
 
-### Issue 6 — Crowded Room Penalty `PARTIAL — display flag live, deduction pending`
+### ~~Issue 6 — Crowded Room Penalty~~ `FIXED — v3.7 (2026-05-28)`
 - **File:** `Claude/r5_parser_v2.py`
-- **Display flag LIVE:** ⚠️ TIGHT CLUSTER warning prints when top-3 spread ≤1.5 pts. Shows individual composites and advises value alt. No score changes.
-- **Remaining:** Score deduction / PLAY suppression — requires validation against results data before implementing. Do not add deduction until threshold is confirmed.
-- **Status:** Flag implemented 2026-05-10. Deduction pending post-Preakness validation.
+- **Two-tier implementation:**
+  - **MODERATE** (spread 0.5–1.5): existing ⚠️ TIGHT CLUSTER advisory print, no score change.
+  - **SEVERE** (spread ≤0.5): 🚨 VERY TIGHT CLUSTER. -0.40 deduction applied to top horse's composite (typically slips one tier and frequently swaps Rank 1 ↔ Rank 2). Strong recommendation to SKIP win bet and build EX box / TRI key around top 3.
+- **Threshold validation against 99-race DB:**
+  - spread ≤0.5: Rank 1 wins **17.1%** vs Rank 2 wins **25.7%** (n=35) — Rank 2 beats Rank 1
+  - spread 0.5–1.5: Rank 1 wins ~25% (n=54) — normal, no penalty needed
+  - spread >1.5: Rank 1 wins **50.0%** (n=10) — high conviction zone
+  - Old 1.5 threshold fired in 90% of races → diluted; new 0.5 threshold fires in ~36% of races (meaningful).
+- **Backtest result (99 races):** +3.0 pts overall win rate (26.3% → 29.3%); +8.3 pts on severe-cluster subset (16.7% → 25.0%). 35/36 severe races see Rank 1↔Rank 2 swap; 9 swaps caught true Rank 2 winners.
+- **Today (CDX0528) example:** Severe fired on R1, R3, R4, R5, R8. Net result on today's card was -1 (R5 gained AWESOME RUTA win, R1+R8 lost). Sample-size noise — long-run signal is positive.
+- **Persistence:** Deduction is applied in `finalize_field()` so all downstream consumers (CLI report, DB picks table, webapp PLAY/NEAR/SKIP, CompareModels comparison) see the lower comp. Flag `tight_cluster_severe=True` stamped on the original Rank 1; `tight_cluster_flag=True` on all top-3. `pre_tight_comp` preserves the original score for transparency.
+
+### ~~v3.8 Stage 1 — DRF Field Additions~~ `SHIPPED — 2026-05-29`
+- **File:** `Claude/r5_parser_v2.py`
+- **Fields added:** 41 (AE/MTO from DRF), 58 (program post post-scratch), 62 (medication/1st-time Lasix), 64 (equipment change), 1179 (best BRIS speed — turf)
+- **Scoring changes:**
+  - 1st-time Lasix (field 62 = 4 or 5): +0.20 to comp
+  - Blinkers ON (field 64 = 1): +0.10 to comp
+  - Blinkers OFF (field 64 = 2): −0.05 to comp
+  - Turf races: `best_dist_n` now uses `best_turf` (field 1179) instead of `best_dist` (field 1181) — surface-accurate
+  - Post bias scoring: uses `program_post` (field 58, post-scratch update) when available, falls back to field 4
+  - AE flag now set from DRF field 41 directly — no scout dependency
+- **Display:** `[1stLasix]`, `[BlkON]`, `[BlkOFF]` tags in horse row; top pick shows "Best BRIS Turf" on turf races; ⚡/🔧 lines in top pick detail block
+
+### v3.8 Stage 2 — DRF Field Additions (Pending Backtest) `PROPOSED — 2026-05-29`
+- **Prerequisite:** Resolve val_n weight reduction (5%→0–2%) before adding distance record to val_n. Run 91-race backtest on each signal independently before implementing.
+- **Fields to add:**
+
+  **Distance/Track lifetime record (fields 65–74):**
+  - Fields 65–69: starts/wins/places/shows/earnings @ today's exact distance
+  - Fields 70–74: starts/wins/places/shows/earnings @ today's track
+  - **Proposed scoring:** Fold distance W% into `val_n`. Horse with ≥3 starts and >25% win rate at distance: +0.5 val. Horse with ≥5 starts and <10% win rate at distance: −0.3 val.
+  - **Dependency:** Do not implement until val_n base weight is resolved (pending 5%→0–2% reduction).
+
+  **Beaten favorite detection (fields 1126–1135):**
+  - Per-race favorite indicator for last 10 starts (1=was favorite, 0=not)
+  - **Proposed scoring:** −0.10 to comp if horse was beaten as favorite in either of last 2 starts
+  - **Validation needed:** Check signal strength against 91-race DB — confirm beaten-favorite horses underperform non-favorites at this sample size before weighting.
+
+  **T/J Combo at current meet (fields 1413–1417):**
+  - Starts/wins/places/shows/$2ROI for trainer-jockey combo at this meet (vs 365-day in fields 219–223)
+  - **Proposed scoring:** Blend meet stats with 365-day stats. If meet ≥10 starts and meet win% ≥30%, boost tj_n cap by +0.5. If meet ≥10 starts and meet win% <10%, apply −0.3 to tj_n.
+  - **Validation needed:** Confirm meet stats are populated consistently in DRF files (may be thin early in a meet).
+
+  **Per-race speed pars for last 10 starts (fields 1167–1176):**
+  - Speed par for the class level of each past race
+  - **Proposed use:** Improve `class_n` by comparing each past BRIS speed to *that race's* par, giving a class trajectory picture rather than comparing WS4 to today's single par. Complex — scope carefully before implementing.
 
 ### Issue 7 — Surface-Specific WS4 Weighting `PROPOSED`
 - **File:** `Claude/r5_parser_v2.py`
@@ -85,7 +159,7 @@
 - **File:** `Claude/r5_parser_v2.py`
 - **Problem:** WS4 uses a weighted average of last 4 starts regardless of distance. A horse with a 95 at 6f but only 82 at a mile gets the same WS4 treatment whether today's race is a sprint or route. BRIS carries best-speed-at-distance figures which are currently unused.
 - **Proposed fix:** Incorporate BRIS best-at-distance figure as a secondary check on FCI — e.g. flag or discount horses where best-at-distance is meaningfully below WS4, particularly in routes.
-- **Validation needed:** Confirm BRIS field positions for best-at-distance in 1496-field format before coding. Validate signal strength against 60+ race DB.
+- **Validation needed:** Confirm BRIS field positions for best-at-distance in 1435-field format before coding. Validate signal strength against 60+ race DB.
 - **Do not implement before Preakness.** Post-Preakness priority, after Issue 3 (TJ weight).
 - **Status:** Proposed 2026-05-11. Not started.
 
@@ -97,6 +171,26 @@
   3. **`r5_analyze.py` exclusion (two-tier):** `calc_summary()` excludes `finish_pos=-1` only (keeps NULL for old partial-logging cards). Component correlations and scout impact exclude both -1 and NULL (need confirmed finish data). Late-scratched top picks no longer inflate the loss denominator.
 - **Real example confirmed:** CDX0514 R8 — #5 VIVIANITE (Rank 8, DEBUT) was the actual late scratch (not SPUN TIGHT R1, which ran and finished 4th). Correctly logged as -1.
 - **Workflow:** After full result logging, run `python3 Claude/r5_tracker.py --finalize CD 20260514` to catch any missed late scratches before regenerating Excel.
+
+### Issue 16 — Live Tote Odds Integration `PROPOSED`
+- **Files:** `Claude/r5_scout.py` (new function) or new `Claude/r5_live_odds.py`, integrated via `run_r5.py`
+- **Problem:** Report and `val_n` calculation use ML (morning line) odds from the .DRF file. ML is the program's guess at fair odds and rarely matches the actual board. Live tote odds are the only basis for real overlay/underlay decisions at post time.
+- **Proposed scope:**
+  1. **New scraper module** — fetch live odds snapshot for a given track/race close to post time.
+  2. **Source candidates:**
+     - DRF live odds widget (no API but visible on entries/results page near MTP)
+     - TwinSpires / AmWager public odds pages
+     - Equibase live odds (paid)
+     - Track's own tote feed (Churchill/NYRA/etc publish JSON for some cards)
+  3. **Snapshot strategy:** decide whether to capture odds at MTP-10, MTP-5, MTP-2, or rolling. Trade-off: earlier = more time to bet but odds may move; later = accurate but no time to act.
+  4. **Report integration:** add `Live` column next to `ML` in the race table, showing current odds. Highlight horses where `Live >> ML` (overlay forming) or `Live << ML` (sharp money).
+  5. **val_n recomputation:** optionally recompute `val_n` using live odds rank instead of ML rank — would substantially improve overlay detection. Keep ML version as fallback when live odds unavailable.
+- **Pre-work questions:**
+  - What's a reliable, scrape-safe source that survives DRF page redesigns?
+  - Should this run continuously (background polling) or one-shot at user trigger?
+  - Does the webapp need a "refresh live odds" button, or does CLI cover the workflow?
+- **Validation:** compare ML overlay calls vs live overlay calls on 20+ races. If live-odds val_n materially outperforms ML val_n on ROI, promote to default.
+- **Status:** Proposed 2026-05-28 (per CDX0528 R7 audit — user asked for live odds in report alongside the field-disclosure fix). Not started.
 
 ### Issue 12 — Career Average Class (Ever Avg. Class) `LOW PRIORITY`
 - **File:** `Claude/r5_parser_v2.py`
@@ -271,7 +365,7 @@ Report: `comparemodels/reports/comparemodels_vs_r5_63races_20260521_020626.xlsx`
 
 ## ✅ Completed (v3.2-R4C)
 
-- DRF parser (`r5_parser_v2.py`) — 7-component scoring pipeline, 1496-field BRIS format
+- DRF parser (`r5_parser_v2.py`) — 7-component scoring pipeline, 1435-field BRIS format
 - WS4™ speed formula — weighted 4-race figure with continuous trend, surface-matched
 - Pace scenario engine — HOT / NML / PRESS classification with speed/closer fit
 - Web scout (`r5_scout.py`) — live intel via HRN, Blood-Horse, TDN + Claude API extraction
