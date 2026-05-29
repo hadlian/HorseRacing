@@ -2,9 +2,9 @@
 
 > Persistent context doc for CompareModels sessions.
 >
-> **Last updated:** 2026-05-21
-> **Version:** CM v1.0
-> **Status:** Backfill complete. 63-race comparison done. CDX0521 live card run. 71 races total in system.
+> **Last updated:** 2026-05-29
+> **Version:** CM v1.1 (field-extraction corrected; engine bug patched)
+> **Status:** Field-fix shipped 2026-05-29. CM-2 resolved (was pace bug, not weights). 99-race re-backfill complete. Engine identical to Dennis's BRIS Summary spec.
 
 ---
 
@@ -36,15 +36,24 @@ scripts/
 
 ---
 
-## Field Decisions (v1.0)
+## Field Decisions (v1.1 — corrected 2026-05-29)
 
-| CM CSV Column | Source | Decision |
+| CM CSV Column | Source (0-indexed cols) | Decision |
 |---|---|---|
-| Avg Class | DRF field 12 (purse) | R5 confirmed not to use BRIS class rating fields |
-| Early Pace | Mean of fields 766–775, inverted (999.0 − raw) | Raw fractional times; lower = faster → invert |
-| Late Pace | Mean of fields 816–825, inverted (999.0 − raw) | Same inversion |
-| BRIS Top Pick | NULL | Field not located; +2 bonus skipped throughout |
+| Avg Speed | Mean of cols 845–854 nonzero | Verified vs Dennis BRIS Summary CSV (CDX0529) |
+| Distance Speed | Col 1180 (Best BRIS Speed — Distance) | Direct field |
+| Best Speed | Col 1327 (Best BRIS Speed — Life) | Direct field |
+| Prime Power | Col 250 (BRIS Prime Power Rating) | Direct field |
+| Avg Class | **Mean of cols 1166–1175 nonzero** (BRIS Class Rating per-PP) | Was purse field 11 — wrong. Fixed 2026-05-29 |
+| Jockey Rating | (wins col 35 / starts col 36) × 100 | 5-start minimum |
+| Trainer Rating | (wins col 29 / starts col 30) × 100 | 5-start minimum |
+| Earnings | Col 100 | Direct field |
+| Early Pace | **Max of cols 765–784** (20-col BRIS pace range) | Was `999 − mean(765–774)` — broken. Fixed 2026-05-29 |
+| Late Pace | **Max of cols 815–824** (10-col BRIS late pace range) | Was `999 − mean(...)` — broken. Fixed 2026-05-29 |
+| BRIS Top Pick | NULL | Field still not located; +2 bonus skipped (engine bug separately fixed) |
 | LRL0516.csv | NOT used directly | Raw DRF comma-delimited format; LRL0516.DRF used instead |
+
+**Verification:** All 752 field comparisons (94 horses × 8 fields) match Dennis's reference CSV for CDX0529 exactly.
 
 **Track normalisation:** DRF field 1 returns internal BRIS code (`CD`). TRACK_MAP in `drf_to_csv.py` maps to DB codes (`CDX`). This has historically caused backfill failures — applied on parse.
 
@@ -218,19 +227,43 @@ Daily report: `comparemodels/reports/CDX_20260521_daily.xlsx`
 - Fix candidate: Raise consensus threshold to ≥ 6, or add pace/surface qualifier
 - **Status:** Identified 2026-05-21. Do not use Overlay Watch signal as-is.
 
-### CM-2 — Turf underperformance
-- CM 10.5% on turf vs R5 15.8%. The category weights (speed-heavy) may not translate to turf.
-- Fix candidate: Surface-specific weight sets (analogous to R5 Issue 7)
-- **Status:** Proposed 2026-05-21.
+### ~~CM-2 — Turf underperformance~~ `RESOLVED 2026-05-29`
+- **Original diagnosis (wrong):** Speed-heavy weights don't translate to grass.
+- **Actual root cause:** Pace extraction was broken. `999 − mean(cols 765-774)` and `999 − mean(cols 815-824)` produced meaningless values (e.g. 916 in a 70-110 rating scale). The engine treated this as one horse's pace rating, effectively making pace into noise. Turf — where pace is critical — was therefore over-weighted on speed.
+- **Fix:** Early Pace = max of cols 765-784; Late Pace = max of cols 815-824. Both verified against Dennis's BRIS Summary CSV.
+- **Result:** Turf top-pick win rate jumped 13.3% → 20.0% (+6.7 pp on 30-race sample) without changing any weights.
 
 ### CM-3 — Trainer Rating near-zero signal
 - 12 fires, 0 wins (0.0%). The `(wins/starts) × 100` formula with 5-start minimum is too raw.
 - Fix candidate: Use BRIS trainer win% at the specific distance/surface/race-type combination
-- **Status:** Proposed 2026-05-21.
+- **Status:** Proposed 2026-05-21. Pre-field-fix data — may re-evaluate against post-fix DB before fixing.
 
 ### CM-4 — BRIS Top Pick field not located
 - +2 bonus is silently skipped. If this field is found in future DRF inspection, adding it will change all scores.
 - **Status:** Deferred. Find the field position before v2.
+- **Note:** Latent engine bug fixed 2026-05-29 — the +2 bonus was inside the per-category loop and would have applied 8× (+16) the moment a real BRIS Top Pick value was wired in. Now applies once, correctly.
+
+### Field-Fix Audit Trail (2026-05-29)
+- Triggered by Dennis's BRIS_Workflow_Package.zip (his BRIS Summary parser + CDX0529 reference CSV).
+- Cross-checked our extraction against his published CSV — 3 of 8 input fields were emitting wrong values:
+  - Avg Class was using purse (today's race level), not horse's class history
+  - Early Pace was inverted noise, not a real pace rating
+  - Late Pace was inverted noise, not a real pace rating
+- Engine methodology (weights, composite math, dominant/overlay/tier rules) was already identical to Dennis's spec.
+- Pre-fix DB preserved at `comparemodels_results.db.pre_fieldfix` (528KB).
+
+### Updated Head-to-Head (post-fix, 95-race universe with results)
+
+| Metric | CM pre-fix | CM post-fix | Δ |
+|---|---|---|---|
+| Top-pick win rate | 23.2% | **25.3%** | +2.1 pp |
+| Top-3 hit rate | 55.8% | 56.8% | +1.0 pp |
+| Turf | 13.3% | **20.0%** | **+6.7 pp** |
+| Dirt | 26.2% | 26.2% | unchanged |
+| BAQ | 21.1% | 26.3% | +5.2 pp |
+| LRL | 15.4% | 23.1% | +7.7 pp |
+| CDX | 26.9% | 26.9% | unchanged |
+| Dominant fires | 158 (21.5%) | 170 (21.2%) | +12 fires |
 
 ---
 

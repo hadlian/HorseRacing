@@ -87,8 +87,8 @@ def run_backfill():
     r5_cur.execute("SELECT COUNT(*) FROM races WHERE result_fetched = 1")
     race_count = r5_cur.fetchone()[0]
     print(f"Races with result_fetched=1: {race_count}")
-    if race_count != 63:
-        print(f"HALT: expected 63 races, got {race_count}")
+    if race_count < 63:
+        print(f"HALT: expected at least 63 races, got {race_count}")
         r5_con.close()
         sys.exit(1)
 
@@ -203,11 +203,11 @@ def run_backfill():
     if not_found:
         print(f"DRF files not found: {not_found}")
 
-    if total_races != 63:
-        print(f"\nHALT: expected 63 races total, got {total_races}")
+    if total_races < 63:
+        print(f"\nHALT: expected at least 63 races total, got {total_races}")
         sys.exit(1)
 
-    print("\n✓ Race count check passed: 63 races")
+    print(f"\n✓ Race count check passed: {total_races} races")
 
     # Step 5 — Write meta
     now = datetime.now(timezone.utc).isoformat()

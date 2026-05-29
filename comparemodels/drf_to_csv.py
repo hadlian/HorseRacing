@@ -69,10 +69,19 @@ def _mean_fields(parts, indices) -> float | None:
     return statistics.mean(vals)
 
 
-def _pace_invert(raw_mean) -> float | None:
-    if raw_mean is None:
+def _max_fields(parts, indices) -> float | None:
+    """Max of 1-indexed DRF field positions (parts is 0-indexed list)."""
+    vals = []
+    for idx in indices:
+        v = _safe_float(parts[idx - 1]) if idx - 1 < len(parts) else None
+        if v is not None and v > 0:
+            vals.append(v)
+    if not vals:
         return None
-    return 999.0 - raw_mean
+    return max(vals)
+
+
+
 
 
 def convert_drf_to_csv(drf_path: str, out_path: str) -> int:
@@ -81,9 +90,9 @@ def convert_drf_to_csv(drf_path: str, out_path: str) -> int:
     Returns the number of horse rows written.
     """
     field_notes = [
-        "# Avg Class: purse (field 12) — R5 confirmed not to use BRIS class rating fields",
-        "# Early Pace: pace_2f mean (fields 766-775), inverted (999.0 - raw)",
-        "# Late Pace: pace_late mean (fields 816-825), inverted (999.0 - raw)",
+        "# Avg Class: mean of BRIS Class Rating per-PP fields 1166-1175 nonzero (verified vs Dennis CSV)",
+        "# Early Pace: max of BRIS per-PP fields, 0-indexed cols 765-784 (verified vs Dennis CSV)",
+        "# Late Pace: max of BRIS per-PP fields, 0-indexed cols 815-824 (verified vs Dennis CSV)",
         "# BRIS Top Pick: NULL — field not confirmed; +2 bonus skipped",
         "# LRL0516.csv: NOT used directly — raw DRF format; LRL0516.DRF used instead",
     ]
@@ -137,8 +146,8 @@ def convert_drf_to_csv(drf_path: str, out_path: str) -> int:
             # Prime Power: field 251 (0-indexed: 250)
             prime_power = _safe_float(parts[250]) if len(parts) > 250 else None
 
-            # Avg Class: purse field 12 (0-indexed: 11)
-            avg_class = _safe_float(parts[11]) if len(parts) > 11 else None
+            # Avg Class: mean of BRIS Class Rating per-PP, 0-indexed cols 1166-1175 nonzero
+            avg_class = _mean_fields(parts, list(range(1167, 1177)))
 
             # Jockey Rating: wins=field 35, starts=field 36 (0-indexed: 34, 35)
             jockey_rating = None
@@ -159,13 +168,11 @@ def convert_drf_to_csv(drf_path: str, out_path: str) -> int:
             # Earnings: field 101 (0-indexed: 100)
             earnings = _safe_float(parts[100]) if len(parts) > 100 else None
 
-            # Early Pace: mean of fields 766-775, inverted
-            ep_raw = _mean_fields(parts, list(range(766, 776)))
-            early_pace = _pace_invert(ep_raw)
+            # Early Pace: max of BRIS Early Pace per-PP, 0-indexed cols 765-784
+            early_pace = _max_fields(parts, list(range(766, 786)))
 
-            # Late Pace: mean of fields 816-825, inverted
-            lp_raw = _mean_fields(parts, list(range(816, 826)))
-            late_pace = _pace_invert(lp_raw)
+            # Late Pace: max of BRIS Late Pace per-PP, 0-indexed cols 815-824
+            late_pace = _max_fields(parts, list(range(816, 826)))
 
             # BRIS Top Pick: NULL
             bris_top_pick = None

@@ -99,13 +99,13 @@ def score_race(race_df: list[dict]) -> dict:
                 "underlined": underlined,
             })
 
-        # BRIS Top Pick bonus (+2) — skip if null/0
-        for h in race_df:
-            tp = _safe_float(h.get('bris_top_pick'))
-            if tp:
-                composite[h['pgm'].strip()] += 2
-
         category_picks[cat] = cat_result
+
+    # BRIS Top Pick bonus (+2) — applied once, after category loop
+    for h in race_df:
+        tp = _safe_float(h.get('bris_top_pick'))
+        if tp:
+            composite[h['pgm'].strip()] += 2
 
     # --- Pace leaders ---
     pace_pairs_e = [(h['pgm'].strip(), _safe_float(h.get(EARLY_PACE_COL)))

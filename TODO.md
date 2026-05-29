@@ -3,9 +3,9 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-29 (R5 v3.8 — Stage 1 DRF field additions shipped; Stage 2 pending backtest; CDX0529 picks logged)
-> **Current version:** R5 v3.8 | CompareModels v1.0 (parallel system — see `comparemodels/`)
-> **Next planned session:** Validate v3.8 on upcoming cards. Run Stage 2 backtest against 91-race DB. Resolve val_n weight reduction (5%→0–2%) before adding distance-record to val_n.
+> **Last updated:** 2026-05-29 (R5 v3.8 Stage 1 shipped; CM v1.1 field-fix shipped — CM-2 resolved; CDX0529 picks logged)
+> **Current version:** R5 v3.8 | CompareModels v1.1 (field-extraction corrected — parallel system, see `comparemodels/`)
+> **Next planned session:** Validate v3.8 on upcoming cards. Run Stage 2 backtest against 91-race DB. Resolve val_n weight reduction (5%→0–2%) before adding distance-record to val_n. Re-evaluate CM-3 against post-fix DB before fixing.
 
 ---
 
@@ -301,21 +301,39 @@ Report: `comparemodels/reports/comparemodels_vs_r5_63races_20260521_020626.xlsx`
 - Massive scratch counts (R1: 7, R3: 8, R8: 9) — both models affected
 - Workflow confirmed: score → log → results → finalize → daily xlsx each race day
 
+### ✅ CM v1.1 — Field-extraction corrected + engine bug patched `COMPLETE — 2026-05-29`
+- **Trigger:** Dennis delivered BRIS_Workflow_Package.zip with his BRIS Summary parser and CDX0529 reference CSV.
+- **Findings:** Engine methodology was already identical to Dennis's spec (same weights, composite math, dominant/overlay/tier rules). But 3 of 8 input fields were emitting wrong values:
+  - Avg Class: was today's purse (col 11), now mean of cols 1166-1175 (BRIS Class Rating per-PP)
+  - Early Pace: was `999 − mean(cols 765-774)` inversion noise, now max of cols 765-784 (real BRIS pace)
+  - Late Pace: was `999 − mean(cols 815-824)` inversion noise, now max of cols 815-824 (real BRIS late pace)
+- **Engine bug also fixed:** BRIS Top Pick +2 bonus was inside the per-category loop in `comparemodels_engine.py:102` — would have fired +16 the moment CM-4 was wired up. Moved outside the loop.
+- **Verification:** 752/752 field comparisons against Dennis's CDX0529 CSV match exactly. R5 DB integrity SHA-256 unchanged across re-backfill.
+- **Re-backfill result (95-race universe):**
+  - Top-pick win rate: 23.2% → 25.3% (+2.1 pp)
+  - Turf win rate: 13.3% → **20.0%** (+6.7 pp, ~50% relative)
+  - BAQ: 21.1% → 26.3% (+5.2 pp); LRL: 15.4% → 23.1% (+7.7 pp); CDX/Dirt unchanged
+- **Files touched:** `comparemodels/comparemodels_engine.py`, `comparemodels/drf_to_csv.py`, `comparemodels/comparemodels_backfill.py` (race-count check relaxed from `==63` to `>=63`), `comparemodels/COMPAREMODELS_STATE.md`.
+- **Pre-fix DB preserved:** `comparemodels/comparemodels_results.db.pre_fieldfix`
+
 ### CM-1 — Overlay Watch definition broken `PROPOSED — post v3.6`
 - Current: consensus ≥ 5 AND ML ≥ 6.0 → 5.6% win rate
 - Fix: raise consensus threshold or add surface/pace qualifier
 - **Do not use Overlay Watch until fixed.**
 
-### CM-2 — Turf weight calibration `PROPOSED`
-- CM 10.5% turf vs R5 15.8%. Speed-heavy weights don't translate to grass.
-- Fix candidate: surface-specific weight sets
+### ~~CM-2 — Turf weight calibration~~ `RESOLVED 2026-05-29`
+- **Original diagnosis (wrong):** Speed-heavy weights don't translate to grass.
+- **Actual root cause:** Pace extraction was broken inversion noise; turf was over-weighted on speed because pace was effectively zero signal.
+- **Result post-fix:** Turf win rate 13.3% → 20.0% with **no weight changes**. See CM v1.1 entry above.
 
 ### CM-3 — Trainer Rating signal weak `PROPOSED`
-- 0/12 wins with Trainer Rating underline. Raw win% × 100 too noisy.
+- 0/12 wins with Trainer Rating underline (pre-fix data).
+- Re-evaluate against post-fix DB before fixing — Trainer Rating extraction itself was correct; signal weakness may persist.
 - Fix candidate: BRIS trainer% by distance/surface/race-type
 
 ### CM-4 — BRIS Top Pick field not located `DEFERRED`
 - +2 bonus silently skipped. Find field position in DRF before v2.
+- **Note:** Engine bug that would have applied +16 instead of +2 was patched 2026-05-29. Safe to wire up the field whenever it's located.
 
 ---
 
