@@ -382,7 +382,11 @@ def index():
 
 @app.route("/api/status")
 def status():
-    return jsonify({"cm_available": CM_AVAILABLE})
+    db_path = HERE.parent / "results" / "r5_results.db"
+    return jsonify({
+        "cm_available": CM_AVAILABLE,
+        "db_available":  db_path.exists(),
+    })
 
 
 @app.route("/api/analyze", methods=["POST"])
