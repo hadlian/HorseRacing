@@ -27,7 +27,7 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 
-HORSE_RACING_ROOT = Path("/Users/harryadalian/Documents/HorseRacing")
+HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
 DB_PATH           = HORSE_RACING_ROOT / "results" / "r5_results.db"
 
 HEADERS = {

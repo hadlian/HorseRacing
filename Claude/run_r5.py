@@ -19,7 +19,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-HORSE_RACING_ROOT = Path("/Users/harryadalian/Documents/HorseRacing")
+HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
 CLAUDE_DIR        = HORSE_RACING_ROOT / "Claude"
 
 import importlib.util as _ilu
