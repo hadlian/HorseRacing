@@ -939,6 +939,10 @@
       <button class="btn-primary" id="analyzeBtn" disabled>
         Analyze Races
       </button>
+      <button class="btn-bris" id="brisSummaryBtn" disabled
+              title="Generate BRIS Summary Handicap Report — DRF upload required">
+        📄 BRIS Summary (Dennis format)
+      </button>
 
     </div>
   </div>
@@ -1117,7 +1121,8 @@ const manualScratches = {};
 const dropZone     = document.getElementById('dropZone');
 const fileInput    = document.getElementById('fileInput');
 const fileList     = document.getElementById('fileList');
-const analyzeBtn   = document.getElementById('analyzeBtn');
+const analyzeBtn      = document.getElementById('analyzeBtn');
+const brisSummaryBtn  = document.getElementById('brisSummaryBtn');
 const pdfOpt       = document.getElementById('pdfOpt');
 const cmOpt        = document.getElementById('cmOpt');
 const scoutOpt     = document.getElementById('scoutOpt');
@@ -1166,12 +1171,14 @@ function addFiles(incoming) {
   });
   renderFileList();
   analyzeBtn.disabled = files.length === 0;
+  updateBrisSummaryBtn();
 }
 
 function removeFile(name) {
   files = files.filter(f => f.name !== name);
   renderFileList();
   analyzeBtn.disabled = files.length === 0;
+  updateBrisSummaryBtn();
 }
 
 function renderFileList() {
@@ -2464,6 +2471,54 @@ reportBtn.addEventListener('click', async () => {
     reportOutput.innerHTML = `<span style="color:var(--red)">❌ ${err.message}</span>`;
   } finally {
     reportBtn.disabled = false;
+  }
+});
+
+
+
+/* ── BRIS Summary (Dennis format) ─────────────────────────────────────── */
+function updateBrisSummaryBtn() {
+  const hasDrf = files.some(f =>
+    f.name.toLowerCase().endsWith('.drf') || f.name.toLowerCase().endsWith('.zip')
+  );
+  brisSummaryBtn.disabled = files.length === 0 || !hasDrf;
+}
+
+brisSummaryBtn.addEventListener('click', async () => {
+  if (!files.length) return;
+  const orig = brisSummaryBtn.textContent;
+  brisSummaryBtn.disabled = true;
+  brisSummaryBtn.textContent = 'Generating…';
+  hide(errorBanner);
+
+  const fd = new FormData();
+  files.forEach(f => fd.append('files', f));
+
+  try {
+    const res = await fetch('/api/bris-summary', { method: 'POST', body: fd });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try { const d = await res.json(); msg = d.error || msg; } catch(_) {}
+      showBanner(errorBanner, '\u2716 BRIS Summary: ' + msg);
+      return;
+    }
+    // Trigger download
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url;
+    const cd   = res.headers.get('Content-Disposition') || '';
+    const m    = cd.match(/filename="([^"]+)"/);
+    a.download = m ? m[1] : 'BRIS_Summary_Report.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(err) {
+    showBanner(errorBanner, '\u2716 BRIS Summary error: ' + err.message);
+  } finally {
+    brisSummaryBtn.textContent = orig;
+    updateBrisSummaryBtn();
   }
 });
 

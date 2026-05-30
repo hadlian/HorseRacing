@@ -38,6 +38,7 @@ try:
         pull_results     as _cm_pull_results,
         finalize         as _cm_finalize,
     )
+    from comparemodels.bris_summary_docx import generate_bris_summary as _bris_summary
     CM_AVAILABLE = True
 except ImportError:
     CM_AVAILABLE = False
@@ -695,6 +696,71 @@ def generate_report():
         return jsonify({"error": "Report generation timed out (>60s)"}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/bris-summary", methods=["POST"])
+def bris_summary():
+    """Generate a BRIS Summary Handicap Report .docx (Dennis format) from uploaded DRF(s)."""
+    if not CM_AVAILABLE:
+        return jsonify({"error": "CompareModels not available"}), 500
+
+    files_up = request.files.getlist("files")
+    if not files_up or all(f.filename == "" for f in files_up):
+        return jsonify({"error": "No files provided"}), 400
+
+    job_id   = str(uuid.uuid4())
+    work_dir = WORK_BASE / job_id
+    work_dir.mkdir()
+
+    all_results: dict = {}
+    card_name: str | None = None
+    errors: list = []
+
+    for f in files_up:
+        fname = safe_filename(f.filename)
+        ext   = Path(fname).suffix.lower()
+        if ext not in ALLOWED_EXT:
+            errors.append(f"{fname}: unsupported type")
+            continue
+
+        save_path = work_dir / fname
+        f.save(str(save_path))
+
+        drfs = extract_drfs(save_path, work_dir) if ext == ".zip" else [save_path]
+        if not drfs:
+            errors.append(f"{fname}: no DRF files found in zip")
+            continue
+
+        for drf in drfs:
+            try:
+                csv_path = work_dir / (drf.stem + "_cm.csv")
+                _cm_convert(str(drf), str(csv_path))
+                results = _cm_score(str(csv_path))
+                all_results.update(results)
+                if card_name is None:
+                    card_name = drf.stem.upper()
+            except Exception as exc:
+                errors.append(f"{drf.name}: {exc}")
+
+    if not all_results:
+        msg = "; ".join(errors) if errors else "No race data found"
+        return jsonify({"error": msg}), 400
+
+    card_name = card_name or "CARD"
+    docx_name = f"{card_name}_BRIS_Summary_Report.docx"
+    docx_path = work_dir / docx_name
+
+    try:
+        _bris_summary(all_results, card_name, str(docx_path))
+    except Exception as exc:
+        return jsonify({"error": f"Report generation failed: {exc}"}), 500
+
+    return send_file(
+        str(docx_path),
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        as_attachment=True,
+        download_name=docx_name,
+    )
 
 
 @app.route("/api/analytics")
