@@ -1,0 +1,140 @@
+#!/bin/bash
+# ─────────────────────────────────────────────────────────────────────────────
+# R5 Analyzer — macOS Setup
+# Run once to install everything. Safe to re-run at any time.
+# ─────────────────────────────────────────────────────────────────────────────
+
+WEBAPP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$WEBAPP_DIR")"
+ERRORS=0
+
+echo ""
+echo "🏇  R5 Analyzer — macOS Setup"
+echo "═══════════════════════════════════════════════"
+echo "  Project : $PROJECT_DIR"
+echo "  Webapp  : $WEBAPP_DIR"
+echo "═══════════════════════════════════════════════"
+
+# ── 1. Python ────────────────────────────────────────────────────────────────
+echo ""
+echo "① Checking Python..."
+if command -v python3 &>/dev/null; then
+    PYVER=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+    PYMAJ=$(echo "$PYVER" | cut -d. -f1)
+    PYMIN=$(echo "$PYVER" | cut -d. -f2)
+    if [ "$PYMAJ" -ge 3 ] && [ "$PYMIN" -ge 10 ]; then
+        echo "   ✅ Python $PYVER"
+    else
+        echo "   ❌ Python $PYVER is too old — need 3.10 or later"
+        echo "      Install: https://python.org/downloads"
+        ERRORS=$((ERRORS+1))
+    fi
+else
+    echo "   ❌ Python 3 not found"
+    echo "      Install: https://python.org/downloads"
+    ERRORS=$((ERRORS+1))
+fi
+
+# ── 2. Webapp virtual environment ─────────────────────────────────────────────
+echo ""
+echo "② Webapp virtual environment..."
+if [ ! -d "$WEBAPP_DIR/.venv" ]; then
+    echo "   Creating webapp/.venv ..."
+    python3 -m venv "$WEBAPP_DIR/.venv"
+    echo "   ✅ Created"
+else
+    echo "   ✅ Already exists"
+fi
+
+# ── 3. Webapp packages (Flask) ────────────────────────────────────────────────
+echo ""
+echo "③ Installing webapp packages..."
+"$WEBAPP_DIR/.venv/bin/pip" install --quiet --upgrade pip
+"$WEBAPP_DIR/.venv/bin/pip" install --quiet -r "$WEBAPP_DIR/requirements.txt"
+FLASK_VER=$("$WEBAPP_DIR/.venv/bin/python3" -c "import flask; print(flask.__version__)" 2>/dev/null)
+if [ -n "$FLASK_VER" ]; then
+    echo "   ✅ Flask $FLASK_VER"
+else
+    echo "   ❌ Flask install failed"
+    ERRORS=$((ERRORS+1))
+fi
+
+# ── 4. Engine virtual environment ─────────────────────────────────────────────
+echo ""
+echo "④ Engine virtual environment..."
+if [ ! -d "$PROJECT_DIR/venv" ]; then
+    echo "   Creating venv ..."
+    python3 -m venv "$PROJECT_DIR/venv"
+    echo "   ✅ Created"
+else
+    echo "   ✅ Already exists"
+fi
+
+# ── 5. Engine packages ────────────────────────────────────────────────────────
+echo ""
+echo "⑤ Installing engine packages (this may take a minute)..."
+if [ -f "$PROJECT_DIR/requirements_engine.txt" ]; then
+    "$PROJECT_DIR/venv/bin/pip" install --quiet --upgrade pip
+    "$PROJECT_DIR/venv/bin/pip" install --quiet -r "$PROJECT_DIR/requirements_engine.txt"
+    # Spot-check key packages
+    MISSING_ENGINE=()
+    for pkg in anthropic pdfplumber reportlab requests openpyxl; do
+        "$PROJECT_DIR/venv/bin/python3" -c "import $pkg" 2>/dev/null || MISSING_ENGINE+=("$pkg")
+    done
+    if [ ${#MISSING_ENGINE[@]} -eq 0 ]; then
+        echo "   ✅ All engine packages installed"
+    else
+        echo "   ❌ Missing: ${MISSING_ENGINE[*]}"
+        ERRORS=$((ERRORS+1))
+    fi
+else
+    echo "   ❌ requirements_engine.txt not found at $PROJECT_DIR"
+    ERRORS=$((ERRORS+1))
+fi
+
+# ── 6. Anthropic API key ──────────────────────────────────────────────────────
+echo ""
+echo "⑥ Checking ANTHROPIC_API_KEY..."
+KEY=$(grep 'ANTHROPIC_API_KEY' ~/.zshrc 2>/dev/null | grep -v '#' | tail -1 | cut -d'=' -f2 | tr -d '"' | tr -d "'")
+if [ -n "$KEY" ] && [ ${#KEY} -gt 20 ]; then
+    MASKED="${KEY:0:14}...${KEY: -4}"
+    echo "   ✅ Found in ~/.zshrc ($MASKED)"
+else
+    echo "   ⚠️  Not found in ~/.zshrc"
+    echo "      Auto Scout will not work until you add:"
+    echo "      export ANTHROPIC_API_KEY=sk-ant-..."
+    echo "      to your ~/.zshrc and re-run this script"
+fi
+
+# ── 7. Desktop shortcut ───────────────────────────────────────────────────────
+echo ""
+echo "⑦ Creating desktop shortcut..."
+SHORTCUT="$HOME/Desktop/Start R5.command"
+cat > "$SHORTCUT" << ENDOFSHORTCUT
+#!/bin/bash
+# R5 Analyzer — Launch Script (auto-generated by setup_mac.command)
+export ANTHROPIC_API_KEY=\$(grep 'ANTHROPIC_API_KEY' ~/.zshrc | grep -v '#' | tail -1 | cut -d'=' -f2 | tr -d '"' | tr -d "'")
+lsof -ti :5050 | xargs kill -9 2>/dev/null && echo "Stopped previous server." || true
+cd "$PROJECT_DIR"
+source webapp/.venv/bin/activate
+python webapp/app.py &
+sleep 1.5
+open http://localhost:5050
+ENDOFSHORTCUT
+chmod +x "$SHORTCUT"
+echo "   ✅ ~/Desktop/Start R5.command created"
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+echo ""
+echo "═══════════════════════════════════════════════"
+if [ "$ERRORS" -eq 0 ]; then
+    echo "✅  Setup complete!"
+    echo ""
+    echo "   Double-click  'Start R5'  on your Desktop to launch."
+    echo "   Then open     http://localhost:5050  in your browser."
+else
+    echo "⚠️  Setup finished with $ERRORS error(s)."
+    echo "   Fix the issues above and re-run this script."
+fi
+echo "═══════════════════════════════════════════════"
+echo ""
