@@ -152,9 +152,8 @@ set "SHORTCUT=%USERPROFILE%\Desktop\Start R5.bat"
     echo     echo Stopped previous server.
     echo ^)
     echo.
-    echo cd /d "%PROJECT_DIR%"
-    echo call webapp\.venv\Scripts\activate.bat
-    echo start /B python webapp\app.py
+    echo :: Use absolute path to venv Python -- avoids activate not carrying through start /B
+    echo start /B "%PROJECT_DIR%\webapp\.venv\Scripts\python.exe" "%PROJECT_DIR%\webapp\app.py"
     echo timeout /t 2 /nobreak ^^^>nul
     echo start http://localhost:5050
 ) > "%SHORTCUT%"
