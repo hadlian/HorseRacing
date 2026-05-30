@@ -108,12 +108,17 @@ def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = Fa
     if log_to_db:
         cmd.append("--track")
 
+    # PYTHONUTF8=1 forces UTF-8 stdout/stderr on Windows (avoids cp1252 emoji crash)
+    import os as _os
+    _env = {**_os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     result = subprocess.run(
         cmd,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         cwd=str(work_dir),
         timeout=180,
+        env=_env,
     )
 
     text = result.stdout or ""
@@ -671,12 +676,16 @@ def generate_report():
         cmd += ["--track", track_filter]
 
     try:
+        import os as _os
+        _env = {**_os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
         result = subprocess.run(
             cmd,
             cwd=str(HERE.parent),
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=60,
+            env=_env,
         )
         output = result.stdout + result.stderr
 
