@@ -25,8 +25,15 @@ WORK_BASE.mkdir(exist_ok=True)
 
 # Use the project-level venv python (has requests + reportlab) for subprocesses.
 # Falls back to current interpreter if not found.
-_PROJECT_PYTHON = HERE.parent / "venv" / "bin" / "python3"
-R5_PYTHON = str(_PROJECT_PYTHON) if _PROJECT_PYTHON.exists() else sys.executable
+# Handle both Unix (venv/bin/python3) and Windows (venv\Scripts\python.exe) layouts.
+import sys as _sys
+_VENV_ROOT = HERE.parent / "venv"
+_PROJECT_PYTHON = (
+    _VENV_ROOT / "Scripts" / "python.exe"   # Windows
+    if (_VENV_ROOT / "Scripts" / "python.exe").exists()
+    else _VENV_ROOT / "bin" / "python3"      # macOS / Linux
+)
+R5_PYTHON = str(_PROJECT_PYTHON) if _PROJECT_PYTHON.exists() else _sys.executable
 
 # ── CompareModels (optional — same project, direct import) ────────────────────
 try:
