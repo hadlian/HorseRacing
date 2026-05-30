@@ -254,6 +254,25 @@ The existing upload UI already handles multiple DRF files and ZIP archives conta
 - **Note:** Fix value score inversion (Issue 2) in the engine before building this — the UI alert is the display layer on top of a correct signal.
 - **Status:** Not started. Depends on Issue 2 resolution and a reliable odds data source.
 
+### ✅ UI-4 — BRIS Summary Report Download (for Dennis) `COMPLETE — 2026-05-29 · commit 4d78624`
+- **Files:** `webapp/app.py` (new route + import), `webapp/templates/index.html` (new button), `webapp/requirements.txt` (add `python-docx`), possibly new `comparemodels/bris_summary_docx.py` (renderer).
+- **Goal:** A button on the webapp main page that takes the uploaded DRF, runs the existing CM engine in-memory, and downloads a `.docx` matching Dennis's BRIS Summary Handicap Report format. This is for Dennis's own use — not a CM/R5 integration, not a bet-rec change.
+- **Reference output:** `Dennis compare /extracted/CDX0529_BRIS_Summary_Report.docx` (the format we received from Dennis). Per-race blocks of Top 3 per category, Consensus Leaders, Dominant, Pace, Overlay Watch, A/B/C tiers, Composite Scores. Plus end-of-card "HORSES WITH 3+ POSITIVE FACTORS" rollup tables.
+- **Reference output (text version):** `Dennis compare /extracted/CDX0529_summary_output_schema.txt` — same content, plain text. Useful as a layout cheat sheet.
+- **Engine reuse:** Call `comparemodels.drf_to_csv.convert_drf_to_csv` to produce a temp CSV, then `comparemodels.comparemodels_engine.score_card` to get the score dict (already returns `category_picks`, `ranked_horses`, etc. — every line of Dennis's format is in there). No engine changes needed. Do NOT log to `comparemodels_results.db` from this route — it's a read-only render.
+- **Positive Factors rollup:** Just `consensus_count` from `ranked_horses`. Group by race, filter `consensus_count >= 3`, sort desc. No new computation.
+- **Format:** `.docx` via `python-docx` library. Underline rendering should match Dennis's spec — top horse in a category gets actual underline formatting when the underline rule fires (top − 3rd ≥ 2.0). The plain text uses `__1__` markers; the docx should render as actual underline.
+- **Filename:** `<TRACK><MMDD>_BRIS_Summary_Report.docx` (matches Dennis's naming, e.g. `CDX0529_BRIS_Summary_Report.docx`).
+- **Button placement:** Next to the existing "Generate Report" R5 analyze button (per UI-2 pattern). Label suggestion: "BRIS Summary (Dennis format)". Gray out / hide if upload was CSV not DRF — CM only runs from DRF.
+- **Trigger model:** Independent of R5. User can upload DRF and click the BRIS Summary button without waiting for or needing R5 output. Backend route: `POST /api/bris-summary` returning the .docx as attachment.
+- **Dependencies:** Add `python-docx` (~MB) to `webapp/requirements.txt`. Already used in some Python tooling on this machine but not in this project.
+- **Out of scope:**
+  - CM badges / strip on R5 output (a separate UI feature — see project-comparemodels memory if revived)
+  - Any change to R5 PLAY/NEAR/SKIP verdict
+  - Writes to `comparemodels_results.db`
+  - PDF or plain-text alternative output (start with docx only)
+- **Status:** Spec written 2026-05-29 by engine session. Build in a webapp session.
+
 ---
 
 ## 🔀 CompareModels v1.0 — Parallel BRIS Summary System
