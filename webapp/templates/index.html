@@ -2048,11 +2048,13 @@ function showBanner(el, msg) { el.textContent = msg; el.classList.remove('hidden
       if (lbl) lbl.style.display = 'none';
     }
     if (!d.db_available) {
-      // Hide Analytics tab — no results DB on this machine
-      const navBtn  = document.getElementById('btnAnalyticsNav');
-      const viewBtn = document.getElementById('btnViewAnalytics');
-      if (navBtn)  navBtn.style.display  = 'none';
-      if (viewBtn) viewBtn.style.display = 'none';
+      // Hide Analytics tab and Generate Report — no results DB on this machine
+      const navBtn    = document.getElementById('btnAnalyticsNav');
+      const viewBtn   = document.getElementById('btnViewAnalytics');
+      const reportBtn = document.getElementById('reportBtn');
+      if (navBtn)    navBtn.style.display    = 'none';
+      if (viewBtn)   viewBtn.style.display   = 'none';
+      if (reportBtn) reportBtn.style.display = 'none';
     }
   } catch(e) {}
 })();
