@@ -2038,7 +2038,7 @@ function show(el) { el.classList.remove('hidden'); }
 function hide(el) { el.classList.add('hidden'); }
 function showBanner(el, msg) { el.textContent = msg; el.classList.remove('hidden'); }
 
-/* ── Check CM availability on load ────────────────────────────────────────── */
+/* ── Check server capabilities on load ────────────────────────────────────── */
 (async () => {
   try {
     const r = await fetch('/api/status');
@@ -2046,6 +2046,13 @@ function showBanner(el, msg) { el.textContent = msg; el.classList.remove('hidden
     if (!d.cm_available) {
       const lbl = document.getElementById('cmOptLabel');
       if (lbl) lbl.style.display = 'none';
+    }
+    if (!d.db_available) {
+      // Hide Analytics tab — no results DB on this machine
+      const navBtn  = document.getElementById('btnAnalyticsNav');
+      const viewBtn = document.getElementById('btnViewAnalytics');
+      if (navBtn)  navBtn.style.display  = 'none';
+      if (viewBtn) viewBtn.style.display = 'none';
     }
   } catch(e) {}
 })();
