@@ -29,7 +29,7 @@ from bs4 import BeautifulSoup
 # ── CONFIG ──────────────────────────────────────────────────────────────────
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 GDRIVE_OUTPUT_FOLDER = "HorseRacing"
-HORSE_RACING_ROOT = Path("/Users/harryadalian/Documents/HorseRacing")
+HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
 LOCAL_OUTPUT_DIR = HORSE_RACING_ROOT / "scout"
 
 HEADERS = {

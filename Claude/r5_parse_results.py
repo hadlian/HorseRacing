@@ -18,7 +18,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-HORSE_RACING_ROOT = Path("/Users/harryadalian/Documents/HorseRacing")
+HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
 
 RACE_ORDER = [
     'FIRST', 'SECOND', 'THIRD', 'FOURTH', 'FIFTH', 'SIXTH', 'SEVENTH',

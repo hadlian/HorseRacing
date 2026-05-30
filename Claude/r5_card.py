@@ -22,7 +22,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-HORSE_RACING_ROOT = Path("/Users/harryadalian/Documents/HorseRacing")
+HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
 CLAUDE_DIR        = HORSE_RACING_ROOT / "Claude"
 CM_CLI            = HORSE_RACING_ROOT / "comparemodels" / "comparemodels_cli.py"
 R5_DB             = HORSE_RACING_ROOT / "results" / "r5_results.db"
