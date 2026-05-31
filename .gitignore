@@ -17,6 +17,7 @@ env/
 # Generated outputs (don't commit — re-run to produce)
 results/*.db
 results/*.xlsx
+comparemodels/*.db
 scout/*.json
 scout/*.txt
 
