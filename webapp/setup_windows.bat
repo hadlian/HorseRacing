@@ -142,20 +142,8 @@ if defined ANTHROPIC_API_KEY (
 echo.
 echo [7] Creating desktop shortcut...
 set "SHORTCUT=%USERPROFILE%\Desktop\Start R5.bat"
-(
-    echo @echo off
-    echo title R5 Analyzer
-    echo.
-    echo :: Kill any existing server on port 5050
-    echo for /f "tokens=5" %%%%a in ^('netstat -aon 2^^^>nul ^| findstr :5050 ^| findstr LISTENING'^) do ^(
-    echo     taskkill /F /PID %%%%a ^^^>nul 2^^^>^^^&1
-    echo     echo Stopped previous server.
-    echo ^)
-    echo.
-    echo start "" /B "%PROJECT_DIR%\webapp\.venv\Scripts\python.exe" "%PROJECT_DIR%\webapp\app.py"
-    echo timeout /t 2 /nobreak ^^^>nul
-    echo start http://localhost:5050
-) > "%SHORTCUT%"
+set "TEMPLATE=%WEBAPP_DIR%\Start_R5_template.bat"
+powershell -NoProfile -Command "(Get-Content '%TEMPLATE%') -replace '__PROJECT_DIR__', '%PROJECT_DIR%' | Set-Content '%SHORTCUT%'"
 if exist "%SHORTCUT%" (
     echo     OK: Desktop\Start R5.bat created
 ) else (
