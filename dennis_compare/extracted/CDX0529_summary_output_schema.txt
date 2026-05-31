@@ -1,0 +1,179 @@
+Race 1
+Top 3 Average Speeds: __1__ - 3 - 7
+Top 3 Distance Speeds: 3 - 1 - 2
+Top 3 Best Speed: __1__ - 4 - 3
+Top 3 Prime Power: __1__ - 6 - 4
+Top 3 Average Class: __4__ - 5 - 3
+Top 3 Jockeys: __4__ - 7 - 6
+Top 3 Trainers: __2__ - 7 - 4
+Top 3 Earnings: __2__ - 6 - 5
+BRIS Top Pick: 1
+Consensus Leaders: 1(5) - 4(5) - 3(4) - 7(3) - 2(3)
+Dominant: 1 - 4
+Early Pace: 4
+Late Pace: 1
+Overlay Watch: 2
+A: 1
+B: 4 - 3 - 2
+C: 6 - 7 - 5
+Composite Scores: 1=11 | 4=5 | 3=4 | 2=2 | 6=2 | 7=1 | 5=1
+
+Race 2
+Top 3 Average Speeds: __1__ - 4 - 5
+Top 3 Distance Speeds: 1 - 2 - 3
+Top 3 Best Speed: __9__ - 1 - 3
+Top 3 Prime Power: __1__ - 3 - 7
+Top 3 Average Class: __2__ - 8 - 1
+Top 3 Jockeys: 1 - 3 - 6
+Top 3 Trainers: __1__ - 8 - 6
+Top 3 Earnings: __3__ - 7 - 9
+BRIS Top Pick: 1
+Consensus Leaders: 1(8) - 3(5) - 2(2) - 9(2) - 7(2)
+Dominant: 1 - 3
+Early Pace: 1
+Late Pace: 3
+Overlay Watch: 2 - 9 - 7
+A: 1
+B: 2 - 3 - 4
+C: 9 - 5 - 7
+Composite Scores: 1=13 | 2=3 | 3=3 | 4=2 | 9=2 | 5=1 | 7=1 | 8=1 | 6=0
+
+Race 3
+Top 3 Average Speeds: __1__ - 9 - 7
+Top 3 Distance Speeds: __2__ - 1 - 3
+Top 3 Best Speed: __1__ - 2 - 7
+Top 3 Prime Power: __3__ - 1 - 7
+Top 3 Average Class: 9 - 2 - 1
+Top 3 Jockeys: __3__ - 8 - 5
+Top 3 Trainers: __6__ - 3 - 8
+Top 3 Earnings: __2__ - 7 - 1
+BRIS Top Pick: 3
+Consensus Leaders: 1(6) - 3(5) - 7(4) - 2(4) - 9(2)
+Dominant: 1 - 3 - 2
+Early Pace: 5
+Late Pace: 7
+Overlay Watch: 7 - 2
+A: 1
+B: 3 - 2 - 9
+C: 7 - 6 - 8
+Composite Scores: 1=8 | 3=6 | 2=5 | 9=4 | 7=2 | 6=1 | 8=0 | 5=0
+
+Race 4
+Top 3 Average Speeds: __3__ - 8 - 1
+Top 3 Distance Speeds: __3__ - 1 - 4
+Top 3 Best Speed: __3__ - 8 - 7
+Top 3 Prime Power: __8__ - 3 - 4
+Top 3 Average Class: __6__ - 7 - 3
+Top 3 Jockeys: __1__ - 2 - 5
+Top 3 Trainers: __8__ - 3 - 1
+Top 3 Earnings: __7__ - 6 - 8
+BRIS Top Pick: 8
+Consensus Leaders: 3(6) - 8(6) - 1(4) - 7(3) - 4(2)
+Dominant: 3 - 8 - 1
+Early Pace: 8
+Late Pace: 3
+Overlay Watch: 7 - 4
+A: 3
+B: 8 - 1 - 7
+C: 6 - 4 - 2
+Composite Scores: 3=9 | 8=9 | 1=3 | 7=2 | 6=2 | 4=1 | 2=0 | 5=0
+
+Race 5
+Top 3 Average Speeds: 10 - 1 - 5
+Top 3 Distance Speeds: __1__ - 5 - 11
+Top 3 Best Speed: 4 - 5 - 11
+Top 3 Prime Power: __10__ - 11 - 1
+Top 3 Average Class: __5__ - 9 - 8
+Top 3 Jockeys: __12__ - 7 - 1
+Top 3 Trainers: __12__ - 9 - 11
+Top 3 Earnings: __4__ - 7 - 1
+BRIS Top Pick: 10
+Consensus Leaders: 1(5) - 5(4) - 11(4) - 10(3) - 4(2)
+Dominant: 1 - 5
+Early Pace: 10
+Late Pace: 4
+Overlay Watch: 5 - 10 - 4
+A: 10
+B: 1 - 5 - 4
+C: 11 - 12 - 9
+Composite Scores: 10=8 | 1=5 | 5=5 | 4=3 | 11=2 | 12=2 | 9=1 | 8=0 | 7=0
+
+Race 6
+Top 3 Average Speeds: __5__ - 8 - 13
+Top 3 Distance Speeds: __5__ - 1 - 6
+Top 3 Best Speed: __5__ - 13 - 11
+Top 3 Prime Power: __1__ - 2 - 5
+Top 3 Average Class: 5 - 1 - 13
+Top 3 Jockeys: 4 - 6 - 1
+Top 3 Trainers: __13__ - 6 - 2
+Top 3 Earnings: __5__ - 1 - 13
+BRIS Top Pick: 1
+Consensus Leaders: 5(6) - 1(6) - 13(5) - 6(3) - 2(2)
+Dominant: 5 - 1 - 13
+Early Pace: 4
+Late Pace: 8
+Overlay Watch: 6 - 2
+A: 5
+B: 1 - 13 - 8
+C: 2 - 4 - 6
+Composite Scores: 5=11 | 1=7 | 13=3 | 8=2 | 2=2 | 4=1 | 6=0 | 11=0
+
+Race 7
+Top 3 Average Speeds: __8__ - 4 - 7
+Top 3 Distance Speeds: __8__ - 7 - 5
+Top 3 Best Speed: __7__ - 4 - 8
+Top 3 Prime Power: __4__ - 7 - 8
+Top 3 Average Class: 7 - 4 - 8
+Top 3 Jockeys: __8__ - 5 - 1
+Top 3 Trainers: __5__ - 7 - 4
+Top 3 Earnings: __4__ - 7 - 1
+BRIS Top Pick: 4
+Consensus Leaders: 4(7) - 7(7) - 8(6) - 5(3) - 1(2)
+Dominant: 4 - 7 - 8
+Early Pace: 4
+Late Pace: 8
+Overlay Watch: 8
+A: 4
+B: 7 - 8 - 5
+C: 1
+Composite Scores: 4=10 | 7=8 | 8=7 | 5=1 | 1=0
+
+Race 8
+Top 3 Average Speeds: __4__ - 2 - 8
+Top 3 Distance Speeds: __2__ - 4 - 8
+Top 3 Best Speed: 2 - 1 - 4
+Top 3 Prime Power: 4 - 2 - 8
+Top 3 Average Class: __4__ - 1 - 9
+Top 3 Jockeys: 1 - 9 - 2
+Top 3 Trainers: __4__ - 2 - 5
+Top 3 Earnings: __1__ - 3 - 8
+BRIS Top Pick: 4
+Consensus Leaders: 4(7) - 2(6) - 8(4) - 1(4) - 9(2)
+Dominant: 4 - 2 - 1
+Early Pace: 2
+Late Pace: 8
+Overlay Watch: 9
+A: 4
+B: 2 - 1 - 8
+C: 9 - 5 - 3
+Composite Scores: 4=12 | 2=8 | 1=4 | 8=2 | 9=0 | 5=0 | 3=0
+
+Race 9
+Top 3 Average Speeds: __1__ - 8 - 7
+Top 3 Distance Speeds: __8__ - 13 - 16
+Top 3 Best Speed: __8__ - 1 - 7
+Top 3 Prime Power: __1__ - 8 - 2
+Top 3 Average Class: 11 - 2 - 1
+Top 3 Jockeys: __1__ - 8 - 3
+Top 3 Trainers: __15__ - 2 - 14
+Top 3 Earnings: __8__ - 13 - 1
+BRIS Top Pick: 1
+Consensus Leaders: 1(7) - 8(6) - 2(3) - 7(2) - 13(2)
+Dominant: 1 - 8
+Early Pace: 2
+Late Pace: 1
+Overlay Watch: 2 - 7 - 13
+A: 1
+B: 8 - 2 - 11
+C: 7 - 13 - 15
+Composite Scores: 1=10 | 8=9 | 2=2 | 11=2 | 7=1 | 13=1 | 15=1 | 16=0 | 3=0 | 14=0
