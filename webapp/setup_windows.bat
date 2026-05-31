@@ -152,9 +152,8 @@ set "SHORTCUT=%USERPROFILE%\Desktop\Start R5.bat"
     echo     echo Stopped previous server.
     echo ^)
     echo.
-    echo :: pythonw.exe runs without a console window and returns immediately (no start /B needed)
-    echo "%PROJECT_DIR%\webapp\.venv\Scripts\pythonw.exe" "%PROJECT_DIR%\webapp\app.py"
-    echo timeout /t 3 /nobreak ^^^>nul
+    echo start "" /B "%PROJECT_DIR%\webapp\.venv\Scripts\python.exe" "%PROJECT_DIR%\webapp\app.py"
+    echo timeout /t 2 /nobreak ^^^>nul
     echo start http://localhost:5050
 ) > "%SHORTCUT%"
 if exist "%SHORTCUT%" (
