@@ -153,7 +153,8 @@ set "SHORTCUT=%USERPROFILE%\Desktop\Start R5.bat"
     echo ^)
     echo.
     echo :: Use absolute path to venv Python -- avoids activate not carrying through start /B
-    echo start /B "%PROJECT_DIR%\webapp\.venv\Scripts\python.exe" "%PROJECT_DIR%\webapp\app.py"
+    echo :: Empty "" title required -- first quoted arg to start is window title, not executable
+    echo start "" /B "%PROJECT_DIR%\webapp\.venv\Scripts\python.exe" "%PROJECT_DIR%\webapp\app.py"
     echo timeout /t 2 /nobreak ^^^>nul
     echo start http://localhost:5050
 ) > "%SHORTCUT%"
