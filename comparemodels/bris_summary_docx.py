@@ -150,13 +150,26 @@ def generate_bris_summary(results: dict, card_name: str, out_path: str) -> None:
         race_run.bold = True
         _set_para_spacing(race_para, before=6, after=2)
 
-        # Category top-3 lines
+        # Category top-3 lines — collect empty ones for notes
+        empty_cats = []
         for cat_key, cat_label in CATEGORY_ORDER:
             picks = cat_px.get(cat_key, [])
             _build_category_line(doc, cat_label, picks)
+            if not picks:
+                empty_cats.append(cat_key)
 
-        # Missing data notes (e.g. no distance figures, first-time starters)
-        notes = r.get("missing_notes", [])
+        # Note only for categories that actually show "—"
+        CAT_NOTES = {
+            "Distance Speed": "Distance Speed: no figures — horses may lack distance starts",
+            "Prime Power":    "Prime Power: no rating — may be first-time starters or missing data",
+            "Jockey Rating":  "Jockey Rating: insufficient starts data",
+            "Trainer Rating": "Trainer Rating: insufficient starts data",
+            "Best Speed":     "Best Speed: no lifetime figure available",
+            "Avg Speed":      "Avg Speed: no speed figures — likely first-time starters",
+            "Avg Class":      "Avg Class: no class rating available",
+            "Earnings":       "Earnings: no earnings data available",
+        }
+        notes = [CAT_NOTES[c] for c in empty_cats if c in CAT_NOTES]
         if notes:
             note_para = doc.add_paragraph()
             _set_para_spacing(note_para, before=2, after=0)
