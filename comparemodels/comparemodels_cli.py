@@ -14,7 +14,6 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from comparemodels.drf_to_csv import convert_drf_to_csv
 from comparemodels.comparemodels_engine import score_card
 from comparemodels.comparemodels_tracker import (
     init_db, log_card_with_ml, pull_results, finalize
@@ -22,8 +21,7 @@ from comparemodels.comparemodels_tracker import (
 from comparemodels.comparemodels_compare import generate_report
 from comparemodels.comparemodels_backfill import run_backfill, build_ml_map
 
-CM_CSV_DIR = os.path.join(os.path.dirname(__file__), 'csv')
-FILES_DIR  = os.path.join(os.path.dirname(__file__), '..', 'files 2')
+FILES_DIR = os.path.join(os.path.dirname(__file__), '..', 'files 2')
 
 
 def _require_args(args, n, usage):
@@ -32,27 +30,33 @@ def _require_args(args, n, usage):
         sys.exit(1)
 
 
-def cmd_score(track: str, date: str):
+def _drf_path(track: str, date: str) -> str:
     mmdd = date[4:8]
-    drf  = os.path.join(FILES_DIR, f"{track.upper()}{mmdd}.DRF")
-    out  = os.path.join(CM_CSV_DIR, f"{track}_{date}.csv")
-    rows = convert_drf_to_csv(drf, out)
-    print(f"Converted {rows} horse rows → {out}")
-    score = score_card(out)
+    return os.path.join(FILES_DIR, f"{track.upper()}{mmdd}.DRF")
+
+
+def cmd_score(track: str, date: str):
+    drf = _drf_path(track, date)
+    if not os.path.exists(drf):
+        print(f"DRF not found: {drf}")
+        sys.exit(1)
+    score = score_card(drf)
     for race_num, result in sorted(score.items()):
         top = result['ranked_horses'][0]
+        notes = result.get('missing_notes', [])
+        note_str = f"  ⚠ {'; '.join(notes)}" if notes else ""
         print(f"  Race {race_num}: {top['name']} (pgm {top['pgm']}) "
-              f"comp={top['composite']} tier={top['tier']}")
+              f"comp={top['composite']} tier={top['tier']}{note_str}")
 
 
 def cmd_log(track: str, date: str):
-    csv_path = os.path.join(CM_CSV_DIR, f"{track}_{date}.csv")
-    if not os.path.exists(csv_path):
-        print(f"CSV not found: {csv_path}. Run 'score' first.")
+    drf = _drf_path(track, date)
+    if not os.path.exists(drf):
+        print(f"DRF not found: {drf}")
         sys.exit(1)
     init_db()
-    score = score_card(csv_path)
-    ml_map = build_ml_map(csv_path)
+    score = score_card(drf)
+    ml_map = build_ml_map(drf)
     picks, cat_picks = log_card_with_ml(score, track, date, ml_map)
     print(f"Logged: {picks} picks, {cat_picks} category picks for {track} {date}")
 

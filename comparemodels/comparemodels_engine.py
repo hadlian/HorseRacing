@@ -179,18 +179,31 @@ def score_race(race_df: list[dict]) -> dict:
     }
 
 
-def score_card(csv_path: str) -> dict:
+def score_card(path: str) -> dict:
     """
-    Load a CompareModels CSV (with # comment header lines) and score each race.
+    Score a full race card from a DRF or CSV path.
+
+    Accepts:
+        path — .DRF file (direct read, preferred) or legacy CSV path
+
     Returns {race_num: score_race_output, ...}
+    Each race result includes a 'missing_notes' list of human-readable
+    strings explaining which categories had no data and why.
     """
+    from pathlib import Path
     rows = []
-    with open(csv_path, 'r') as f:
-        # skip comment lines
-        data_lines = [l for l in f if not l.startswith('#')]
-    reader = csv.DictReader(data_lines)
-    for row in reader:
-        rows.append(row)
+
+    if Path(path).suffix.upper() == '.DRF':
+        # Direct DRF read — preferred path
+        from comparemodels.drf_reader import parse_drf
+        rows = parse_drf(path)
+    else:
+        # Legacy CSV fallback (skip # comment lines)
+        with open(path, 'r') as f:
+            data_lines = [l for l in f if not l.startswith('#')]
+        reader = csv.DictReader(data_lines)
+        for row in reader:
+            rows.append(row)
 
     # Group by race number
     races = defaultdict(list)
@@ -198,8 +211,34 @@ def score_card(csv_path: str) -> dict:
         rn = int(str(row['race']).strip())
         races[rn].append(row)
 
+    # Collect per-race missing field notes
+    race_missing: dict[int, set] = defaultdict(set)
+    for row in rows:
+        rn = int(str(row['race']).strip())
+        if '_missing' in row:
+            race_missing[rn].update(row['_missing'])
+
     results = {}
     for race_num in sorted(races.keys()):
-        results[race_num] = score_race(races[race_num])
+        result = score_race(races[race_num])
+
+        # Build human-readable notes for missing categories
+        missing = race_missing.get(race_num, set())
+        notes = []
+        if 'Distance Speed' in missing:
+            notes.append("Distance Speed: no figures — horses may lack distance starts")
+        if 'Prime Power' in missing:
+            notes.append("Prime Power: no rating — may be first-time starters")
+        if 'Jockey Rating' in missing:
+            notes.append("Jockey Rating: insufficient starts data")
+        if 'Trainer Rating' in missing:
+            notes.append("Trainer Rating: insufficient starts data")
+        if 'Best Speed' in missing:
+            notes.append("Best Speed: no lifetime figure available")
+        if 'Avg Speed' in missing:
+            notes.append("Avg Speed: no speed figures available")
+        result['missing_notes'] = notes
+
+        results[race_num] = result
 
     return results

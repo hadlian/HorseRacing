@@ -155,6 +155,15 @@ def generate_bris_summary(results: dict, card_name: str, out_path: str) -> None:
             picks = cat_px.get(cat_key, [])
             _build_category_line(doc, cat_label, picks)
 
+        # Missing data notes (e.g. no distance figures, first-time starters)
+        notes = r.get("missing_notes", [])
+        if notes:
+            note_para = doc.add_paragraph()
+            _set_para_spacing(note_para, before=2, after=0)
+            note_run = note_para.add_run("Note: " + " | ".join(notes))
+            note_run.italic = True
+            note_run.font.size = Pt(8)
+
         # BRIS Top Pick (CM-4 deferred — show pgm if is_bris_pick, else dash)
         bris_pick = next(
             (h["pgm"] for h in ranked if h.get("is_bris_pick")), "—"
