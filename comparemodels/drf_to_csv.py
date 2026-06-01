@@ -149,19 +149,35 @@ def convert_drf_to_csv(drf_path: str, out_path: str) -> int:
             # Avg Class: mean of BRIS Class Rating per-PP, 0-indexed cols 1166-1175 nonzero
             avg_class = _mean_fields(parts, list(range(1167, 1177)))
 
-            # Jockey Rating: wins=field 35, starts=field 36 (0-indexed: 34, 35)
+            # Jockey Rating: Current Year wins/starts (fields 1158/1157, 0-indexed 1157/1156)
+            # Fallback to Current Meet wins/starts (fields 36/35, 0-indexed 35/34)
+            # Schema: field 35=Jockey Sts Meet, 36=Jockey Wins Meet
+            #         field 1157=Jockey Sts Yr,  1158=Jockey Wins Yr
             jockey_rating = None
-            if len(parts) > 35:
-                jw = _safe_float(parts[34])
-                js = _safe_float(parts[35])
+            if len(parts) > 1157:
+                js = _safe_float(parts[1156])   # starts current year
+                jw = _safe_float(parts[1157])   # wins current year
+                if jw is not None and js is not None and js >= 10:
+                    jockey_rating = (jw / js) * 100
+            if jockey_rating is None and len(parts) > 35:
+                js = _safe_float(parts[34])     # starts current meet
+                jw = _safe_float(parts[35])     # wins current meet
                 if jw is not None and js is not None and js >= 5:
                     jockey_rating = (jw / js) * 100
 
-            # Trainer Rating: wins=field 29, starts=field 30 (0-indexed: 28, 29)
+            # Trainer Rating: Current Year wins/starts (fields 1148/1147, 0-indexed 1147/1146)
+            # Fallback to Current Meet wins/starts (fields 30/29, 0-indexed 29/28)
+            # Schema: field 29=Trainer Sts Meet, 30=Trainer Wins Meet
+            #         field 1147=Trainer Sts Yr,  1148=Trainer Wins Yr
             trainer_rating = None
-            if len(parts) > 29:
-                tw = _safe_float(parts[28])
-                ts = _safe_float(parts[29])
+            if len(parts) > 1147:
+                ts = _safe_float(parts[1146])   # starts current year
+                tw = _safe_float(parts[1147])   # wins current year
+                if tw is not None and ts is not None and ts >= 10:
+                    trainer_rating = (tw / ts) * 100
+            if trainer_rating is None and len(parts) > 29:
+                ts = _safe_float(parts[28])     # starts current meet
+                tw = _safe_float(parts[29])     # wins current meet
                 if tw is not None and ts is not None and ts >= 5:
                     trainer_rating = (tw / ts) * 100
 
