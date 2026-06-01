@@ -49,13 +49,18 @@ def get_cards_from_r5() -> list[tuple[str, str, int]]:
     return rows
 
 
-def build_ml_map(csv_path: str) -> dict:
-    """Return {(race_int, pgm_str): ml_float} from a generated CM CSV."""
+def build_ml_map(path: str) -> dict:
+    """Return {(race_int, pgm_str): ml_float} from a DRF or CM CSV."""
+    from pathlib import Path
     ml_map = {}
-    with open(csv_path, 'r') as f:
-        data_lines = [l for l in f if not l.startswith('#')]
-    reader = csv.DictReader(data_lines)
-    for row in reader:
+    if Path(path).suffix.upper() == '.DRF':
+        from comparemodels.drf_reader import parse_drf
+        rows = parse_drf(path)
+    else:
+        with open(path, 'r') as f:
+            data_lines = [l for l in f if not l.startswith('#')]
+        rows = list(csv.DictReader(data_lines))
+    for row in rows:
         try:
             race = int(str(row['race']).strip())
         except Exception:

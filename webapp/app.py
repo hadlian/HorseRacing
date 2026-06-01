@@ -38,7 +38,6 @@ R5_PYTHON = str(_PROJECT_PYTHON) if _PROJECT_PYTHON.exists() else _sys.executabl
 # ── CompareModels (optional — same project, direct import) ────────────────────
 try:
     sys.path.insert(0, str(HERE.parent))
-    from comparemodels.drf_to_csv import convert_drf_to_csv as _cm_convert
     from comparemodels.comparemodels_engine import score_card as _cm_score
     from comparemodels.comparemodels_tracker import (
         log_card_with_ml as _cm_log_card,
@@ -145,9 +144,7 @@ def run_cm(drf_path: Path, work_dir: Path) -> dict:
     """Run CompareModels against a DRF. Returns {race_num: cm_data_dict}."""
     if not CM_AVAILABLE:
         raise RuntimeError("comparemodels package not found")
-    csv_path = work_dir / (drf_path.stem + "_cm.csv")
-    _cm_convert(str(drf_path), str(csv_path))
-    results = _cm_score(str(csv_path))
+    results = _cm_score(str(drf_path))
 
     cm_by_race: dict = {}
     for race_num, r in results.items():
@@ -460,12 +457,9 @@ def analyze():
                                             ml_map[(str(rn), str(h["pgm"]))] = float(h.get("ml") or 0)
                                         except (ValueError, TypeError):
                                             pass
-                                # Get raw CM score dict
-                                from comparemodels.drf_to_csv import convert_drf_to_csv as _c
-                                csv_p = work_dir / (drf.stem + "_cm.csv")
-                                _c(str(drf), str(csv_p))
+                                # Get raw CM score dict — direct DRF read
                                 from comparemodels.comparemodels_engine import score_card as _sc
-                                cm_raw = _sc(str(csv_p))
+                                cm_raw = _sc(str(drf))
                                 _cm_log_card(cm_raw, drf_track, drf_date, ml_map)
                             except Exception as cm_log_exc:
                                 errors.append(f"{drf.name} (CM log): {cm_log_exc}")
@@ -753,9 +747,7 @@ def bris_summary():
 
         for drf in drfs:
             try:
-                csv_path = work_dir / (drf.stem + "_cm.csv")
-                _cm_convert(str(drf), str(csv_path))
-                results = _cm_score(str(csv_path))
+                results = _cm_score(str(drf))
                 all_results.update(results)
                 if card_name is None:
                     card_name = drf.stem.upper()
