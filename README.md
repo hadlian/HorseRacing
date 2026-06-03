@@ -1,11 +1,11 @@
 # R5 Horse Racing Handicapping System
 
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-3.6-gold)]()
+[![Version](https://img.shields.io/badge/version-3.9-gold)]()
 [![Status](https://img.shields.io/badge/status-Active%20Development-brightgreen)]()
 [![License](https://img.shields.io/badge/license-Proprietary-blue)](#-license)
 
-**Version:** 3.6
+**Version:** 3.9
 
 **Status:** Active Development
 
@@ -44,7 +44,7 @@ files 2/TRACK_MMDD.DRF   ← BRIS DRF input
 
 ---
 
-## R5 Composite Score (0–10) — v3.6
+## R5 Composite Score (0–10) — v3.9
 
 | Component           | Weight | Source |
 |---------------------|--------|--------|
@@ -270,7 +270,7 @@ Applied to composite score before final ranking:
 
 ## 🗺️ Roadmap
 
-### Current Version: v3.6 (May 2026)
+### Current Version: v3.9 (June 2026)
 - ✅ **DRF Parser** — Fixed-format BRIS DRF parsing (1496 fields per record), 9-component scoring pipeline
 - ✅ **WS4™ Speed Formula** — Weighted 4-race speed figure, surface-matched; par-anchored `fci_n` normalisation (v3.6)
 - ✅ **Pace Scenario Engine** — HOT / NML / PRESS classification; speed horse vs closer fit scoring
@@ -284,15 +284,19 @@ Applied to composite score before final ranking:
 - ✅ **Mobile Responsive** — Horse table, race tabs, summary table all adapt to phone-width screens
 - ✅ **PDF Download** — ReportLab-generated PDF reports via `--pdf` flag or web UI checkbox
 - ✅ **Maiden/Firster Class Fix** — First-time starters receive `class_n=0.0`; `[DEBUT]` flag in output
-- ✅ **Value Score Fix** — One-sided floor: underlays neutral at 5.0, overlays rewarded up to 10.0; val_n ROI +172% validated
+- ✅ **Value Score Fix** — One-sided floor: underlays neutral at 5.0, overlays rewarded up to 10.0; val_n ROI validated
 - ✅ **T/J Weight Raised** — 10% → 15% (v3.5); Best @ Distance (8%) and Prime Power (5%) added as new components
 - ✅ **Par-Anchored Normalisation** — `fci_n` and `best_dist_n` relative to par rather than fixed floor; mid-week cards score correctly (v3.6)
-- ✅ **CompareModels v1.0** — Parallel BRIS Summary system; 63-race backfill; consensus ≥4 and Prime Power underline are actionable filters
+- ✅ **Tight Cluster Deduction** — Two-tier system: MODERATE advisory (spread 0.5–1.5 pts); SEVERE −0.40 deduction on Rank 1 when spread ≤0.5 (v3.7, validated on 99-race DB)
+- ✅ **DRF Field Expansion** — 1st-time Lasix (+0.20), blinkers on/off, turf best speed, AE detection from DRF, post-scratch program post (v3.8)
+- ✅ **Scout-Before-Finalize** — Scout intel applied before `finalize_field()` so tight-cluster deduction sees scout-aware composites (v3.9)
+- ✅ **CompareModels v1.1** — Parallel BRIS Summary system; field-extraction corrected; Prime Power underline is strongest single signal (42.9% win rate)
 
 ### Active: v3.x — Engine Improvements
-- 🔲 **Crowded Room Penalty** — ⚠️ TIGHT CLUSTER display flag live; score deduction pending results validation
-- 🔲 **Surface-Specific WS4** — Dirt: weight recent form more; Turf: lean on Trend/FCI. Validate against 60+ race DB before implementing
+- 🔲 **pp_n Neutral Anchor** — Pending advisory: confirm typical BRIS Prime Power range by race type before adjusting formula anchor
+- 🔲 **Surface-Specific WS4** — Dirt: weight recent form more; Turf: lean on Trend/FCI. Validate against 129-race DB
 - 🔲 **Data Scarcity Cap** — Per-horse confidence reduction when horse has < 2 lifetime starts; `LOW INFO FIELD` header warning
+- 🔲 **v3.8 Stage 2** — Distance W%, beaten-favorite flag, T/J combo at meet (pending backtest against 129-race DB)
 
 ### Active: v4.x — UI Enhancements
 - 🔲 **Live Odds Divergence Alerts** — Compare morning line vs live board; flag strong overlays in real time (UI-3)
