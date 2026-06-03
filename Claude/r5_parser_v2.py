@@ -299,12 +299,13 @@ def parse_drf(path):
                 best_dist_n = fci_n  # fallback to new par-anchored fci_n
 
             # pp_n: Prime Power rating, normalized to 0–10
-            # Fallback: 5.0 (neutral)
+            # Anchor at 125 (empirical median of 1,168-horse DB). Debut fallback 4.0
+            # matches fci_n debut treatment — data vacuum is a mild liability, not neutral.
             pp = h['prime_power']
             if pp and pp > 0:
-                pp_n = max(0.0, min(10.0, (pp - 100) / 6))
+                pp_n = max(0.0, min(10.0, 5.0 + (pp - 125) / 6))
             else:
-                pp_n = 5.0
+                pp_n = 4.0
 
             # Store all components (bias_n and val_n finalized in finalize_field)
             h['ws4']          = round(ws4, 1) if ws4 else None
@@ -472,7 +473,7 @@ def report(horses):
     par_val = horses[0].get('speed_par')
     par_str = f"Par {par_val:.0f}" if par_val else "Par N/A"
     purse_str = f"${horses[0]['purse']:,.0f}" if horses[0]['purse'] else "N/A"
-    print(f"  🏇  R5 v3.8 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
+    print(f"  🏇  R5 v3.10 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
           f"{horses[0]['date']}  |  {dist_f}f  {horses[0]['surface']}  |  "
           f"Purse {purse_str}  |  {par_str}  |  {pace_label}")
     print("=" * 114)
