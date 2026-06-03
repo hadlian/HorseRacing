@@ -156,6 +156,8 @@ def apply_scout_adjustments(horses, intel):
                 log.append(f"  ⚡ {h['name']}: scout adj capped {adj:+.2f} → {capped:+.2f} (±{SCOUT_CAP} max)")
                 adj = capped
             h["comp"] = round(h["comp"] + adj, 2)
+            h["tier"] = tier(h["comp"])
+            h["pre_comp"] = h["comp"]   # keep pre_comp in sync so finalize val_n sort sees scout order
             h["scout_adj"] = round(adj, 2)
 
     return horses, log
@@ -222,7 +224,28 @@ def main():
             "--horses", horses_arg,
         ])
 
-    # Finalize each race independently — pace fit and value need full-field context
+    # Load scout intel and apply adjustments BEFORE finalize so tight-cluster
+    # deduction (inside finalize_field) operates on scout-aware composites.
+    intel = {}
+    if args.scout_json:
+        intel = load_scout_json(args.scout_json)
+    elif args.auto_scout:
+        scout_dir = HORSE_RACING_ROOT / "scout"
+        drf_track = Path(drf_path).stem[:3].upper()
+        drf_date  = Path(drf_path).stem[3:7]
+        candidates = sorted(scout_dir.glob(f"scout_{drf_track}_*.json"), key=os.path.getmtime)
+        date_match = [f for f in candidates if drf_date in f.stem]
+        chosen = date_match[-1] if date_match else (candidates[-1] if candidates else None)
+        if chosen:
+            intel = load_scout_json(chosen)
+            print(f"📋 Using scout: {chosen.name}")
+        else:
+            print(f"⚠️  No scout JSON found for track {drf_track} — skipping scout adjustments")
+
+    horses, adj_log = apply_scout_adjustments(horses, intel)
+
+    # Finalize each race independently — pace fit, value, scout re-application,
+    # and tight-cluster deduction all need full-field context with scout-aware comps.
     by_race = _dd(list)
     for h in horses:
         by_race[h['race']].append(h)
@@ -235,27 +258,6 @@ def main():
         if not horses:
             print(f"No horses found for Race {args.race}")
             sys.exit(1)
-
-    # Load and apply scout adjustments
-    intel = {}
-    if args.scout_json:
-        intel = load_scout_json(args.scout_json)
-    elif args.auto_scout:
-        # Match scout JSON by track code extracted from DRF filename (e.g. CDX0507 → CDX)
-        scout_dir = HORSE_RACING_ROOT / "scout"
-        drf_track = Path(drf_path).stem[:3].upper()
-        drf_date  = Path(drf_path).stem[3:7]  # mmdd portion
-        # Prefer exact track+date match, fall back to track-only, then most recent
-        candidates = sorted(scout_dir.glob(f"scout_{drf_track}_*.json"), key=os.path.getmtime)
-        date_match = [f for f in candidates if drf_date in f.stem]
-        chosen = date_match[-1] if date_match else (candidates[-1] if candidates else None)
-        if chosen:
-            intel = load_scout_json(chosen)
-            print(f"📋 Using scout: {chosen.name}")
-        else:
-            print(f"⚠️  No scout JSON found for track {drf_track} — skipping scout adjustments")
-
-    horses, adj_log = apply_scout_adjustments(horses, intel)
 
     # Print scout intel block if available
     scout_text = load_scout_intel(args.scout)

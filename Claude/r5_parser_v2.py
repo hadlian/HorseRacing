@@ -422,6 +422,15 @@ def finalize_field(horses):
             h['comp'] = round(h['comp'] + adj, 2)
             h['tier'] = tier(h['comp'])
 
+    # ── SCOUT ADJUSTMENTS (Option A — applied before finalize so tight cluster sees them) ──
+    # apply_scout_adjustments ran before finalize_field and stored h['scout_adj'].
+    # finalize recomputes comp from scratch, so we re-add the stored adj here.
+    for h in horses:
+        sa = h.get('scout_adj', 0.0)
+        if sa:
+            h['comp'] = round(h['comp'] + sa, 2)
+            h['tier'] = tier(h['comp'])
+
     # ── ISSUE 6 v3.7 — TIGHT CLUSTER DEDUCTION (2026-05-28) ─────────────────
     # Evidence (99-race DB):
     #   spread ≤0.5: Rank 1 wins 17.1% | Rank 2 wins 25.7%  ← Rank 2 BEATS Rank 1
@@ -462,9 +471,10 @@ def report(horses):
     print("=" * 114)
     par_val = horses[0].get('speed_par')
     par_str = f"Par {par_val:.0f}" if par_val else "Par N/A"
+    purse_str = f"${horses[0]['purse']:,.0f}" if horses[0]['purse'] else "N/A"
     print(f"  🏇  R5 v3.8 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
           f"{horses[0]['date']}  |  {dist_f}f  {horses[0]['surface']}  |  "
-          f"Purse ${horses[0]['purse']:,.0f}  |  {par_str}  |  {pace_label}")
+          f"Purse {purse_str}  |  {par_str}  |  {pace_label}")
     print("=" * 114)
     print(f"\n{'#':<4} {'Horse':<22} {'ML':>5}  {'Spd 1-4':>22}  "
           f"{'WS4':>5}  {'T':>4}  {'FCI':>5}  {'vPar':>5}  "
@@ -543,9 +553,10 @@ def report(horses):
 
     # ── TOP WIN PICK ──
     top = ranked[0]
+    ml_hdr = f"{top['ml_odds']:.0f}-1 ML" if top['ml_odds'] else "N/A ML"
     print("=" * 114)
     print(f"🏆  TOP WIN PICK:  #{top['pgm']} {top['name']}  "
-          f"[{top['ml_odds']:.0f}-1 ML]  |  Composite {top['comp']}  |  {top['tier']}")
+          f"[{ml_hdr}]  |  Composite {top['comp']}  |  {top['tier']}")
     print(f"    Trainer: {top['trainer']}  |  Jockey: {top['jockey']}")
     print(f"    BRIS Speeds (last 4): {top['bris_speed'][:4]}  |  "
           f"WS4: {top['ws4']}  Trend: {top['trend']:+.1f}  FCI: {top['fci']}")
@@ -630,9 +641,11 @@ def report(horses):
     print("=" * 114)
     print("🎟️   EXOTICS STRUCTURE:")
     print(f"    WIN:        #{t3pgm[0]} {ranked[0]['name']}")
-    print(f"    EXACTA:     #{t3pgm[0]} / #{t3pgm[1]}")
-    print(f"    TRIFECTA:   #{t3pgm[0]} / #{t3pgm[1]} / #{t3pgm[2]}")
-    print(f"    SUPERFECTA: #{t3pgm[0]} / #{t3pgm[1]} / #{t3pgm[2]} / {t6str}")
+    if len(ranked) >= 2:
+        print(f"    EXACTA:     #{t3pgm[0]} / #{t3pgm[1]}")
+    if len(ranked) >= 3:
+        print(f"    TRIFECTA:   #{t3pgm[0]} / #{t3pgm[1]} / #{t3pgm[2]}")
+        print(f"    SUPERFECTA: #{t3pgm[0]} / #{t3pgm[1]} / #{t3pgm[2]} / {t6str}")
     print("=" * 114)
 
 
