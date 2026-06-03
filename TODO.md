@@ -3,11 +3,11 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-06-03 (R5 v3.9 — code review bug fixes + scout-before-finalize architecture shipped)
-> **Current version:** R5 v3.9 | CompareModels v1.1 (field-extraction corrected — parallel system, see `comparemodels/`)
+> **Last updated:** 2026-06-03 (R5 v3.10 — pp_n calibration + Stage 2 research complete; beaten-fav and distance W% backtests done)
+> **Current version:** R5 v3.10 | CompareModels v1.1 (field-extraction corrected — parallel system, see `comparemodels/`)
 > **Current performance (129-race DB):** Top pick win 27.4% | Top-3 hit 63.6% | val_n ROI +124.1% | Leading signals: Class vs Par +0.82, TJ +0.77, FCI +0.76
 > **Recent cards logged:** CDX 2026-05-30: 5/11 wins (45%). CDX 2026-05-31: 4/10 wins (40%), 9/10 top-3 (best board day of season).
-> **Next planned session:** Run Stage 2 backtest against 129-race DB. Resolve val_n weight reduction (5%→0–2%) before adding distance-record to val_n. Get Gemini/ChatGPT advisory on pp_n neutral anchor (130 vs actual median PP) before changing formula. Saratoga 2026 calibration gate still in effect for Issue 15.
+> **Next planned session:** Run live cards on v3.10. T/J combo at meet backtest when Saratoga is 2+ weeks in. Negative distance flag revisit post-Saratoga when n≥60–80. Issue 15 (wager construction) gated on Saratoga calibration.
 
 ---
 
@@ -114,29 +114,30 @@
 - **Deferred — low priority:**
   - **No-odds val_n inflation** — horses with missing ML odds get default `odds_rank = n//2+1`, giving them a spurious overlay signal. Formula already floors at 5.0 so they can't be penalized, but they can score up to 8.5. Low impact at 5% composite weight. Fix: set `val_n = 5.0` for any horse with `ml_odds=None`. Hold until after Saratoga calibration.
 
-### v3.8 Stage 2 — DRF Field Additions (Pending Backtest) `PROPOSED — 2026-05-29`
-- **Prerequisite:** Resolve val_n weight reduction (5%→0–2%) before adding distance record to val_n. Run 91-race backtest on each signal independently before implementing.
-- **Fields to add:**
+### ~~v3.8 Stage 2 — Beaten-Favorite & Distance W% Backtests~~ `RESEARCH COMPLETE — 2026-06-03`
 
-  **Distance/Track lifetime record (fields 65–74):**
-  - Fields 65–69: starts/wins/places/shows/earnings @ today's exact distance
-  - Fields 70–74: starts/wins/places/shows/earnings @ today's track
-  - **Proposed scoring:** Fold distance W% into `val_n`. Horse with ≥3 starts and >25% win rate at distance: +0.5 val. Horse with ≥5 starts and <10% win rate at distance: −0.3 val.
-  - **Dependency:** Do not implement until val_n base weight is resolved (pending 5%→0–2% reduction).
+**Beaten-favorite signal (fields 1126–1135) — KILLED**
+- Backtest: 923 matched horses, 16 DRF files, 129-race DB.
+- Result: beaten favorites win at **26.2%** vs 12.2% baseline — outperform, not underperform.
+- Model R1 + beaten fav: **33.3%** win (n=15, noise) vs 29.9% non-beaten-fav R1.
+- Root cause: self-selection for quality. Recently-favored horses are better horses. The crowd under-bets beaten favorites (positive ML ROI +16.5%), creating overlay — not penalty territory.
+- **Decision: −0.10 deduction killed. Do not implement as a comp adjustment.**
+- **Re-routed to Issue 16:** beaten-favorite at long odds = overlay buy signal for live tote integration.
 
-  **Beaten favorite detection (fields 1126–1135):**
-  - Per-race favorite indicator for last 10 starts (1=was favorite, 0=not)
-  - **Proposed scoring:** −0.10 to comp if horse was beaten as favorite in either of last 2 starts
-  - **Validation needed:** Check signal strength against 91-race DB — confirm beaten-favorite horses underperform non-favorites at this sample size before weighting.
+**Distance win% signal (fields 65–74) — POSITIVE KILLED, NEGATIVE DEFERRED**
+- Backtest: 923 matched horses across all flags.
+- Positive flag (≥3 starts, >25% dist W%): wins at **13.3%** vs 16.7% baseline. Model R1+positive: 22.2% vs 34.0% baseline R1. ML ROI −15.8%.
+- Root cause: double-counting. Distance credentials are already in form_n (recent speed figs) and class_n (par performance). The market also over-bets distance specialists → they become underlays. +0.5 nudge would actively hurt model and return edge to crowd.
+- Negative flag (≥5 starts, <10% dist W%): wins at **7.1%** vs 16.7% baseline — strong directional signal (ML ROI −23.2%). But n=28 (3% of field) — too thin to hardcode.
+- **Decision: +0.5 positive killed. −0.3 negative deferred to post-Saratoga (need n≥60–80).**
+- **Re-routed to Issue 16:** positive distance specialist = market-bias underlay indicator for live tote integration. Same pattern as beaten-favorite: where the crowd overreacts, there is overlay.
+- **Backtest script:** `Claude/r5_beaten_fav_backtest.py` (also contains distance W% logic — rename if reused).
 
-  **T/J Combo at current meet (fields 1413–1417):**
-  - Starts/wins/places/shows/$2ROI for trainer-jockey combo at this meet (vs 365-day in fields 219–223)
-  - **Proposed scoring:** Blend meet stats with 365-day stats. If meet ≥10 starts and meet win% ≥30%, boost tj_n cap by +0.5. If meet ≥10 starts and meet win% <10%, apply −0.3 to tj_n.
-  - **Validation needed:** Confirm meet stats are populated consistently in DRF files (may be thin early in a meet).
+**T/J Combo at current meet (fields 1413–1417) — NOT YET TESTED**
+- Still open. Validation needed: confirm meet stats populate consistently (may be thin early in meet). Test when Saratoga is 2+ weeks in.
 
-  **Per-race speed pars for last 10 starts (fields 1167–1176):**
-  - Speed par for the class level of each past race
-  - **Proposed use:** Improve `class_n` by comparing each past BRIS speed to *that race's* par, giving a class trajectory picture rather than comparing WS4 to today's single par. Complex — scope carefully before implementing.
+**Per-race speed pars for last 10 starts (fields 1167–1176) — NOT YET TESTED**
+- Complex scope. Hold until T/J meet combo and surface WS4 are resolved first.
 
 ### Issue 7 — Surface-Specific WS4 Weighting `PROPOSED`
 - **File:** `Claude/r5_parser_v2.py`
