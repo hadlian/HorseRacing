@@ -3,9 +3,11 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-05-29 (R5 v3.8 Stage 1 shipped; CM v1.1 field-fix shipped — CM-2 resolved; CDX0529 picks logged)
-> **Current version:** R5 v3.8 | CompareModels v1.1 (field-extraction corrected — parallel system, see `comparemodels/`)
-> **Next planned session:** Validate v3.8 on upcoming cards. Run Stage 2 backtest against 91-race DB. Resolve val_n weight reduction (5%→0–2%) before adding distance-record to val_n. Re-evaluate CM-3 against post-fix DB before fixing.
+> **Last updated:** 2026-06-03 (R5 v3.9 — code review bug fixes + scout-before-finalize architecture shipped)
+> **Current version:** R5 v3.9 | CompareModels v1.1 (field-extraction corrected — parallel system, see `comparemodels/`)
+> **Current performance (129-race DB):** Top pick win 27.4% | Top-3 hit 63.6% | val_n ROI +124.1% | Leading signals: Class vs Par +0.82, TJ +0.77, FCI +0.76
+> **Recent cards logged:** CDX 2026-05-30: 5/11 wins (45%). CDX 2026-05-31: 4/10 wins (40%), 9/10 top-3 (best board day of season).
+> **Next planned session:** Run Stage 2 backtest against 129-race DB. Resolve val_n weight reduction (5%→0–2%) before adding distance-record to val_n. Get Gemini/ChatGPT advisory on pp_n neutral anchor (130 vs actual median PP) before changing formula. Saratoga 2026 calibration gate still in effect for Issue 15.
 
 ---
 
@@ -97,6 +99,20 @@
   - Post bias scoring: uses `program_post` (field 58, post-scratch update) when available, falls back to field 4
   - AE flag now set from DRF field 41 directly — no scout dependency
 - **Display:** `[1stLasix]`, `[BlkON]`, `[BlkOFF]` tags in horse row; top pick shows "Best BRIS Turf" on turf races; ⚡/🔧 lines in top pick detail block
+
+### ~~v3.9 — Code Review Bug Fixes~~ `SHIPPED — 2026-06-03`
+- **Trigger:** First structured code review of `r5_parser_v2.py` + callers. 8 findings, 5 fixed immediately, 2 deferred for advisory input, 1 deferred as low-priority.
+- **Fixes shipped:**
+  1. **Stale tier after scout adj** (`run_r5.py`) — `apply_scout_adjustments` now calls `tier()` after updating `h['comp']`. Previously, report, scratch notices, and DB all showed pre-scout tier even when scout adj crossed a tier boundary.
+  2. **Scout-before-finalize architecture** (`run_r5.py`, `r5_parser_v2.py`) — Scout intel loading and `apply_scout_adjustments` now run BEFORE `finalize_field()`. `finalize_field` re-applies stored `h['scout_adj']` after the component composite, before the tight-cluster deduction. Tight-cluster spread now computed on scout-aware composites. `pre_comp` synced to post-scout value so val_n rank divergence also reflects scout order.
+  3. **Purse crash on None** (`r5_parser_v2.py`) — `horses[0]['purse']:,.0f` now guarded; prints "N/A" when DRF field 12 is blank.
+  4. **ml_odds crash on top pick** (`r5_parser_v2.py`) — `top['ml_odds']:.0f` in TOP WIN PICK header now guarded; prints "[N/A ML]" when no morning line set.
+  5. **EXOTICS IndexError on <3 starters** (`r5_parser_v2.py`) — TRIFECTA/SUPERFECTA lines wrapped in `len(ranked) >= 3` guard; EXACTA wrapped in `len(ranked) >= 2`.
+- **Deferred — pending advisory input:**
+  - **pp_n neutral anchor** — formula `(pp-100)/6` anchors neutral at pp=130. If typical claimer PP is 100–115, most horses with data score below neutral while debut horses score 5.0 (neutral fallback). Need Gemini/ChatGPT input on typical BRIS Prime Power range by race type before changing anchor. Query to validate: `SELECT median(prime_power) FROM picks WHERE prime_power > 0`.
+  - **Scout adj ordering vs tight cluster** — fully resolved by fix #2 above (scout-before-finalize). No further action needed.
+- **Deferred — low priority:**
+  - **No-odds val_n inflation** — horses with missing ML odds get default `odds_rank = n//2+1`, giving them a spurious overlay signal. Formula already floors at 5.0 so they can't be penalized, but they can score up to 8.5. Low impact at 5% composite weight. Fix: set `val_n = 5.0` for any horse with `ml_odds=None`. Hold until after Saratoga calibration.
 
 ### v3.8 Stage 2 — DRF Field Additions (Pending Backtest) `PROPOSED — 2026-05-29`
 - **Prerequisite:** Resolve val_n weight reduction (5%→0–2%) before adding distance record to val_n. Run 91-race backtest on each signal independently before implementing.
