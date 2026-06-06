@@ -3,8 +3,8 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-05-29 (R5 v3.8 — Stage 1 DRF field additions: AE from DRF, program post, 1st-time Lasix, blinkers, best turf speed; CDX0529 picks logged; 91+ races in DB)
-> **Current version:** R5 v3.8
+> **Last updated:** 2026-06-05 (Results pipeline complete — SAR 06/03-05 + older partials loaded; 157 races in DB)
+> **Current version:** R5 v3.10
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
 
@@ -36,27 +36,44 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| Races with results | 81 | Through CDX0524 (10 races added) |
-| Top pick win rate | 24.3% | Issue 14 fix applied — 5th+ finishers now counted as losses |
-| Top-3 hit rate | 54.3% | ~44/81 races |
-| TJ signal strength | +0.70 | Class +0.67, FCI +0.66 — all three leading |
-| Value ROI | +140.1% | Correct metric for val_n (not win-rate differential) |
-| val_n win diff | −0.31 | EXPECTED — overlays designed to pay more, not win more |
+| Races with results | 157 | Through SAR0605 (6 races still pending — stragglers) |
+| Top pick win rate | 22.9% | SAR new-track drag (9.4% in 32 races) pulling overall down |
+| Top-3 hit rate | 56.1% | |
+| Play signal (spread ≥0.50) | 29.5% win | vs Skip 18.0% — signal holding strong |
+| FAIR tier win rate | 13.0% | Inverting below SPEC 27.2% — small sample (23 races), monitor |
+| Value ROI | not recalculated | val_n ROI is correct metric (not win-rate differential) |
+
+### By track
+| Track | Races | Win% | Top-3% |
+|-------|-------|------|--------|
+| BAQ | 19 | 31.6% | 63.2% |
+| SAX | 10 | 30.0% | 50.0% |
+| CDX | 82 | 26.8% | 56.1% |
+| LRL | 13 | 15.4% | 61.5% |
+| SAR | 32 | 9.4% | 53.1% — 3 days, new track |
 
 ### Cards logged
 | Card | Races | Status |
 |------|-------|--------|
-| CDX 20260502 | 14 | Results loaded |
+| CDX 20260502 | 14 | Results loaded (partial — 1 missing) |
 | DBY 20260502 | 1 | Results loaded (Golden Tempo $48.24, our Rank 5) |
 | CDX 20260507 | 8 | Results loaded |
-| BAQ 20260509 | 11 | 10 results loaded (R11 still missing — non-critical) |
+| BAQ 20260509 | 11 | Results loaded (1 missing) |
 | CDX 20260514 | 8 | Results loaded — 4/8 wins (50%), best card to date |
-| LRL 20260516 | 14 | R1–R13 results logged; R14 pending |
-| CDX 20260521 | 8 | Results loaded — 2/8 wins. First v3.5 live card post-backfill. CM run in parallel. |
-| CDX 20260524 | 10 | Results loaded. 0 wins, 3 top-3 hits (R1/R8/R10 all 2nd). Sloppy track. R7 $73.32 + R10 $42.70 upsets. R3/R7 top picks scratched. LAZLO R9 (FAIR/double-consensus best play) finished 7th. |
+| LRL 20260516 | 14 | Results loaded (1 missing) |
+| CDX 20260521 | 8 | Results loaded — 2/8 wins |
+| CDX 20260524 | 10 | Results loaded. 0 wins, 3 top-3. Sloppy track. |
+| SAX 20260525 | 10 | Results loaded — 3/10 wins (30%) |
+| CDX 20260528 | 8 | Results loaded |
+| CDX 20260529 | 9 | Results loaded — 3/9 wins (33%) |
+| CDX 20260530 | 11 | Results loaded — 5/11 wins (45%) |
+| CDX 20260531 | 10 | Results loaded — 4/10 wins (40%), 9/10 top-3 (best board day) |
+| SAR 20260603 | 10 | Results loaded — 0/10 wins, 6/10 top-3. R1 was hurdle race (skip). 5 second-place finishes. |
+| SAR 20260604 | 11 | Results loaded — 1/11 wins. Scout fired on Corruption (+0.2). |
+| SAR 20260605 | 14 | Results loaded (3 missing). 2/11 wins. |
 
 ### 60-race threshold
-**60-race gate MET (71 races). Issue 3 (TJ reweight) implemented in v3.5.**
+**60-race gate MET (157 races). Weight changes require explicit Harry approval + version bump.**
 
 ---
 
@@ -171,11 +188,12 @@ All UI work in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
 
 | Phase | Version | Description | Gate |
 |-------|---------|-------------|------|
-| **Current** | **v3.6** | Par-anchored fci_n + best_dist_n; Issue 4 fix; 9-component composite | **Live — 2026-05-24** |
-| Next | v3.7 | Surface-specific WS4 (Issue 7); Crowded Room deduction (Issue 6) | After v3.6 validated (~20 races) |
-| Future | v4.x | Live odds divergence alerts (UI-3) | After v3.7 validated |
+| **Current** | **v3.10** | pp_n calibration (anchor 130→125); scout-before-finalize architecture; code-review fixes | **Live — 2026-06-03** |
+| Next | v3.11+ | T/J meet combo signal; negative distance flag (−0.3 for <10% dist W%); pp_n anchor advisory | After 30+ SAR races |
+| Future | v4.1 | Wager construction module (EX/TRI backtest) | After SAR calibration confirmed |
+| Future | v4.x | Live odds divergence alerts (UI-3, Issue 16) | After v3.x validated |
 | Future | v5.0 | ML pattern recognition, anomaly detection, LLM coaching summaries | Long term |
-| Target | — | Saratoga 2026 deployment | Summer 2026 |
+| Target | — | Saratoga 2026 deployment | **IN PROGRESS — Summer 2026** |
 
 ---
 
@@ -257,18 +275,22 @@ tj_n +0.63 > fci_n +0.61 > class_n +0.59 > form_n +0.26 > ped_n +0.13 > bias_n �
 | 2026-05-16 | Signal analysis + v3.5 | 63-race correlation analysis: prime_power, best_dist, best_life, best_fast, life_earn evaluated. best_fast eliminated (negative signal). Approved v3.5 weight rebalance: TJ 10→15%, best_dist_n NEW 8%, pp_n NEW 5%, bias 15→8%, val 10→5%, ped 10→7%, fci 25→22%. Commit 5678ff6. |
 | 2026-05-16 | Preakness v3.5 test + scratch audit | Ran v3.5 retroactively on LRL R13 (Preakness). TAJ MAHAL Rank 1 (6.88 FAIR, TJ=10.0, PP=144.6) — scratched race day. NAPOLEON SOLO (winner $17.80) Rank 10 — low TJ dragged score despite strong PP. HOT pace + CLOSER value alt correctly flagged. Scratch gate confirmed working via run_r5.py --auto-scout; gap noted: Rank 4+ scratches silent. |
 | 2026-05-24 | v3.6 + CDX0524 | Issue 4 fixed: par-anchored fci_n + best_dist_n (commit 5c103ff). auto-scout path bug fixed. UI-2 Analytics tab (Chart.js 4 charts) shipped (commit 872db8b). CDX0524 ran as first v3.6 live card (10 races). Results: 0 wins, 3 top-3 (R1 GLADLY 2nd, R8 BEING MYSELF 2nd, R10 SOLAIA 2nd). Sloppy track. R3/R7 top picks scratched. LAZLO R9 (FAIR/double-consensus) finished 7th. README + TODO brought current to v3.6. DB: 81 races. |
+| 2026-05-28–31 | CDX live cards | CDX0528–0531 all run on v3.10. Best stretch of season. CDX0531: 4/10 wins, 9/10 top-3. CDX0530: 5/11 wins (45%). |
+| 2026-06-03 | v3.10 + SAR opener | pp_n calibration complete (anchor 130→125). Scout-before-finalize architecture confirmed working. SAR0603 first Saratoga card: 0/10 wins, 6/10 top-3. R1 was hurdle race (skip). 5 second-place finishes. New-track calibration gap expected. |
+| 2026-06-04 | SAR0604 | 11-race card. 1/11 wins (R6 Careless Whisper). Scout fired on Corruption (+0.2 trainer quote). R10 Corruption (FAIR) won Belmont Gold Cup G2T. |
+| 2026-06-05 | Results pipeline | SAR0603-05 + CDX0502 + BAQ0509 + LRL0516 results all loaded. DB: 157 races. Memory + TODO + PROJECT_STATE all updated. |
 
 ---
 
 ## 📋 Immediate Next Steps
 
-1. **Log LRL0516 R14** — card had 14 races; R14 picks are in DB but result not yet logged.
-2. **v3.6 validation in progress** — CDX0524 is card 1 under v3.6. 0 wins on a sloppy-track day. Continue running future cards; watch if par-anchored normalisation lifts tier distribution.
-3. **Run CM on every new card** — established parallel workflow: score → log → results → finalize → daily xlsx. Repeat each race day.
-4. **Issue 6 validation** — Crowded Room score deduction pending results data. CDX0524 had multiple TIGHT CLUSTER flags. Monitor.
-5. **Issue 7 (surface WS4)** — gate lifted. Needs structured validation session comparing dirt vs turf top-pick rates from the 81-race DB.
-6. ~~**Issue 14 — Tracker 5th+ finisher bug**~~ **FIXED** — apply_result() now marks non-top-4 as finish_pos=5 (loss, counted) not -1 (excluded). CDX0524 retroactively corrected. Commit 81ce32d.
-7. **pgm-number mismatch** — R2 and R5 on LRL0516 had DRF pgm ≠ official chart pgm. Monitor for pattern on future cards.
+1. **Accumulate SAR data** — 3 days in, 9.4% win rate. Do not draw conclusions or adjust weights until 30+ SAR races. Speed winning NORMAL pace at SAR is worth tracking — may reflect track bias not yet captured.
+2. **Hurdle/jump race skip rule** — R1 SAR 06/03 was a hurdle race (2 3/8M turf, all debut flags, Par N/A, 0 speed). Recognize and skip manually. No code change needed.
+3. **FAIR tier inversion** — 13.0% win rate vs SPEC 27.2%. Small sample (23 races). Monitor through Saratoga before acting.
+4. **T/J combo at SAR meet** — backtest when 2+ weeks of SAR data accumulated.
+5. **Issue 15 (wager construction)** — gated on Saratoga calibration. Not before 60+ SAR races.
+6. **Negative distance flag** — deferred post-Saratoga (need n≥60–80 on the negative flag subset).
+7. **pp_n anchor advisory** — neutral anchor at pp=130 may be too high for lower-class fields. Get Gemini/ChatGPT input. Query: `SELECT median(prime_power) FROM picks WHERE prime_power > 0`.
 
 ---
 
