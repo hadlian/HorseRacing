@@ -3,11 +3,12 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-06-03 (R5 v3.10 — pp_n calibration + Stage 2 research complete; beaten-fav and distance W% backtests done)
+> **Last updated:** 2026-06-05 (Results pipeline complete — SAR 06/03-05 + CDX 05/02 + BAQ 05/09 + LRL 05/16 all loaded; 157 races in DB)
 > **Current version:** R5 v3.10 | CompareModels v1.1 (field-extraction corrected — parallel system, see `comparemodels/`)
-> **Current performance (129-race DB):** Top pick win 27.4% | Top-3 hit 63.6% | val_n ROI +124.1% | Leading signals: Class vs Par +0.82, TJ +0.77, FCI +0.76
-> **Recent cards logged:** CDX 2026-05-30: 5/11 wins (45%). CDX 2026-05-31: 4/10 wins (40%), 9/10 top-3 (best board day of season).
-> **Next planned session:** Run live cards on v3.10. T/J combo at meet backtest when Saratoga is 2+ weeks in. Negative distance flag revisit post-Saratoga when n≥60–80. Issue 15 (wager construction) gated on Saratoga calibration.
+> **Current performance (157-race DB):** Top pick win 22.9% | Top-3 hit 56.1% | Play signal (spread ≥0.50) 29.5% win | Skip 18.0%
+> **By track:** BAQ 31.6% | SAX 30.0% | CDX 26.8% | LRL 15.4% | SAR 9.4% (3 days — new track, calibration gap expected)
+> **Recent cards:** SAR 06/03: 0/10 wins, 6/10 top-3. SAR 06/04: 1/11 wins. SAR 06/05: 2/11 wins (partial results).
+> **Next planned session:** Accumulate SAR data. T/J combo at meet backtest when SAR is 2+ weeks in. Issue 15 (wager construction) gated on Saratoga calibration. FAIR tier inversion (13% vs SPEC 27%) — monitor, small sample.
 
 ---
 
