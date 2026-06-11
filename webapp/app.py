@@ -166,31 +166,32 @@ def run_cm(drf_path: Path, work_dir: Path) -> dict:
 
 # ── Output parser ─────────────────────────────────────────────────────────────
 #
-# The R5 text output is fixed-width. Column positions come from run_r5.py's
-# print statement:
+# The R5 text output is fixed-width. Column positions come from
+# r5_parser_v2.report()'s print statement (Session 2 Task 6 format —
+# tier ladder retired, P(win)/fair/edge appended):
 #   f"{pgm:<4} {name:<22} {ml:>5}  {s4:>22}  {ws:>5}  {tr:>4}  {fc:>5}
-#      {vp:>5}  {ped:>4}  {tj:>4}  {pce:>4}  {val:>4}  {comp:>5.2f}  {tier}"
-#
-# Cumulative start positions (0-indexed):
-#   pgm   0   name  5   ml   28   s4   35   ws   59   tr   66
-#   fc   72   vp   79   ped  86   tj   92   pce  98   val 104
-#   comp 110  tier 117
+#      {vp:>5}  {ped:>4}  {tj:>4}  {pce:>4}  {bdn:>4}  {ppn:>4}  {val:>4}
+#      {comp:>5.2f}  {pw:>6}  {fo:>6}  {ed:>6}" + flag tags
 
 _HORSE_COLS = {
-    "pgm":  (0,   4),
-    "name": (5,   27),
-    "ml":   (28,  33),
-    "s4":   (35,  57),
-    "ws4":  (59,  64),
-    "tr":   (66,  70),
-    "fci":  (72,  77),
-    "vpar": (79,  84),
-    "ped":  (86,  90),
-    "tj":   (92,  96),
-    "pce":  (98,  102),
-    "val":  (104, 108),
-    "comp": (110, 115),
-    "tier": (117, None),
+    "pgm":   (0,   4),
+    "name":  (5,   27),
+    "ml":    (28,  33),
+    "s4":    (35,  57),
+    "ws4":   (59,  64),
+    "tr":    (66,  70),
+    "fci":   (72,  77),
+    "vpar":  (79,  84),
+    "ped":   (86,  90),
+    "tj":    (92,  96),
+    "pce":   (98,  102),
+    "bdn":   (104, 108),
+    "ppn":   (110, 114),
+    "val":   (116, 120),
+    "comp":  (122, 127),
+    "p_win": (129, 135),
+    "fair":  (137, 143),
+    "edge":  (145, 151),
 }
 
 _RACE_HDR_RE = re.compile(
@@ -198,11 +199,18 @@ _RACE_HDR_RE = re.compile(
     r'\s*(\d+)\s*\|\s*([\d.]+f)\s+([DT])\s*\|\s*Purse\s*\$([\d,]+)\s*\|\s*(.+)',
 )
 _TOP_PICK_RE = re.compile(
-    r'🏆\s+TOP WIN PICK:\s+#(\S+)\s+(.+?)\s+\[([^\]]+)\]\s+\|\s+Composite\s+(\S+)\s+\|\s+(\S+)'
+    r'🏆\s+TOP WIN PICK:\s+#(\S+)\s+(.+?)\s+\[([^\]]+)\]\s+\|\s+Composite\s+(\S+)(.*)'
 )
 _VAL_ALT_RE = re.compile(
-    r'💰\s+VALUE ALT:\s+#(\S+)\s+(.+?)\s+\[([^\]]+)\]\s+\|\s+Composite\s+(\S+)\s+\|\s+(\S+)'
+    r'💰\s+VALUE ALT:\s+#(\S+)\s+(.+?)\s+\[([^\]]+)\]\s+\|\s+Composite\s+(\S+)(.*)'
 )
+# Session 2 race header: "R5 | top-3 cum P(win) 47% | spread(r1−r3) 0.85 DEFAULT"
+_PWIN_HDR_RE = re.compile(
+    r'R5\s*\|\s*top-3 cum P\(win\)\s*(\d+)%'
+    r'(?:\s*\|\s*spread\(r1.r3\)\s*([\d.]+)\s*(TIGHT|STANDOUT|DEFAULT))?'
+)
+_PWIN_TAIL_RE = re.compile(r'P\(win\)\s*(\d+)%(?:.*?fair\s*([\d.]+-1))?'
+                           r'(?:.*?edge\s*([+\-]\d+)%)?')
 _TIGHT_CLUSTER_RE = re.compile(
     r'⚠[️️]?\s*TIGHT CLUSTER[^=\n]*(?:spread\s*=\s*([\d.]+)\s*pts?)?',
     re.IGNORECASE,
@@ -296,13 +304,32 @@ def _parse_race_block(block: str) -> dict | None:
             if h:
                 race["horses"].append(h)
 
+    # ── P(win) race header (Session 2) ──────────────────────────────────────
+    for line in lines:
+        m = _PWIN_HDR_RE.search(line)
+        if m:
+            race["top3_cum_pwin"] = int(m.group(1))
+            if m.group(2):
+                race["spread_r1_r3"] = float(m.group(2))
+                race["race_shape"]   = m.group(3)
+            break
+
+    def _pwin_tail(tail):
+        mt = _PWIN_TAIL_RE.search(tail or "")
+        if not mt:
+            return {}
+        return {"p_win": mt.group(1), "fair": mt.group(2),
+                "edge": mt.group(3),
+                "overlay": "OVERLAY" in (tail or "")}
+
     # ── Top pick ────────────────────────────────────────────────────────────
     for line in lines:
         m = _TOP_PICK_RE.search(line)
         if m:
             race["top_pick"] = {
                 "pgm": m.group(1), "name": m.group(2).strip(),
-                "ml": m.group(3), "composite": m.group(4), "tier": m.group(5),
+                "ml": m.group(3), "composite": m.group(4),
+                **_pwin_tail(m.group(5)),
             }
             break
 
@@ -312,7 +339,8 @@ def _parse_race_block(block: str) -> dict | None:
         if m:
             race["value_alt"] = {
                 "pgm": m.group(1), "name": m.group(2).strip(),
-                "ml": m.group(3), "composite": m.group(4), "tier": m.group(5),
+                "ml": m.group(3), "composite": m.group(4),
+                **_pwin_tail(m.group(5)),
             }
             break
 
@@ -352,6 +380,7 @@ def _parse_horse_row(line: str) -> dict | None:
     s4_raw = col(35, 57)
     speeds = s4_raw.split() if s4_raw else []
 
+    tail = line[151:] if len(line) > 151 else ""
     return {
         "pgm":   pgm,
         "name":  name,
@@ -364,9 +393,17 @@ def _parse_horse_row(line: str) -> dict | None:
         "ped":   col(86, 90),
         "tj":    col(92, 96),
         "pce":   col(98, 102),
-        "val":   col(104, 108),
-        "comp":  col(110, 115),
-        "tier":  col(117, None),
+        "bdn":   col(104, 108),
+        "ppn":   col(110, 114),
+        "val":   col(116, 120),
+        "comp":  col(122, 127),
+        "p_win": col(129, 135),
+        "fair":  col(137, 143),
+        "edge":  col(145, 151),
+        "overlay":   "OVERLAY" in tail,
+        "val_watch": "VAL WATCH" in tail,
+        "debut":     "[DEBUT]" in tail,
+        "also_elig": "[AE]" in tail,
     }
 
 
@@ -784,30 +821,31 @@ def analytics():
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
 
-    # ── tier_hits ─────────────────────────────────────────────────────────────
-    tier_order = ["HIGH", "SOLID", "FAIR", "SPEC"]
-    rows = conn.execute("""
-        SELECT p.tier, COUNT(*) AS races, SUM(p.won) AS wins
-        FROM picks p
-        JOIN races r ON p.race_id = r.id
-        WHERE p.model_rank = 1
-          AND r.result_fetched = 1
-          AND p.finish_pos != -1
-        GROUP BY p.tier
-    """).fetchall()
-    tier_map = {r["tier"]: dict(r) for r in rows}
-    tier_hits = []
-    for t in tier_order:
-        if t in tier_map:
-            d = tier_map[t]
-            races = d["races"]
-            wins  = d["wins"] or 0
-            tier_hits.append({
-                "tier":     t,
-                "races":    races,
-                "wins":     wins,
-                "win_pct":  round(wins / races * 100, 1) if races else 0,
-            })
+    # ── rank_hits (tier ladder retired 2026-06-11; win%/ROI by model rank) ────
+    # ROI convention (corrected baseline): $2 flat, profit = sp_odds − 2 on a
+    # win, −2 on a loss. sp_odds stores the $2 mutuel payoff.
+    rank_hits = []
+    for rank in (1, 2, 3):
+        row = conn.execute("""
+            SELECT COUNT(*) AS races, SUM(p.won) AS wins,
+                   SUM(CASE WHEN p.won = 1 THEN COALESCE(p.sp_odds, 2) - 2
+                            ELSE -2 END) AS profit
+            FROM picks p
+            JOIN races r ON p.race_id = r.id
+            WHERE p.model_rank = ?
+              AND r.result_fetched = 1
+              AND p.finish_pos != -1
+              AND p.finish_pos IS NOT NULL
+        """, (rank,)).fetchone()
+        races = row["races"] or 0
+        wins  = row["wins"] or 0
+        rank_hits.append({
+            "rank":    rank,
+            "races":   races,
+            "wins":    wins,
+            "win_pct": round(wins / races * 100, 1) if races else 0,
+            "roi":     round((row["profit"] or 0) / (2 * races) * 100, 1) if races else None,
+        })
 
     # ── val_roi ───────────────────────────────────────────────────────────────
     val_roi = []
@@ -816,18 +854,20 @@ def analytics():
         row = conn.execute("""
             SELECT COUNT(*) AS plays,
                    SUM(p.won) AS wins,
-                   AVG(CASE WHEN p.won = 1 THEN p.sp_odds ELSE NULL END) AS avg_sp
+                   SUM(CASE WHEN p.won = 1 THEN COALESCE(p.sp_odds, 2) - 2
+                            ELSE -2 END) AS profit
             FROM picks p
             JOIN races r ON p.race_id = r.id
             WHERE p.val_n >= ?
               AND p.model_rank <= 5
               AND r.result_fetched = 1
               AND p.finish_pos != -1
+              AND p.finish_pos IS NOT NULL
         """, (threshold,)).fetchone()
         plays  = row["plays"] or 0
         wins   = row["wins"]  or 0
-        avg_sp = row["avg_sp"] or 0.0
-        roi    = round((wins * avg_sp - plays) / plays * 100, 1) if plays else None
+        # corrected convention: $2 flat, profit = payoff − 2 / −2
+        roi    = round((row["profit"] or 0) / (2 * plays) * 100, 1) if plays else None
         val_roi.append({
             "threshold": round(threshold, 1),
             "plays":     plays,
@@ -891,7 +931,7 @@ def analytics():
 
     conn.close()
     return jsonify({
-        "tier_hits":    tier_hits,
+        "rank_hits":    rank_hits,
         "val_roi":      val_roi,
         "score_dist":   score_dist,
         "track_splits": track_splits,

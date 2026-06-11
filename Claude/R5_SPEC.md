@@ -105,6 +105,22 @@ Pass 2 (final `comp`): recalculates with field-context `val_n` (rank divergence)
 
 ---
 
+## Tight-Cluster Deduction — STATUS: ACTIVE, CONFIRMED (2026-06-11)
+
+> This section added ahead of the full v3.10 spec refresh (Session 2, Week 3).
+> The spec body above is stale at v3.3; the code is authoritative until then.
+
+v3.7 rule: when the top-3 composite spread ≤ 0.5, the pre-deduction top horse
+takes a −0.40 deduction (often swapping Rank 1↔2). Harry ruling 2026-06-11:
+**the deduction stays active.** Exact reconstruction from logged component
+vectors (0 unexplained deltas across 1,747 picks) showed the post-deduction
+rank-1 ran 25.9% win / −1.3% ROI in the 33 fired races vs the demoted horse's
+20.0% / −43.3% — the earlier approximate analysis suggesting the rule was
+backwards is superseded. Fired state now persists per pick
+(`pre_tight_comp`, `tight_cluster_severe`).
+
+---
+
 ## Version History
 
 | Version | Change |

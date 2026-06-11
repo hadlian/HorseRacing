@@ -1276,7 +1276,7 @@ async function loadAnalytics() {
       grid.innerHTML = '<div class="an-empty" style="grid-column:1/-1;padding:40px 0">No results DB found. Run analyses and log results first.</div>';
       return;
     }
-    const total = (d.tier_hits || []).reduce((s, t) => s + t.races, 0);
+    const total = (d.rank_hits || []).reduce((s, t) => s + t.races, 0);
     if (total < 10) {
       grid.innerHTML = '<div class="an-empty" style="grid-column:1/-1;padding:40px 0">Not enough logged races yet. Run more cards and log results to populate this dashboard.</div>';
       return;
@@ -1310,8 +1310,8 @@ function buildSummary() {
     const top  = r.top_pick || {};
     const va   = r.value_alt || {};
     const rec  = calcBetRec(r, i) || {};
-    const icon = rec.verdict === 'PLAY' ? '✅' : rec.verdict === 'NEAR' ? '⚠️' : '⛔';
-    const vcls = rec.cls || 'bet-no';
+    const icon = '📊';
+    const vcls = rec.cls || 'bet-marginal';
 
     const isHot  = /HOT/i.test(r.pace_type  || '');
     const paceShort = isHot ? 'HOT' : (/SLOW/i.test(r.pace_type || '') ? 'SLOW' : 'NML');
@@ -1363,7 +1363,7 @@ function buildSummary() {
             <th>Comp</th>
             <th>ML</th>
             <th>CM</th>
-            <th>Verdict</th>
+            <th>P(win) / Fair</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -1490,10 +1490,12 @@ function buildHorseTable(race, raceIdx) {
         <td>${esc(h.pce)}</td>
         <td>${esc(h.val)}</td>
         <td><span class="comp-val ${ccls}">${esc(h.comp)}</span></td>
-        <td>${tierBadge(h.tier)}</td>
+        <td>${pWinBadge(h)}</td>
+        <td>${esc(h.fair || '--')}</td>
+        <td>${esc(h.edge || '--')}${h.overlay ? ' <span title="advisory — vs morning line">▲</span>' : ''}${h.val_watch ? ' <span title="val_n ≥ 8 tracker">◆</span>' : ''}</td>
       </tr>
       <tr class="horse-expand hidden">
-        <td colspan="13">
+        <td colspan="15">
           <div class="horse-expand-grid">
             <div class="hx-item"><span class="hx-label">ML</span><span class="hx-val">${esc(h.ml)}</span></div>
             <div class="hx-item"><span class="hx-label">WS4</span><span class="hx-val">${esc(h.ws4)}</span></div>
@@ -1517,7 +1519,7 @@ function buildHorseTable(race, raceIdx) {
             <th>#</th><th>Horse</th><th>ML</th>
             <th>WS4</th><th>Trend</th><th>FCI</th><th>vPar</th>
             <th>Ped</th><th>T/J</th><th>Pce</th><th>Val</th>
-            <th>Comp</th><th>Tier</th>
+            <th>Comp</th><th>P(win)</th><th>Fair</th><th>Edge</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -1555,7 +1557,7 @@ function buildPicks(race, raceIdx) {
         <div class="pick-stats">
           <span>ML <span class="sv">${esc(p.ml)}</span></span>
           <span>Comp <span class="sv">${esc(p.composite)}</span></span>
-          <span>${tierBadge(p.tier)}</span>
+          <span>${pWinBadge(p)}</span>
         </div>
       </div>`);
   }
@@ -1572,7 +1574,9 @@ function buildPicks(race, raceIdx) {
       name:      valHorse.name,
       ml:        valHorse.ml,
       composite: isOrig ? origVa.composite : valHorse.comp,
-      tier:      valHorse.tier,
+      p_win:     valHorse.p_win,
+      fair:      valHorse.fair,
+      overlay:   valHorse.overlay,
     };
     const wasRevised = scratched.size > 0 && !isOrig;
     parts.push(`
@@ -1585,7 +1589,7 @@ function buildPicks(race, raceIdx) {
         <div class="pick-stats">
           <span>ML <span class="sv">${esc(p.ml)}</span></span>
           <span>Comp <span class="sv">${esc(p.composite)}</span></span>
-          <span>${tierBadge(p.tier)}</span>
+          <span>${pWinBadge(p)}</span>
         </div>
       </div>`);
   }
@@ -1731,163 +1735,70 @@ function parseMl(ml) {
 }
 
 function calcBetRec(race, raceIdx) {
+  // Session 2 Task 6: PLAY/NEAR/SKIP verdict, tier points, and CM agreement
+  // boost are RETIRED (all failed corrected-ROI validation). The card now
+  // shows the probability layer: P(win), fair odds, ML edge — with context
+  // notes. OVERLAY is advisory-only until live odds.
   const scratched    = getScratchSet(raceIdx);
   const activeHorses = (race.horses || []).filter(h => !scratched.has(h.pgm));
-  // Use active rank-1 as effective top pick
   const topHorse = activeHorses[0];
   if (!topHorse) return null;
-  const origTop  = race.top_pick || {};
-  const top      = origTop.pgm === topHorse.pgm ? origTop : {
-    pgm: topHorse.pgm, name: topHorse.name,
-    ml: topHorse.ml, composite: topHorse.comp, tier: topHorse.tier,
-  };
 
-  const horse    = topHorse;
-  const tier     = (top.tier || '').toUpperCase().replace('SPECULATIVE', 'SPEC');
-  const comp     = parseFloat(top.composite) || 0;
-  const mlOdds   = parseMl(top.ml);
-  const val      = parseFloat(horse?.val) || 0;
-  const fci      = horse?.fci;
-  const vpar     = parseFloat(horse?.vpar);
-  const pce      = (horse?.pce || '').toUpperCase();
-  const hasFci   = fci && fci !== 'N/A';
-  const minOdds  = mlOdds != null ? Math.max(mlOdds - 1, 1) : 1;
-  const isHot    = /HOT/i.test(race.pace_type || '');
-  const isNml    = /NML|NORMAL/i.test(race.pace_type || '');
-  const isSpeed  = /^SPE/.test(pce);
-  const isCloser = /^CLO/.test(pce);
+  const comp   = parseFloat(topHorse.comp) || 0;
+  const pw     = (topHorse.p_win || '').trim();
+  const fair   = (topHorse.fair  || '').trim();
+  const edge   = (topHorse.edge  || '').trim();
+  const hasP   = pw && pw !== '--';
+  const mlStr  = (topHorse.ml || '').replace(' ML', '');
 
-  // Extract speed horse count from pace_type string e.g. "HOT PACE (6 speed)"
-  const speedCount = (() => {
-    const m = (race.pace_type || '').match(/(\d+)\s+speed/i);
-    return m ? parseInt(m[1], 10) : null;
-  })();
-
-  const mlStr  = top.ml.replace(' ML', '');
-  const minStr = `${minOdds % 1 === 0 ? minOdds : minOdds.toFixed(1)}-1`;
-
-  // ── Primary gate: composite ──────────────────────────────────────────────
-  if (comp < 5.5) {
-    const gap = (6.0 - comp).toFixed(2);
-    return {
-      verdict: 'SKIP', cls: 'bet-no', pts: 0,
-      pros: [],
-      cons: [
-        `comp ${comp} is ${gap} below the 6.0 play threshold`,
-        ...(val >= 7.0 ? [`high value score ${val} signals overlay at ML — but comp too low to play`] : []),
-      ],
-      valNote: null,
-    };
-  }
-
-  // ── Secondary scoring ────────────────────────────────────────────────────
   const pros = [], cons = [];
-  let pts = 0;
 
-  // 1 — Tier
-  if      (tier === 'HIGH')  { pts += 2; pros.push(`HIGH confidence tier`); }
-  else if (tier === 'SOLID') { pts += 1; pros.push(`SOLID confidence tier`); }
-  else                        {           cons.push(`${tier} tier — limited model confidence`); }
-
-  // 2 — Value score
-  if      (val >= 7.5) { pts += 2; pros.push(`strong value score ${val} — model sees significant overlay`); }
-  else if (val >= 6.0) { pts += 1; pros.push(`value score ${val} — model likes the price`); }
-  else if (val < 5.0)  {           cons.push(`poor value score ${val} — possibly underlaid at ML`); }
-  else                 {           cons.push(`thin value score ${val}`); }
-
-  // 3 — Odds adequacy
-  if (mlOdds != null) {
-    if      (mlOdds >= minOdds + 1) { pts += 2; pros.push(`ML ${mlStr} exceeds min acceptable odds (${minStr})`); }
-    else if (mlOdds >= minOdds)     { pts += 1; pros.push(`ML ${mlStr} meets min acceptable odds (${minStr})`); }
-    else                             { pts -= 2; cons.push(`ML ${mlStr} below min acceptable odds (${minStr}) — too short at this price`); }
-  }
-
-  // 4 — FCI reliability
-  if (hasFci)  { pts += 1; pros.push(`speed figure on record (FCI ${fci})`); }
-  else          {           cons.push(`no BRIS speed figure — debut or surface switch`); }
-
-  // 5 — vPar position
-  if (!isNaN(vpar)) {
-    const sign = vpar >= 0 ? '+' : '';
-    if      (vpar >= 0)   { pts += 1; pros.push(`at or above class par (${sign}${vpar})`); }
-    else if (vpar <= -20) { pts -= 1; cons.push(`well below class par (${vpar}) — significant class ask`); }
-  }
-
-  // 6 — Pace scenario
-  if (isHot) {
-    if (isSpeed) {
-      pts -= 1;
-      const detail = speedCount ? `${speedCount} speed horses in field` : 'contested pace';
-      cons.push(`speed style in HOT pace — ${detail}, early pressure likely`);
-    } else if (isCloser) {
-      pts += 1;
-      pros.push(`closer in HOT pace — pace scenario favours off-the-pace runners`);
-    } else {
-      cons.push(`HOT pace — contested early fractions, watch pace scenario`);
+  if (hasP) {
+    pros.push(`P(win) ${pw} → fair odds ${fair} (conditional logit on market-free composite)`);
+    if (edge && edge !== '--') {
+      const ev = parseInt(edge, 10);
+      if (topHorse.overlay) {
+        pros.push(`▲ OVERLAY: edge ${edge} vs ML — ADVISORY ONLY until live odds (no win bets on this flag)`);
+      } else if (!isNaN(ev) && ev < 0) {
+        cons.push(`edge ${edge} vs ML ${mlStr} — market price offers no value at the morning line`);
+      }
     }
-  } else if (isNml && isCloser) {
-    pts += 1;
-    pros.push(`closer in NORMAL pace — clean stalking setup`);
+  } else {
+    cons.push(`no P(win) — fit β missing or insufficient field data`);
   }
 
-  // 7 — Tight cluster
-  if (race.tight_cluster) {
-    const spread = race.tight_cluster_spread ? ` (top-3 spread ${race.tight_cluster_spread} pts)` : '';
-    cons.push(`tight speed cluster${spread} — low model separation, race is hard to call`);
+  if (topHorse.val_watch) {
+    pros.push(`◆ VAL WATCH — val_n ≥ 8 tracker qualifier (flat $2, max 2/card, hard-stop guardrails)`);
   }
 
-  // 8 — CompareModels consensus
-  if (race.cm) {
-    const cm      = race.cm;
-    const agrees  = cm.pgm === topHorse.pgm;
-    if (agrees && cm.dominant) {
-      pts += 2;
-      pros.push(`CM model confirms with dominant signal — ${cm.consensus}/8 categories, ★ underline`);
-    } else if (agrees) {
-      pts += 1;
-      pros.push(`CM model agrees — #${cm.pgm} top pick in both systems (${cm.consensus}/8 categories)`);
-    } else {
-      cons.push(`CM model differs — picks #${cm.pgm} ${cm.name} (${cm.consensus}/8 categories)`);
-    }
+  // Pace + cluster context (informational, no points)
+  if (/HOT/i.test(race.pace_type || '') && /^SPE/.test((topHorse.pce || '').toUpperCase())) {
+    cons.push(`speed style in HOT pace — early pressure likely`);
+  }
+  if (race.tight_cluster || race.race_shape === 'TIGHT') {
+    const spread = race.spread_r1_r3 ?? race.tight_cluster_spread;
+    cons.push(`TIGHT cluster${spread ? ` (spread ${spread})` : ''} — box the cluster, don't key it`);
   }
 
-  // ── Verdict ──────────────────────────────────────────────────────────────
-  // Composite score is the verdict — secondary factors are context, not gatekeepers.
-  //   comp >= 6.0  → PLAY  (threshold met)
-  //   comp 5.5–5.99 → NEAR (approaching threshold — watch for value angle)
-  let verdict, cls;
-  if   (comp >= 6.0) { verdict = 'PLAY'; cls = 'bet-yes'; }
-  else               { verdict = 'NEAR'; cls = 'bet-marginal'; }
-
-  // ── Value alt note ───────────────────────────────────────────────────────
-  let valNote = null;
-  const va = race.value_alt;
-  if (va) {
-    const vaHorse  = (race.horses || []).find(h => h.pgm === va.pgm);
-    const vaOdds   = parseMl(va.ml);
-    const vaVal    = parseFloat(vaHorse?.val) || 0;
-    const vaPce    = (vaHorse?.pce || '').toUpperCase();
-    const vaCloser = /^CLO/.test(vaPce);
-    const vaStr    = va.ml.replace(' ML', '');
-
-    if (isHot && vaCloser && vaOdds != null && vaOdds > (mlOdds || 0)) {
-      // Classic HOT-pace value angle: closer at longer odds
-      valNote = `💰 VALUE PLAY: #${va.pgm} ${va.name} [${vaStr}] — closer style in HOT pace at better odds (val ${vaVal}). Pace scenario may favour this over the ${mlStr} favourite.`;
-    } else if (vaOdds != null && vaOdds > (mlOdds || 0) && vaVal >= 6.0) {
-      valNote = `💰 Consider VALUE ALT #${va.pgm} ${va.name} [${vaStr}] — higher ML with value score ${vaVal}.`;
-    }
+  // CM divergence: a flag, not a boost (agreement boost retired — chalk trap)
+  if (race.cm && race.cm.pgm !== topHorse.pgm) {
+    cons.push(`CM divergence — CM top pick is #${race.cm.pgm} ${race.cm.name} (contender-set leg)`);
   }
 
-  return { verdict, cls, pts, pros, cons, valNote, comp };
+  const verdict = hasP ? `P(win) ${pw} · fair ${fair}` : `comp ${comp}`;
+  const headline = race.top3_cum_pwin
+    ? `top-3 cum P(win) ${race.top3_cum_pwin}%${race.race_shape ? ' · ' + race.race_shape : ''}`
+    : null;
+
+  return { verdict, cls: 'bet-marginal', pts: 0, pros, cons,
+           valNote: headline, comp };
 }
 
 function buildBetRec(race, raceIdx) {
   const rec = calcBetRec(race, raceIdx);
   if (!rec) return '';
 
-  const icon = rec.verdict === 'PLAY' ? '✅'
-             : rec.verdict === 'NEAR' ? '⚠️'
-             :                          '⛔';
+  const icon = '📊';
 
   const prosHtml = rec.pros.length
     ? `<div>
@@ -2002,11 +1913,16 @@ btnTxt.addEventListener('click', () => { if (jobId) location.href = `/api/downlo
 btnPdf.addEventListener('click', () => { if (jobId && pdfOk) location.href = `/api/download/pdf/${jobId}`; });
 
 /* ── Helpers ───────────────────────────────────────────────────────────── */
-function tierBadge(tier) {
-  const t = (tier || '').toUpperCase().replace('SPECULATIVE', 'SPEC');
-  const valid = ['HIGH','SOLID','FAIR','SPEC'];
-  const cls   = valid.includes(t) ? `tier-${t}` : 'tier-SPEC';
-  return `<span class="tier ${cls}">${esc(t || '?')}</span>`;
+function pWinBadge(h) {
+  // Tier ladder retired (2026-06-11). Badge shows the probability layer.
+  const pw = ((h && (h.p_win ?? h.pwin)) || '').toString().trim();
+  if (!pw || pw === '--') return `<span class="tier tier-SPEC">P n/a</span>`;
+  const fair = ((h.fair || '')).toString().trim();
+  const ovl  = h.overlay ? ' ▲' : '';
+  const pct  = parseInt(pw, 10);
+  const cls  = pct >= 25 ? 'tier-HIGH' : pct >= 15 ? 'tier-SOLID' : 'tier-FAIR';
+  return `<span class="tier ${cls}" title="fair odds ${esc(fair)} — model probability, not advice">` +
+         `P(win) ${esc(pw)}${ovl}</span>`;
 }
 
 function compClass(comp) {
@@ -2086,7 +2002,7 @@ function renderAnalytics(d) {
   const grid = document.getElementById('anGrid');
   grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:18px';
   grid.innerHTML =
-    _chartCard('chTierHits',   'Top Pick Win % by Confidence Tier') +
+    _chartCard('chRankHits',   'Win % &amp; ROI by Model Rank ($2 flat, corrected)') +
     _chartCard('chValRoi',     'Value Play ROI by Threshold') +
     _chartCard('chScoreDist',  'Composite Score Distribution') +
     _chartCard('chTrackSplit', 'Top Pick Win % by Track &amp; Surface');
@@ -2096,32 +2012,36 @@ function renderAnalytics(d) {
   const collapse = q => { grid.style.gridTemplateColumns = q.matches ? '1fr' : '1fr 1fr'; };
   mq.addEventListener('change', collapse); collapse(mq);
 
-  _renderTierHits(d.tier_hits   || []);
+  _renderRankHits(d.rank_hits   || []);
   _renderValRoi(d.val_roi       || []);
   _renderScoreDist(d.score_dist || []);
   _renderTrackSplit(d.track_splits || []);
 }
 
-function _renderTierHits(rows) {
-  _destroyChart('chTierHits');
+function _renderRankHits(rows) {
+  _destroyChart('chRankHits');
   if (!rows.length) return;
-  const colours = { HIGH: GREEN, SOLID: BLUE, FAIR: ORANGE, SPEC: RED };
-  const labels = rows.map(r => `${r.tier} (n=${r.races})`);
-  const data   = rows.map(r => r.win_pct || 0);
-  const bgs    = rows.map(r => colours[r.tier] || MUTED);
-  _charts['chTierHits'] = new Chart(document.getElementById('chTierHits'), {
+  const labels  = rows.map(r => `Rank ${r.rank} (n=${r.races})`);
+  const winData = rows.map(r => r.win_pct || 0);
+  const roiData = rows.map(r => r.roi != null ? r.roi : 0);
+  _charts['chRankHits'] = new Chart(document.getElementById('chRankHits'), {
     type: 'bar',
-    data: { labels, datasets: [{ data, backgroundColor: bgs, borderRadius: 4 }] },
+    data: { labels, datasets: [
+      { label: 'Win %', data: winData, backgroundColor: BLUE,  borderRadius: 4 },
+      { label: 'ROI %', data: roiData, borderRadius: 4,
+        backgroundColor: roiData.map(v => v >= 0 ? GREEN : RED) },
+    ]},
     options: {
       ...CHART_DEFAULTS,
-      indexAxis: 'y',
       scales: {
-        x: { min: 0, max: 100, ticks: { color: MUTED, callback: v => v + '%' },
+        x: { ticks: { color: MUTED }, grid: { display: false } },
+        y: { ticks: { color: MUTED, callback: v => v + '%' },
              grid: { color: BORDER } },
-        y: { ticks: { color: MUTED }, grid: { display: false } },
       },
-      plugins: { ...CHART_DEFAULTS.plugins,
-        tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x.toFixed(1)}% win rate` } }
+      plugins: { ...CHART_DEFAULTS.plugins, legend: { display: true,
+        labels: { color: MUTED } },
+        tooltip: { callbacks: { label: ctx =>
+          ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}%` } }
       },
     },
   });

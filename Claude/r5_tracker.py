@@ -150,6 +150,12 @@ def log_race_picks(horses, track, date, race_num):
 
     conn.execute("DELETE FROM picks WHERE race_id=?", (race_id,))
 
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(picks)")}
+    for col, ddl in (("comp_ex_val", "REAL"), ("pre_tight_comp", "REAL"),
+                     ("tight_cluster_severe", "INTEGER DEFAULT 0")):
+        if col not in cols:
+            conn.execute(f"ALTER TABLE picks ADD COLUMN {col} {ddl}")
+
     ranked = sorted(horses, key=lambda h: h["comp"], reverse=True)
     for rank, h in enumerate(ranked, 1):
         conn.execute("""
@@ -157,8 +163,8 @@ def log_race_picks(horses, track, date, race_num):
             (race_id, pgm, horse_name, ml_odds, model_rank, comp, tier,
              fci_n, class_n, bias_n, tj_n, form_n, ped_n, val_n,
              pace_style, pace_fit, scout_adj, prime_power, best_dist,
-             best_dist_n, pp_n)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             best_dist_n, pp_n, comp_ex_val, pre_tight_comp, tight_cluster_severe)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (race_id, h.get("pgm"), h.get("name"), h.get("ml_odds"),
               rank, h.get("comp"), h.get("tier"),
               h.get("fci_n"), h.get("class_n"), h.get("bias_n"),
@@ -166,7 +172,10 @@ def log_race_picks(horses, track, date, race_num):
               h.get("pace_style", "unknown"), h.get("pace_fit", 5.0),
               h.get("scout_adj", 0.0),
               h.get("prime_power"), h.get("best_dist"),
-              h.get("best_dist_n"), h.get("pp_n")))
+              h.get("best_dist_n"), h.get("pp_n"),
+              h.get("comp_ex_val"),
+              h.get("pre_tight_comp", h.get("comp")),
+              1 if h.get("tight_cluster_severe") else 0))
 
     conn.commit()
     conn.close()

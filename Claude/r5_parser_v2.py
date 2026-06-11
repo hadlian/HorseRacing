@@ -338,6 +338,33 @@ def parse_drf(path):
     return horses
 
 
+# v3.10 composite weights. Single source of truth for downstream consumers
+# (probability layer, reconstruction). val_n is listed but BANNED from P(win):
+# comp_ex_val renormalizes the other eight by exact division by 0.95.
+COMP_WEIGHTS = {"fci_n": 0.22, "class_n": 0.20, "tj_n": 0.15, "form_n": 0.10,
+                "bias_n": 0.08, "best_dist_n": 0.08, "ped_n": 0.07,
+                "pp_n": 0.05, "val_n": 0.05}
+
+
+def compute_comp_ex_val(h):
+    """
+    Market-free composite for the P(win) layer (Session 2, Task 4).
+    Pure renormalized weighted sum of the 8 non-val components — by
+    construction excludes val_n (market-relative), scout/equipment
+    adjustments, and the tight-cluster deduction.
+    Returns None if any component is missing (pre-v3.5 rows).
+    """
+    total = 0.0
+    for comp, w in COMP_WEIGHTS.items():
+        if comp == "val_n":
+            continue
+        v = h.get(comp) if isinstance(h, dict) else h[comp]
+        if v is None:
+            return None
+        total += v * (w / 0.95)
+    return round(total, 2)
+
+
 def finalize_field(horses):
     """
     Two-pass field-context scoring. Call once per race after parse_drf.
@@ -432,6 +459,11 @@ def finalize_field(horses):
             h['comp'] = round(h['comp'] + sa, 2)
             h['tier'] = tier(h['comp'])
 
+    # ── comp_ex_val for the P(win) layer (computed before the deduction;
+    #    value is deduction/adjustment-independent by construction) ──────────
+    for h in horses:
+        h['comp_ex_val'] = compute_comp_ex_val(h)
+
     # ── ISSUE 6 v3.7 — TIGHT CLUSTER DEDUCTION (2026-05-28) ─────────────────
     # Evidence (99-race DB):
     #   spread ≤0.5: Rank 1 wins 17.1% | Rank 2 wins 25.7%  ← Rank 2 BEATS Rank 1
@@ -456,6 +488,18 @@ def finalize_field(horses):
             for h in ranked_by_comp[:3]:
                 h['tight_cluster_flag'] = True
 
+    # ── P(win) layer (Session 2, Task 6) — conditional logit on comp_ex_val.
+    #    Requires a fitted β (Results/logit_beta.json); degrades gracefully. ──
+    try:
+        from r5_probability import load_beta, score_field
+        score_field(horses, load_beta())
+    except Exception:
+        for h in horses:
+            h.setdefault('p_win', None)
+            h.setdefault('fair_odds', None)
+            h.setdefault('ml_edge', None)
+            h.setdefault('is_overlay', 0)
+
     return horses
 
 
@@ -469,18 +513,38 @@ def report(horses):
         f"NORMAL PACE ({speed_ct} speed)"
     )
 
-    print("=" * 114)
+    print("=" * 118)
     par_val = horses[0].get('speed_par')
     par_str = f"Par {par_val:.0f}" if par_val else "Par N/A"
     purse_str = f"${horses[0]['purse']:,.0f}" if horses[0]['purse'] else "N/A"
     print(f"  🏇  R5 v3.10 — {horses[0]['track']}  Race {horses[0]['race']}  |  "
           f"{horses[0]['date']}  |  {dist_f}f  {horses[0]['surface']}  |  "
           f"Purse {purse_str}  |  {par_str}  |  {pace_label}")
-    print("=" * 114)
+
+    # ── RACE HEADER (Decision 1D): top-3 cum P(win), spread, shape ──────────
+    top3   = ranked[:3]
+    cum_p  = sum(h['p_win'] for h in top3 if h.get('p_win')) if top3 else None
+    spread13 = round(ranked[0]['comp'] - ranked[2]['comp'], 2) if len(ranked) >= 3 else None
+    spread12 = round(ranked[0]['comp'] - ranked[1]['comp'], 2) if len(ranked) >= 2 else None
+    if spread13 is not None and spread13 <= 0.5:
+        shape = "TIGHT"
+    elif spread12 is not None and spread12 >= 1.0:
+        shape = "STANDOUT"
+    else:
+        shape = "DEFAULT"
+    hdr_bits = []
+    if cum_p:
+        hdr_bits.append(f"top-3 cum P(win) {cum_p*100:.0f}%")
+    if spread13 is not None:
+        hdr_bits.append(f"spread(r1−r3) {spread13} {shape}")
+    if hdr_bits:
+        print(f"  R5 | {' | '.join(hdr_bits)}")
+    print("=" * 118)
     print(f"\n{'#':<4} {'Horse':<22} {'ML':>5}  {'Spd 1-4':>22}  "
           f"{'WS4':>5}  {'T':>4}  {'FCI':>5}  {'vPar':>5}  "
-          f"{'Ped':>4}  {'TJ':>4}  {'Pce':>4}  {'BDn':>4}  {'PPn':>4}  {'Val':>4}  {'Comp':>5}  Tier")
-    print("-" * 114)
+          f"{'Ped':>4}  {'TJ':>4}  {'Pce':>4}  {'BDn':>4}  {'PPn':>4}  {'Val':>4}  "
+          f"{'Comp':>5}  {'P(win)':>6}  {'Fair':>6}  {'Edge':>6}")
+    print("-" * 118)
 
     for h in ranked:
         s4  = " ".join(f"{s:.0f}" if s else "--" for s in h['bris_speed'][:4])
@@ -490,18 +554,32 @@ def report(horses):
         vp  = f"{h['par_diff']:+.1f}" if h['par_diff'] is not None else "  ?"
         tr  = f"{h['trend']:+.1f}"
         pce = h.get('pace_style', '?')[:3].upper()
+        pw  = f"{h['p_win']*100:.0f}%"        if h.get('p_win')    else "  --"
+        fo  = f"{h['fair_odds']:.1f}-1"       if h.get('fair_odds') else "  --"
+        ed  = f"{h['ml_edge']*100:+.0f}%"     if h.get('ml_edge') is not None else "  --"
         debut_tag = "  [DEBUT]"    if h.get('debut') else ""
         ae_tag    = "  [AE]"       if h.get('also_eligible') else ""
         ftl_tag   = "  [1stLasix]" if h.get('first_time_lasix') else ""
         ec = h.get('equipment_change')
         blk_tag   = "  [BlkON]" if ec == 1.0 else ("  [BlkOFF]" if ec == 2.0 else "")
+        ovl_tag   = "  ▲OVERLAY"   if h.get('is_overlay') else ""
+        val_tag   = "  ◆VAL WATCH" if (h.get('val_n') or 0) >= 8.0 else ""
         print(f"{h['pgm']:<4} {h['name']:<22} {ml:>5}  {s4:>22}  "
               f"{ws:>5}  {tr:>4}  {fc:>5}  {vp:>5}  "
               f"{h['ped_n']:>4.1f}  {h['tj_n']:>4.1f}  {pce:>4}  "
               f"{h['best_dist_n']:>4.1f}  {h['pp_n']:>4.1f}  "
-              f"{h['val_n']:>4.1f}  {h['comp']:>5.2f}  {h['tier']}{debut_tag}{ae_tag}{ftl_tag}{blk_tag}")
+              f"{h['val_n']:>4.1f}  {h['comp']:>5.2f}  {pw:>6}  {fo:>6}  {ed:>6}"
+              f"{ovl_tag}{val_tag}{debut_tag}{ae_tag}{ftl_tag}{blk_tag}")
 
     print()
+    if any(h.get('is_overlay') for h in ranked):
+        print("▲ OVERLAY = model edge ≥ +25% with P(win) ≥ 8% — vs morning line; "
+              "advisory until live odds (no win bets on this flag).")
+        print()
+    if any((h.get('val_n') or 0) >= 8.0 for h in ranked):
+        print("◆ VAL WATCH = val_n ≥ 8 tracker qualifier (flat $2, max 2/card, "
+              "hard-stop guardrails per ruling).")
+        print()
 
     # ── DEBUT WARNING ──
     debut_horses = [h for h in ranked if h.get('debut')]
@@ -536,12 +614,13 @@ def report(horses):
             print(f"🚨  VERY TIGHT CLUSTER: original top 3 within {original_spread} pts — "
                   f"model conviction very low.")
             print(f"     #{demoted['pgm']} {demoted['name']} comp deducted -0.40 "
-                  f"({pre_top} → {demoted['comp']}, tier → {demoted['tier']}).")
+                  f"({pre_top} → {demoted['comp']}).")
             if swapped:
                 print(f"     → Top pick promoted to #{top_now['pgm']} {top_now['name']} "
-                      f"(comp {top_now['comp']}, tier {top_now['tier']}).")
-            print(f"     Historical edge (99-race DB): Rank 2 wins 25.7% vs Rank 1 17.1% in this spread band.")
-            print(f"     → Recommendation: SKIP win bet. Build EX box / TRI key around top 3.")
+                      f"(comp {top_now['comp']}).")
+            print(f"     Exact revalidation (33 fired races, 2026-06-11): post-deduction "
+                  f"rank-1 25.9% win / −1.3% ROI vs demoted horse −43.3%.")
+            print(f"     → Structure: box the cluster, don't key it (see EXOTICS below).")
             print()
         elif current_spread <= 1.5:
             # Moderate-tight — show advisory only, no deduction
@@ -555,9 +634,14 @@ def report(horses):
     # ── TOP WIN PICK ──
     top = ranked[0]
     ml_hdr = f"{top['ml_odds']:.0f}-1 ML" if top['ml_odds'] else "N/A ML"
-    print("=" * 114)
+    print("=" * 118)
+    pw_hdr = (f"P(win) {top['p_win']*100:.0f}%  |  fair {top['fair_odds']:.1f}-1"
+              if top.get('p_win') else "P(win) n/a")
+    edge_hdr = (f"  |  edge {top['ml_edge']*100:+.0f}%"
+                + ("  ▲OVERLAY (advisory — vs ML)" if top.get('is_overlay') else "")
+                if top.get('ml_edge') is not None else "")
     print(f"🏆  TOP WIN PICK:  #{top['pgm']} {top['name']}  "
-          f"[{ml_hdr}]  |  Composite {top['comp']}  |  {top['tier']}")
+          f"[{ml_hdr}]  |  Composite {top['comp']}  |  {pw_hdr}{edge_hdr}")
     print(f"    Trainer: {top['trainer']}  |  Jockey: {top['jockey']}")
     print(f"    BRIS Speeds (last 4): {top['bris_speed'][:4]}  |  "
           f"WS4: {top['ws4']}  Trend: {top['trend']:+.1f}  FCI: {top['fci']}")
@@ -599,8 +683,10 @@ def report(horses):
                    and h['name'] != top['name']]
     if value_picks:
         vp = value_picks[0]
+        vp_pw = (f"  |  P(win) {vp['p_win']*100:.0f}%  fair {vp['fair_odds']:.1f}-1"
+                 if vp.get('p_win') else "")
         print(f"💰  VALUE ALT:  #{vp['pgm']} {vp['name']}  "
-              f"[{vp['ml_odds']:.0f}-1 ML]  |  Composite {vp['comp']}  |  {vp['tier']}")
+              f"[{vp['ml_odds']:.0f}-1 ML]  |  Composite {vp['comp']}{vp_pw}")
         print(f"    Trainer: {vp['trainer']}  |  Jockey: {vp['jockey']}")
         print(f"    Angle: {vp['ml_odds']:.0f}-1 ML with FCI {vp['fci']} vs par {vp['speed_par']} "
               f"| Pace: {vp.get('pace_style','?').upper()} | Val: {vp['val_n']:.1f}")
@@ -612,15 +698,6 @@ def report(horses):
             print(f"    Key stat: {ts['cat']} — {wp} win rate")
         if vp['ext_trip'][0]:
             print(f"    Trip: {vp['ext_trip'][0]}")
-
-    print()
-
-    # ── CONFIDENCE TIERS ──
-    for t_label in ['HIGH', 'SOLID', 'FAIR', 'SPEC']:
-        group = [h for h in ranked if h['tier'] == t_label]
-        if group:
-            names = "  ".join(f"#{h['pgm']}{h['name'][:10]}" for h in group)
-            print(f"  {t_label:<6}: {names}")
 
     print()
 

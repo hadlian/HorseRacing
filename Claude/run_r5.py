@@ -291,8 +291,10 @@ def main():
                 new_top = active_field[0]
                 print(f"🚨  SCRATCH NOTICE — R{s['race']}: "
                       f"#{s['pgm']} {s['name']} (pre-scratch Rank {pre_rank}) scratched.")
+                pw = (f"  P(win) {new_top['p_win']*100:.0f}%"
+                      if new_top.get('p_win') else "")
                 print(f"    REVISED TOP PICK: #{new_top['pgm']} {new_top['name']}  "
-                      f"Composite {new_top['comp']}  {new_top['tier']}")
+                      f"Composite {new_top['comp']}{pw}")
                 print()
 
         # FIELD COUNT DISCLOSURE — always print when scratches present so user can verify

@@ -1,0 +1,8 @@
+{
+  "beta": 0.76739,
+  "log_likelihood": -192.08,
+  "n_races": 97,
+  "n_dropped_missing_winner_vector": 62,
+  "input": "comp_ex_val (val_n excluded permanently)",
+  "fitted_at": "2026-06-11T16:07:15"
+}
