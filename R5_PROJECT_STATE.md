@@ -23,6 +23,13 @@
 - **Scout-3:** Fixed `scratchIndicator='A'` (Also-Eligible) being treated as scratch. AEs now scored and tagged `[AE]` in report. CDX0528 R7 #13 OUR STARRY NIGHT was the trigger case — drew in, finished 2nd at $8.04, missed entirely under old logic.
 - **Report enhancements:** Field disclosure line (entries → starters); ALSO-ELIGIBLE warning; VERY TIGHT CLUSTER advisory with Rank 2 promotion notice.
 - **Pending investigation:** val_n component winners avg -0.23 lower than losers across 99 races → chalk-heavy bias. Consider weight reduction or formula reformulation. Issue 16 (live odds) is the upstream fix.
+- **2026-06-11 — STATUS: ACTIVE, CONFIRMED (Harry ruling).** Exact reconstruction
+  (`scripts/reconstruct_tight_cluster.py`, 0 unexplained deltas / 1,747 picks)
+  reversed the approximate corrected-ROI analysis: in the 33 fired races, the
+  post-deduction rank-1 ran 25.9% win / −1.3% ROI vs the demoted horse's
+  20.0% / −43.3% and the unfired rank-1 baseline of −47.8%. The deduction stays
+  active; `pre_tight_comp` / `tight_cluster_severe` now persist to picks so all
+  future validation is exact.
 
 ---
 
@@ -34,14 +41,21 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 
 ## 📊 Results Database Status
 
+> **⚠️ 2026-06-11 — ROI accounting corrected.** All ROI figures published before this date
+> were inflated by a unit bug ($2 payoffs credited against $1 stakes). Authoritative numbers:
+> `results/CORRECTED_BASELINE_2026-06.md` and `results/SIGNAL_VALIDATION_20260611.md`.
+> Derby duplicate (DBY/CDX 0502 R12) removed; 2 payoff rows chart-corrected.
+
 | Metric | Value | Notes |
 |--------|-------|-------|
-| Races with results | 157 | Through SAR0605 (6 races still pending — stragglers) |
-| Top pick win rate | 22.9% | SAR new-track drag (9.4% in 32 races) pulling overall down |
-| Top-3 hit rate | 56.1% | |
-| Play signal (spread ≥0.50) | 29.5% win | vs Skip 18.0% — signal holding strong |
-| FAIR tier win rate | 13.0% | Inverting below SPEC 27.2% — small sample (23 races), monitor |
-| Value ROI | not recalculated | val_n ROI is correct metric (not win-rate differential) |
+| Races with results | 160 | Post-dedupe, through SAR0605 (3 races pending; SAR0606 not loaded) |
+| Top pick win rate | 23.1% | SAR new-track drag (9.4% in 32 races) pulling overall down |
+| Top-3 hit rate | 59.4% | |
+| Top pick flat-bet ROI | **−18.5%** | ≈ takeout — no win-bet edge yet. Corrected formula |
+| Rank-3 flat-bet ROI | **+17.4%** | Only positive-ROI slot (23.2% win, 151 bets) — see signal validation |
+| Play signal (spread ≥0.50) | **RETIRED** | Corrected ROI −40.3% vs −9.1% complement — selects chalk |
+| FAIR tier rank-1 | 12.5% win, −70.2% ROI | HIGH: 0 fires ever; SOLID: 1 fire ever — tier ladder dead above FAIR |
+| val_n ≥7 ROI | −8.2% | ≥8: +41.8% (4 wins), ≥9: +85.7% (2 wins) — gradient right, n too small |
 
 ### By track
 | Track | Races | Win% | Top-3% |
@@ -87,7 +101,7 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 
 4. **Composite score ceiling problem.** No mid-week CDX race reaches SOLID tier (7.5). fci_n normalisation (baseline 60, ÷6) calibrated too high for lower-class fields. Dynamic normalisation needed — Issue 4.
 
-5. **Value signal working correctly.** ROI +172.9% at 50 races. SOLEIL VOLANT (CDX0514 R5): 20-1 ML, val_n=10.0, won $52.06 — overlay signal validated live. val_n win-rate differential being negative is EXPECTED behavior, not a bug. ROI is the correct metric.
+5. **Value signal — CORRECTED 2026-06-11.** The "+172.9% ROI" was an accounting artifact ($2 payoffs vs $1 stakes) plus a double-counted Derby winner. Corrected: val_n≥7 = **−8.2%**; val_n≥8 = +41.8% and ≥9 = +85.7% but on 4 and 2 wins respectively — gradient direction is right, sample is not yet bettable. SOLEIL VOLANT ($52.06, val_n=10.0) remains the proof-of-concept catch. ROI is still the correct metric for this component; the corrected baseline is the reference.
 
 6. **CDX0514 best card to date.** 4/8 top-pick wins (50%). Late scratch VIVIANITE (R8, #5, Rank 8) correctly caught by new --finalize command and set to finish_pos=-1.
 
@@ -104,17 +118,16 @@ Report: `comparemodels/reports/comparemodels_vs_r5_63races_20260521_020626.xlsx`
 
 **BRIS Summary methodology** — 8-category consensus scoring (Prime Power, Avg Speed, Best Speed, Distance Speed, Avg Class, Jockey Rating, Trainer Rating, Earnings). Scored independently from raw DRF data. No R5 code imported.
 
-### 63-race head-to-head
+### Head-to-head — CORRECTED 2026-06-11 (152-race aligned universe, SAR-inclusive)
 
-| Metric | CM | R5 |
+| Metric | CM | R5 (same races) |
 |---|---|---|
-| Top pick win rate | 25.4% | 25.4% |
-| Top-3 hit rate | 47.6% | 55.6% |
-| ROI (ML) | −6.7% | −7.3% |
-| ROI (SP) | +50.6% | +93.0% |
-| Agreement rate | 31.7% | — |
+| Top pick win rate | 25.7% | 23.3% |
+| Flat-bet ROI ($2, corrected) | **−21.9%** | **−16.8%** |
 
-Disagreements (43 races): R5 right 10 / CM right 10 / Neither 23 — dead heat.
+The old "+50.6% / +93.0% SP ROI" figures were accounting artifacts — void. Neither model
+beats takeout on flat win bets. CM wins slightly more, R5's winners pay more.
+Full corrected signal table: `results/SIGNAL_VALIDATION_20260611.md`.
 
 ### CM segment outperformance
 - **Non-graded Stakes:** CM 38.5% vs R5 15.4% (13 races) — strongest signal
@@ -123,13 +136,17 @@ Disagreements (43 races): R5 right 10 / CM right 10 / Neither 23 — dead heat.
 
 R5 outperforms CM on: Turf, BAQ, Allowance/Opt-Clm races.
 
-### Actionable CM signals
-- **Consensus ≥ 4:** 30.8% win rate (39 races) — primary filter
-- **Prime Power underline:** 33.3% win rate (57 fires) — most reliable single signal
-- **Overlay Watch:** 5.6% win rate — **broken, do not use until CM-1 fixed**
+### CM signals — CORRECTED 2026-06-11 (all confirmation filters failed ROI testing)
+- **Consensus ≥ 4: RETIRED** — fires on 91% of races post field-fix (saturated), ROI −20.5%; negative at every level ≥5/≥6/≥7
+- **Prime Power underline:** 31.5% win / **−9.6% ROI** standalone — best win-rate signal in the project but still loses flat-betting; stacked on R5 top pick it gets *worse* (−13.9%). Candidate exotics anchor only.
+- **Agreement (R5+CM same pick): 32.2% win / −22.9% ROI** — chalk trap, do not increase bet size on agreement
+- **Overlay Watch:** still broken, still retired
 
-### Advisory integration
-CM is a supplemental confidence filter on R5 — not a replacement. When R5 top pick also has CM consensus ≥ 4 or Prime Power underline → elevated confidence. When R5/CM disagree and CM consensus < 4 → lean R5.
+### Advisory integration — REVISED 2026-06-11
+CM is **not** a confidence filter — every confirmation-style use is ROI-negative. Retained roles:
+divergence flag (disagreement = potential value zone, R5 leg −12.8% = best relative leg, unproven),
+and exotics contender-set generator (CM ranks 1–2 ∪ R5 ranks 1–3; CM rank-2 is +3.6% ROI,
+R5 rank-3 is +17.4%). See `results/SIGNAL_VALIDATION_20260611.md`.
 
 ---
 
