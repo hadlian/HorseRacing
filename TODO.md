@@ -10,7 +10,7 @@
 > **Canonical baseline denominator:** `races WHERE result_fetched=1 AND is_backtest=0` = **160 resolved live races** (as of 2026-06-12). Backtest cards (SAR 2025 Jul 12/23, Aug 2) live in production DB tagged `is_backtest=1`; log future historical cards with `--backtest` flag (CLI) or Year override field (webapp). All analytics, β fit, and calibration exclude backtest rows automatically.
 >
 > **Current performance (160-race clean baseline, 2026-06-12):**
-> Top pick win 22.9% | ROI **−18.5%** | Rank-3 ROI **+158.0%** on 35/151 (suspicious concentration — 6 winners one LRL card; see pace session notes)
+> Top pick win 22.9% | ROI **−18.5%** | Rank-3 ROI **+17.4%** on 35/151 (matches TODO canonical; sp_odds = mutuel payout per $2)
 > Play/spread gate RETIRED | Tier ladder RETIRED | Overlay live win betting NOT AUTHORIZED
 >
 > **Pace diagnostic result:** E/EP win-share ≈ starter-share within each scenario (HOT: 23.5% wins / 25.5% starters; SLOW: 21.7% / 10.7%). No pace dynamic — scenario table was measuring field composition.
