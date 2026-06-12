@@ -18,6 +18,7 @@ CSV format for --csv:
 
 import argparse
 import csv
+import json
 import sqlite3
 import sys
 import time
@@ -152,7 +153,15 @@ def log_race_picks(horses, track, date, race_num):
 
     cols = {r[1] for r in conn.execute("PRAGMA table_info(picks)")}
     for col, ddl in (("comp_ex_val", "REAL"), ("pre_tight_comp", "REAL"),
-                     ("tight_cluster_severe", "INTEGER DEFAULT 0")):
+                     ("tight_cluster_severe", "INTEGER DEFAULT 0"),
+                     # Session 3A display fields (never scored)
+                     ("days_since_last", "INTEGER"),
+                     ("bris_run_style", "TEXT"),
+                     ("quirin_pts", "INTEGER"),
+                     ("wet_starts", "INTEGER"),
+                     ("wet_wins", "INTEGER"),
+                     ("wet_off_speed", "INTEGER"),
+                     ("trnr_stats", "TEXT")):
         if col not in cols:
             conn.execute(f"ALTER TABLE picks ADD COLUMN {col} {ddl}")
 
@@ -163,8 +172,10 @@ def log_race_picks(horses, track, date, race_num):
             (race_id, pgm, horse_name, ml_odds, model_rank, comp, tier,
              fci_n, class_n, bias_n, tj_n, form_n, ped_n, val_n,
              pace_style, pace_fit, scout_adj, prime_power, best_dist,
-             best_dist_n, pp_n, comp_ex_val, pre_tight_comp, tight_cluster_severe)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+             best_dist_n, pp_n, comp_ex_val, pre_tight_comp, tight_cluster_severe,
+             days_since_last, bris_run_style, quirin_pts,
+             wet_starts, wet_wins, wet_off_speed, trnr_stats)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """, (race_id, h.get("pgm"), h.get("name"), h.get("ml_odds"),
               rank, h.get("comp"), h.get("tier"),
               h.get("fci_n"), h.get("class_n"), h.get("bias_n"),
@@ -175,7 +186,11 @@ def log_race_picks(horses, track, date, race_num):
               h.get("best_dist_n"), h.get("pp_n"),
               h.get("comp_ex_val"),
               h.get("pre_tight_comp", h.get("comp")),
-              1 if h.get("tight_cluster_severe") else 0))
+              1 if h.get("tight_cluster_severe") else 0,
+              h.get("days_since_last"), h.get("bris_run_style"),
+              h.get("quirin_pts"), h.get("wet_starts"), h.get("wet_wins"),
+              int(h["best_off"]) if h.get("best_off") else None,
+              json.dumps(h.get("trnr_stats")) if h.get("trnr_stats") else None))
 
     conn.commit()
     conn.close()

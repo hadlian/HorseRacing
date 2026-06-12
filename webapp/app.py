@@ -173,30 +173,34 @@ def run_cm(drf_path: Path, work_dir: Path) -> dict:
 #      {vp:>5}  {ped:>4}  {tj:>4}  {pce:>4}  {bdn:>4}  {ppn:>4}  {val:>4}
 #      {comp:>5.2f}  {pw:>6}  {fo:>6}  {ed:>6}" + flag tags
 
+# Session 3A layout: name widened to 29 ("Name (E/P)" carries BRIS run
+# style), Quirin "Q" column added after Pce. Positions verified empirically.
 _HORSE_COLS = {
     "pgm":   (0,   4),
-    "name":  (5,   27),
-    "ml":    (28,  33),
-    "s4":    (35,  57),
-    "ws4":   (59,  64),
-    "tr":    (66,  70),
-    "fci":   (72,  77),
-    "vpar":  (79,  84),
-    "ped":   (86,  90),
-    "tj":    (92,  96),
-    "pce":   (98,  102),
-    "bdn":   (104, 108),
-    "ppn":   (110, 114),
-    "val":   (116, 120),
-    "comp":  (122, 127),
-    "p_win": (129, 135),
-    "fair":  (137, 143),
-    "edge":  (145, 151),
+    "name":  (5,   34),
+    "ml":    (35,  40),
+    "s4":    (42,  64),
+    "ws4":   (66,  71),
+    "tr":    (73,  77),
+    "fci":   (79,  84),
+    "vpar":  (86,  91),
+    "ped":   (93,  97),
+    "tj":    (99,  103),
+    "pce":   (105, 109),
+    "q":     (111, 113),
+    "bdn":   (115, 119),
+    "ppn":   (121, 125),
+    "val":   (127, 131),
+    "comp":  (133, 138),
+    "p_win": (140, 146),
+    "fair":  (148, 154),
+    "edge":  (156, 162),
 }
 
 _RACE_HDR_RE = re.compile(
     r'🏇\s+R5[^—]*—\s+(\w+)\s+Race\s+(\d+)\s*\|'
-    r'\s*(\d+)\s*\|\s*([\d.]+f)\s+([DT])\s*\|\s*Purse\s*\$([\d,]+)\s*\|\s*(.+)',
+    # surface is a single letter, any case — 'D', 'T', 't' (inner turf), 'A' (AW)
+    r'\s*(\d+)\s*\|\s*([\d.]+f)\s+([A-Za-z])\s*\|\s*Purse\s*\$([\d,]+)\s*\|\s*(.+)',
 )
 _TOP_PICK_RE = re.compile(
     r'🏆\s+TOP WIN PICK:\s+#(\S+)\s+(.+?)\s+\[([^\]]+)\]\s+\|\s+Composite\s+(\S+)(.*)'
@@ -278,7 +282,8 @@ def _parse_race_block(block: str) -> dict | None:
                 "race_num":  int(m.group(2)),
                 "date":      m.group(3),
                 "distance":  m.group(4),
-                "surface":   "Dirt" if m.group(5) == "D" else "Turf",
+                "surface":   ("Dirt" if m.group(5).upper() == "D"
+                              else "AW" if m.group(5).upper() == "A" else "Turf"),
                 "purse":     m.group(6),
                 "pace_type": m.group(7).strip(),
             })
@@ -359,6 +364,18 @@ def _parse_race_block(block: str) -> dict | None:
             race["tight_cluster_spread"] = m.group(1)  # e.g. "0.95", or None
             break
 
+    # ── Wet-form lines (Session 3A Task 4 — emitted only with --wet) ────────
+    wet = {}
+    for line in lines:
+        mw = re.search(r"#(\S+)\s+(.+?):\s+(WET .+)$", line)
+        if mw and ("WET" in line):
+            wet[mw.group(1)] = mw.group(3).strip()
+    if wet:
+        race["wet_form"] = wet
+        for h in race["horses"]:
+            if h["pgm"] in wet:
+                h["wet"] = wet[h["pgm"]]
+
     return race
 
 
@@ -373,37 +390,47 @@ def _parse_horse_row(line: str) -> dict | None:
         s = line[start:end] if end and end <= len(line) else line[start:]
         return s.strip()
 
-    name = col(5, 27)
+    name = col(5, 34)
     if not name:
         return None
 
-    s4_raw = col(35, 57)
+    s4_raw = col(42, 64)
     speeds = s4_raw.split() if s4_raw else []
 
-    tail = line[151:] if len(line) > 151 else ""
+    # name cell may carry the BRIS run style: "DI NATALE (E/P)"
+    mstyle = re.search(r"\((E|E/P|P|S)\)\s*$", name)
+    run_style = mstyle.group(1) if mstyle else None
+    if mstyle:
+        name = name[:mstyle.start()].strip()
+
+    tail = line[162:] if len(line) > 162 else ""
+    mlay = re.search(r"\[LAYOFF (\d+)\+\]", tail)
     return {
         "pgm":   pgm,
         "name":  name,
-        "ml":    col(28, 33),
+        "run_style": run_style,
+        "ml":    col(35, 40),
         "speeds": speeds,
-        "ws4":   col(59, 64),
-        "trend": col(66, 70),
-        "fci":   col(72, 77),
-        "vpar":  col(79, 84),
-        "ped":   col(86, 90),
-        "tj":    col(92, 96),
-        "pce":   col(98, 102),
-        "bdn":   col(104, 108),
-        "ppn":   col(110, 114),
-        "val":   col(116, 120),
-        "comp":  col(122, 127),
-        "p_win": col(129, 135),
-        "fair":  col(137, 143),
-        "edge":  col(145, 151),
+        "ws4":   col(66, 71),
+        "trend": col(73, 77),
+        "fci":   col(79, 84),
+        "vpar":  col(86, 91),
+        "ped":   col(93, 97),
+        "tj":    col(99, 103),
+        "pce":   col(105, 109),
+        "q":     col(111, 113),
+        "bdn":   col(115, 119),
+        "ppn":   col(121, 125),
+        "val":   col(127, 131),
+        "comp":  col(133, 138),
+        "p_win": col(140, 146),
+        "fair":  col(148, 154),
+        "edge":  col(156, 162),
         "overlay":   "OVERLAY" in tail,
         "val_watch": "VAL WATCH" in tail,
         "debut":     "[DEBUT]" in tail,
         "also_elig": "[AE]" in tail,
+        "layoff":    mlay.group(1) + "+" if mlay else None,
     }
 
 
