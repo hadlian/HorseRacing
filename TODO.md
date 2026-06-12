@@ -13,7 +13,9 @@
 > Top pick win 22.9% | ROI **−18.5%** | Rank-3 ROI **+17.4%** on 35/151 (matches TODO canonical; sp_odds = mutuel payout per $2)
 > Play/spread gate RETIRED | Tier ladder RETIRED | Overlay live win betting NOT AUTHORIZED
 >
-> **Pace diagnostic result:** E/EP win-share ≈ starter-share within each scenario (HOT: 23.5% wins / 25.5% starters; SLOW: 21.7% / 10.7%). No pace dynamic — scenario table was measuring field composition.
+> **Pace diagnostic (2026-06-12):** No actionable pace dynamic under R5 engine `pace_style`. HOT-scenario "closers win" angle is dead — win-share ≈ starter-share in all three scenarios. BRIS field 210 shows a weak pattern (see Issue 17), but `bias_n` uses engine style, not field 210. Do NOT structure tickets on pace scenario.
+>
+> **Rank-3 caveat (2026-06-12):** +17.4% ROI on 151 bets confirmed, BUT ex-PURE MADNESS ($57.20 payout) profit = −$2.64, ROI = −0.9%. The entire margin is one longshot. Win rate (23.2%) equals rank-1 (22.9%). Paper-tracked from day 1 via `rank3_tracker`; settle math corrected (sp_odds = mutuel payout per $2).
 >
 > **Paper trackers running from day 1 (auto-logged by run_r5.py --track):**
 > - `rank3_tracker`: $2 flat paper bet on every rank-3 pick, every race
@@ -79,6 +81,12 @@
 
 ### Issue 16 — Live Tote Odds Integration `ACTIVE — MID-JULY`
 - See in-meet checkpoint above.
+
+### Issue 17 — bias_n Source Evaluation (BRIS field 210 vs engine pace_style) `POST-SAR`
+- **Finding (2026-06-12):** The two pace classifiers disagree on ~27% of starters (e.g., 46 R5-"speed" horses are BRIS-S; 15 R5-"closer" horses are BRIS-E). Engine `pace_style` (which feeds `pace_scenario` + `bias_n`) shows win-share ≈ starter-share across all three scenarios — no actionable lift. BRIS field 210 shows the classic pattern in NORMAL and SLOW (E types +9.6pp and +10.4pp win-share lift) but with small n (especially SLOW n=18).
+- **Hypothesis:** `bias_n` (component weight 8%, correlation ~0.06) is built on the weaker classifier. R5 pace_style uses raw fractional time differentials; BRIS field 210 is their proprietary style assignment and may capture pace-context better. Rebuilding pace_fit on field 210 could improve bias_n signal quality.
+- **Data:** `bris_run_style` (field 210) logged per pick from day 1 (3A-2); sample grows passively at SAR. `LONE_E_NOTE` paper track covers the extreme lone-E case.
+- **Gate:** Revisit with SAR n≥60 data, post-meet. No pre-meet change. All weight changes require explicit approval + version bump.
 
 ### Scout-2 — Sentiment Confidence Score `PROPOSED`
 - Add `confidence` field (0.0–1.0) to extraction prompt; discard signals < 0.7.

@@ -3,12 +3,14 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-06-12 (Session 3A complete — display fields, wet bundle, 3B research done)
+> **Last updated:** 2026-06-12 (pre-SAR instrumentation session — rank3/paper75 trackers, pace diagnostic, Issue 17, backtest audit)
 > **Current version:** R5 v3.10 — **DEPLOYED / feature-frozen through Saratoga meet**
 > **Weights:** frozen through Saratoga (Harry ruling 2026-06-11). Any change requires explicit approval + version bump.
 > **Saratoga opens:** July 3, 2026
 > **Primary AI collaborator:** Claude Code — all code implementation
 > **Advisory:** Fable 5 (architecture decisions), Sonnet (session advisor)
+>
+> ⚠️ **TODO.md is the single source of truth for open tasks, in-meet checkpoints, and session-by-session notes.** This state file covers stable architecture, rulings, and key findings. When the two diverge, TODO.md wins.
 
 ---
 
@@ -69,14 +71,15 @@ files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1,435 fields per record)
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| Races with results | 174 | 174/179 with full payoffs (5 absent from chart PDFs) |
-| Top pick win rate | 23.1% | SAR drag (9.4% in 32 races — new-track calibration gap) |
+| Clean baseline races | **160** | `result_fetched=1 AND is_backtest=0`; backtest cards tagged separately |
+| Top pick win rate | 22.9% | SAR drag (9.4% in 32 races — new-track calibration gap) |
 | Top-3 hit rate | 59.4% | |
 | Top pick flat-bet ROI | **−18.5%** | ≈ takeout; no win-bet edge |
-| **Rank-3 flat-bet ROI** | **+17.4%** | **Only positive-ROI slot** (35 wins / 151 bets, 23.2% win) |
+| **Rank-3 flat-bet ROI** | **+17.4%** | 35 wins / 151 bets — **⚠️ fragile**: ex-PURE MADNESS ($57.20), profit = −$2.64, ROI = −0.9%. Paper-tracked from day 1. |
 | CM rank-1 ROI | −21.9% | CM wins more often; R5 loses less money |
 | CM rank-2 ROI | **+3.6%** | Near-miss pattern mirrors R5 rank-3 |
 | Final-odds overlay | −56.9% | 142 bets — **NOT AUTHORIZED** for live win betting |
+| sp_odds convention | mutuel payout per $2 | e.g., sp_odds=8.7 → $8.70 returned; profit = sp_odds − 2.0 |
 
 ### By track
 | Track | Races | Win% | Top-3% |
@@ -122,7 +125,7 @@ files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1,435 fields per record)
 
 | Signal | Wins | ROI | Status |
 |--------|------|-----|--------|
-| R5 rank-3 flat win bets | 35 / 151 bets | **+17.4%** | **Only positive slot at meaningful n** |
+| R5 rank-3 flat win bets | 35 / 151 bets | **+17.4%** | **Only positive slot at meaningful n** — ⚠️ fragile: ex-PURE MADNESS ($57.20 payout) ROI = −0.9%. Paper-tracked from day 1 via `rank3_tracker`. |
 | CM rank-2 flat win bets | 33 / 147 bets | +3.6% | Mirrors rank-3 pattern |
 | val_n ≥ 8 | 4 wins | +41.8% | Gradient right; n too small (gate: n≥120) |
 | val_n ≥ 9 | 2 wins | +85.7% | Gradient right; n too small |
@@ -209,6 +212,8 @@ Exclusions: field ≤ 5 (PASS), debuts (flag only), PP-underline as underneath-o
 
 7. **BRIS run style + pace profile confirmed parseable** (fields 210/211). Lone-E with Q≥6 is the TIGHT-race candidate worth paper-tracking from opening day.
 
+8. **No pace dynamic under engine pace_style.** Win-share ≈ starter-share in all HOT/NORMAL/SLOW scenarios. "HOT → closers win" angle is dead. BRIS field 210 shows a weak positive pattern (E types in NORMAL/SLOW) but engine-based `bias_n` does not capture it — see Issue 17. Do not structure tickets on pace scenario.
+
 ---
 
 ## 🔀 CompareModels v1.1 — Parallel System
@@ -239,6 +244,7 @@ All weight changes require explicit approval + version bump per spec rules.
 | 7 | Surface-specific WS4 weights (dirt vs turf) | Post-SAR validation needed | MODERATE |
 | 8 | Data scarcity confidence cap (< 2 starts) | Proposed | MODERATE |
 | 16 | Live tote odds integration (val_n recomputation + overlay) | Mid-July build | HIGH — in-meet checkpoint |
+| **17** | **bias_n source: engine pace_style vs BRIS field 210** — ~27% disagree; engine style shows no win-share lift; field 210 shows weak E-type lift in NORMAL/SLOW | Post-SAR | MODERATE |
 | CM-1 | Overlay Watch definition broken | Post SAR-calibration | LOW |
 | CM-3 | Trainer Rating signal weak | Re-evaluate post-SAR | LOW |
 | CM-4 | BRIS Top Pick field not located | +2 bonus silently skipped | LOW |
@@ -298,14 +304,16 @@ All weight changes require explicit approval + version bump per spec rules.
 | 2026-06-05 | Results pipeline | SAR0603-05 + older cards loaded. DB: 157 races. |
 | 2026-06-11 | **Session 2 (full)** | ROI audit corrected. Weeks 1–3 complete: payoff infrastructure (r5_payoffs.py), tight-cluster exact re-validation (ACTIVE/CONFIRMED), conditional logit P(win) β=0.7674, tier ladder DELETED, exotics module (r5_exotics.py) $12 cap, overlay retro-test −56.9% NOT AUTHORIZED, SAR 06/06 payoffs loaded (174/179 backfill), R5_SPEC v3.10. All 5 Harry rulings locked. DB: 174 races. |
 | 2026-06-12 | **Session 3A + 3B** | Display-only: days_since_last (f224) + LAYOFF tags, BRIS run style/Quirin (f210/211) + pace-profile header + lone-E logger (paper), trainer angles for full contender set, wet-track bundle (f80-84 + best_off) via --wet. Backfill: 1,620/1,747 picks (TRACK_MAP fix). Webapp parser lockstep + pre-existing lowercase-surface bug fixed (3 races/card recovered). 3B research: tj_n year-stats — 84% picks affected, +2.4 ROI pts overall, SAR unchanged 9.4% → NO pre-SAR change, rerun at n≥60. Commit 72d72ca. **System feature-frozen for Saratoga.** |
+| 2026-06-12 | **Pre-SAR instrumentation** | Backtest decontamination: is_backtest guardrail extended to r5_exotics generate/settle/report (commit b990cc7 gap closed). rank3_tracker added — auto-logs $2 paper bet on rank-3 pick every race (settle math: sp_odds = mutuel payout per $2, profit = sp − 2.0). val_n paper75 line added to val_n_tracker (line='paper75', ≥7.5 AND rank≤5); val_n lines auto-wired to run_r5.py --track (paper8 default, --live for live8). Pace diagnostic: no win-share lift under engine pace_style; BRIS field 210 shows weak E-type lift → Issue 17 opened. Rank-3 ROI corrected to +17.4% (was inflated 4× by wrong profit formula; ex-PURE MADNESS = −0.9%). Commits a00b099, af33df9. |
 
 ---
 
 ## 📋 Immediate Next Steps
 
-1. **Run June festival cards** — any remaining SAR June cards (DRF → R5 → picks logged to DB). System is ready; just needs race-day execution.
-2. **Load SAR June 6 results** — run picks through r5_tracker for the SAR 06/06 card if DRF was not analyzed at race time.
-3. **Monitor in-meet checkpoints** — SAR n≥40 (structure menu review), n≥60 (β refit + tj_n test), n≥100 (CM decision), val_n n≥120. See checkpoint table above.
-4. **No code changes before opening day** — system is feature-frozen. Any observation at Saratoga that suggests a change requires n≥threshold validation, not race-day adjustment.
+> For the full task list and in-meet checkpoint details, see **TODO.md** (authoritative).
+
+1. **SAR opening day July 3** — system is ready. Run `r5_card.py` → `r5_results_cli.py` daily. Paper trackers (rank3, val_n paper75, val_n paper8) auto-log from `--track`. Use `--live` only for authorized live val_n ≥8 bets.
+2. **Monitor in-meet checkpoints** — SAR n≥40 (structure menu review), n≥60 (β refit + Issue 17 eval), n≥100 (CM decision), val_n n≥120 (threshold re-decision).
+3. **No code changes before opening day** — system is feature-frozen. Any observation at Saratoga that suggests a change requires n≥threshold validation, not race-day adjustment.
 
 *Update this file after each session. Keep the session log current. This is the handoff document for every new Claude conversation and for Fable 5 architecture sessions.*
