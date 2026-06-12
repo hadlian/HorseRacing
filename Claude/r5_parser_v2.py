@@ -126,6 +126,21 @@ def parse_drf(path):
             # === PRIME POWER ===
             h['prime_power'] = num(row, 251)
 
+            # === SESSION 3A DISPLAY FIELDS (parse/show/log only — never scored) ===
+            dsl = num(row, 224)
+            h['days_since_last'] = int(dsl) if dsl is not None else None  # None = debut
+            style = pf(row, 210).upper().strip()
+            h['bris_run_style'] = style if style in ('E', 'E/P', 'EP', 'P', 'S') else None
+            if h['bris_run_style'] == 'EP':
+                h['bris_run_style'] = 'E/P'
+            qp = num(row, 211)
+            h['quirin_pts'] = int(qp) if qp is not None else None
+            h['wet_starts'] = int(num(row, 80) or 0)   # wet-track record block
+            h['wet_wins']   = int(num(row, 81) or 0)
+            h['wet_places'] = int(num(row, 82) or 0)
+            h['wet_shows']  = int(num(row, 83) or 0)
+            # best off-track speed = h['best_off'] (field 1180, parsed below)
+
             # === PAST 10 RACES ===
             h['past_dates']     = [pf(row, 256 + i)  for i in range(10)]
             h['past_tracks']    = [pf(row, 276 + i)  for i in range(10)]
@@ -503,7 +518,26 @@ def finalize_field(horses):
     return horses
 
 
-def report(horses):
+def layoff_tag(days):
+    """Session 3A Task 1 display tag. None (debut) handled by [DEBUT]."""
+    if days is None:
+        return ""
+    if days >= 180:
+        return "  [LAYOFF 180+]"
+    if days >= 90:
+        return "  [LAYOFF 90+]"
+    if days >= 45:
+        return "  [LAYOFF 45+]"
+    return ""
+
+
+# trainer situational categories that pair with layoff / debut display
+LAYOFF_CATS = ("daysaway", "days away", "layoff")
+DEBUT_CATS  = ("1st time", "first time", "debut", "1st start", "firststr",
+               "1st  str", "1st str")
+
+
+def report(horses, wet=False):
     ranked   = sorted(horses, key=lambda h: h['comp'], reverse=True)
     dist_f   = round(horses[0]['dist_y'] / 220, 1) if horses[0]['dist_y'] else '?'
     speed_ct = sum(1 for h in horses if h.get('pace_style') == 'speed')
@@ -537,14 +571,19 @@ def report(horses):
         hdr_bits.append(f"top-3 cum P(win) {cum_p*100:.0f}%")
     if spread13 is not None:
         hdr_bits.append(f"spread(r1−r3) {spread13} {shape}")
+    # Session 3A Task 2: BRIS pace profile (E/EP early types vs P/S)
+    n_eep = sum(1 for h in horses if h.get('bris_run_style') in ('E', 'E/P'))
+    n_ps  = sum(1 for h in horses if h.get('bris_run_style') in ('P', 'S'))
+    if n_eep or n_ps:
+        hdr_bits.append(f"pace profile {n_eep}E/EP vs {n_ps}P/S")
     if hdr_bits:
         print(f"  R5 | {' | '.join(hdr_bits)}")
-    print("=" * 118)
-    print(f"\n{'#':<4} {'Horse':<22} {'ML':>5}  {'Spd 1-4':>22}  "
+    print("=" * 125)
+    print(f"\n{'#':<4} {'Horse':<29} {'ML':>5}  {'Spd 1-4':>22}  "
           f"{'WS4':>5}  {'T':>4}  {'FCI':>5}  {'vPar':>5}  "
-          f"{'Ped':>4}  {'TJ':>4}  {'Pce':>4}  {'BDn':>4}  {'PPn':>4}  {'Val':>4}  "
+          f"{'Ped':>4}  {'TJ':>4}  {'Pce':>4}  {'Q':>2}  {'BDn':>4}  {'PPn':>4}  {'Val':>4}  "
           f"{'Comp':>5}  {'P(win)':>6}  {'Fair':>6}  {'Edge':>6}")
-    print("-" * 118)
+    print("-" * 125)
 
     for h in ranked:
         s4  = " ".join(f"{s:.0f}" if s else "--" for s in h['bris_speed'][:4])
@@ -554,6 +593,9 @@ def report(horses):
         vp  = f"{h['par_diff']:+.1f}" if h['par_diff'] is not None else "  ?"
         tr  = f"{h['trend']:+.1f}"
         pce = h.get('pace_style', '?')[:3].upper()
+        qp  = f"{h['quirin_pts']}" if h.get('quirin_pts') is not None else "-"
+        sty = h.get('bris_run_style')
+        name_sty = f"{h['name']} ({sty})" if sty else h['name']
         pw  = f"{h['p_win']*100:.0f}%"        if h.get('p_win')    else "  --"
         fo  = f"{h['fair_odds']:.1f}-1"       if h.get('fair_odds') else "  --"
         ed  = f"{h['ml_edge']*100:+.0f}%"     if h.get('ml_edge') is not None else "  --"
@@ -564,12 +606,26 @@ def report(horses):
         blk_tag   = "  [BlkON]" if ec == 1.0 else ("  [BlkOFF]" if ec == 2.0 else "")
         ovl_tag   = "  ▲OVERLAY"   if h.get('is_overlay') else ""
         val_tag   = "  ◆VAL WATCH" if (h.get('val_n') or 0) >= 8.0 else ""
-        print(f"{h['pgm']:<4} {h['name']:<22} {ml:>5}  {s4:>22}  "
+        lay_tag   = layoff_tag(h.get('days_since_last'))
+        print(f"{h['pgm']:<4} {name_sty:<29} {ml:>5}  {s4:>22}  "
               f"{ws:>5}  {tr:>4}  {fc:>5}  {vp:>5}  "
-              f"{h['ped_n']:>4.1f}  {h['tj_n']:>4.1f}  {pce:>4}  "
+              f"{h['ped_n']:>4.1f}  {h['tj_n']:>4.1f}  {pce:>4}  {qp:>2}  "
               f"{h['best_dist_n']:>4.1f}  {h['pp_n']:>4.1f}  "
               f"{h['val_n']:>4.1f}  {h['comp']:>5.2f}  {pw:>6}  {fo:>6}  {ed:>6}"
-              f"{ovl_tag}{val_tag}{debut_tag}{ae_tag}{ftl_tag}{blk_tag}")
+              f"{ovl_tag}{val_tag}{debut_tag}{lay_tag}{ae_tag}{ftl_tag}{blk_tag}")
+
+    # Session 3A Task 4: wet-track lines, only when the user flags an off track
+    if wet:
+        print()
+        print("🌧  OFF-TRACK CONDITION FLAGGED — wet form for top-3 contenders:")
+        for h in ranked[:3]:
+            if h.get('wet_starts', 0) > 0:
+                bo = (f", best off-track {h['best_off']:.0f}"
+                      if h.get('best_off') and h['best_off'] > 0 else "")
+                print(f"    #{h['pgm']} {h['name']}: WET {h['wet_wins']}-for-"
+                      f"{h['wet_starts']}{bo}")
+            else:
+                print(f"    #{h['pgm']} {h['name']}: WET first off-track start")
 
     print()
     if any(h.get('is_overlay') for h in ranked):
@@ -664,12 +720,6 @@ def report(horses):
     print(f"    Sire: {top['sire']}  |  Dist Ped: {top['ped_dist']}  |  Dirt Ped: {top['ped_dirt']}")
     print(f"    Pace style: {top.get('pace_style','?').upper()}  |  "
           f"Pace fit score: {top.get('pace_fit', 5):.1f}  |  Value score: {top['val_n']:.1f}")
-    if top['trnr_stats']:
-        print(f"    Key Trainer Situations:")
-        for ts in top['trnr_stats'][:3]:
-            wp  = f"{ts['win_pct']:.1f}%" if ts['win_pct'] else "?"
-            roi = f"${ts['roi']:.2f}"     if ts['roi']     else "?"
-            print(f"      • {ts['cat']}: {ts['starts']:.0f} starts  {wp} win  ROI {roi}")
     if top['past_race_name'][0]:
         print(f"    Last race: {top['past_race_name'][0]}  ({top['past_dates'][0]})")
     if top['ext_trip'][0]:
@@ -700,6 +750,38 @@ def report(horses):
             print(f"    Trip: {vp['ext_trip'][0]}")
 
     print()
+
+    # ── TRAINER ANGLES — contender set (Session 3A Task 3, display only) ────
+    angle_lines = []
+    for h in ranked[:3]:
+        stats = [ts for ts in h.get('trnr_stats', [])
+                 if (ts.get('starts') or 0) > 0 or ts.get('roi')]
+        if not stats:
+            continue
+        dsl = h.get('days_since_last')
+        hdr_tag = layoff_tag(dsl).strip()
+        if h.get('debut'):
+            hdr_tag = "[DEBUT]"
+        dsl_str = f"  ({dsl}d since last)" if dsl is not None else ""
+        angle_lines.append(f"    #{h['pgm']} {h['name']}{dsl_str}"
+                           + (f"  {hdr_tag}" if hdr_tag else ""))
+        for ts in stats:
+            cat_l = ts['cat'].lower()
+            mark = ""
+            if (dsl is not None and dsl >= 45
+                    and any(k in cat_l for k in LAYOFF_CATS)):
+                mark = "  ← LAYOFF MATCH"
+            elif h.get('debut') and any(k in cat_l for k in DEBUT_CATS):
+                mark = "  ← DEBUT MATCH"
+            wp  = f"{ts['win_pct']:.0f}%" if ts['win_pct'] else "?"
+            roi = f"${ts['roi']:.2f}"     if ts['roi'] is not None else "?"
+            angle_lines.append(f"        • {ts['cat']}: {ts['starts']:.0f} sts"
+                               f"  {wp} win  ROI {roi}{mark}")
+    if angle_lines:
+        print("  📋 TRAINER ANGLES — contender set (small-n context, not signals):")
+        for line in angle_lines:
+            print(line)
+        print()
 
     # ── PRIME POWER TOP 5 ──
     pp_ranked = sorted([h for h in horses if h['prime_power']],

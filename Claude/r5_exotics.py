@@ -229,7 +229,9 @@ def settle_race(conn, race_id):
 
     n = 0
     for t in conn.execute("SELECT * FROM exotic_tickets WHERE race_id=? "
-                          "AND actual_payoff IS NULL", (race_id,)).fetchall():
+                          "AND actual_payoff IS NULL "
+                          "AND ticket_type NOT LIKE '%NOTE%'",
+                          (race_id,)).fetchall():
         ticket = dict(t)
         pool   = "EX" if t["ticket_type"].startswith("EX") else "TRI"
         combos = [tuple(base_pgm(x) for x in c) for c in expand_ticket(ticket)]
@@ -374,6 +376,60 @@ def generate_card(track, date, race_num=None, live_mode=False):
         mode = "LIVE" if live_mode else "paper"
         print(f"  R{race['race_num']} [{tickets[0]['race_shape']}] "
               f"set={cset['all']} → {desc}  (total ${cost:.2f}, {mode})")
+
+        # ── Session 3A display notes (no structure changes) ─────────────────
+        set_picks = [p for p in picks
+                     if base_pgm(p["pgm"]) in set(cset["all"])]
+
+        # Task 1: layoff flags on contender-set horses
+        for p in set_picks:
+            dsl = p["days_since_last"] if "days_since_last" in p.keys() else None
+            if dsl is not None and dsl >= 90:
+                print(f"      ⚠️  LAYOFF: #{p['pgm']} {p['horse_name']} — "
+                      f"{dsl} days since last race")
+
+        # Task 2: lone-E key candidate — PAPER-TRACK DATA ONLY (post-Saratoga
+        # evaluation). Logged as a zero-cost note row; never alters structure.
+        if tickets[0]["race_shape"] == "TIGHT":
+            styles = {p["pgm"]: (p["bris_run_style"]
+                                 if "bris_run_style" in p.keys() else None)
+                      for p in picks}
+            e_horses = [pgm for pgm, s in styles.items() if s == "E"]
+            for p in sorted(set_picks, key=lambda x: x["model_rank"])[:2]:
+                q = p["quirin_pts"] if "quirin_pts" in p.keys() else None
+                if (len(e_horses) == 1 and p["pgm"] == e_horses[0]
+                        and (q or 0) >= 6):
+                    conn.execute("""
+                        INSERT INTO exotic_tickets (race_id, ticket_type,
+                            combination, cost, denomination, is_paper,
+                            race_shape, contender_set)
+                        VALUES (?, 'LONE_E_NOTE', ?, 0, 0, 1, 'NOTE', ?)
+                    """, (race["id"],
+                          f"LONE-E KEY CANDIDATE #{p['pgm']} Q{q} — paper track only",
+                          json.dumps(cset["all"])))
+                    print(f"      📝 LONE-E KEY CANDIDATE: #{p['pgm']} "
+                          f"{p['horse_name']} (rank {p['model_rank']}, Q{q}) "
+                          f"— paper track only")
+
+        # Task 3: trainer situational angles for the contender set
+        for p in set_picks:
+            raw = p["trnr_stats"] if "trnr_stats" in p.keys() else None
+            if not raw:
+                continue
+            stats = [ts for ts in json.loads(raw)
+                     if (ts.get("starts") or 0) > 0 or ts.get("roi")]
+            if not stats:
+                continue
+            dsl = p["days_since_last"] if "days_since_last" in p.keys() else None
+            for ts in stats:
+                cat_l = ts["cat"].lower()
+                mark = (" ← LAYOFF MATCH" if dsl is not None and dsl >= 45
+                        and ("daysaway" in cat_l or "days away" in cat_l)
+                        else "")
+                wp = f"{ts['win_pct']:.0f}%" if ts.get("win_pct") else "?"
+                roi = (f"${ts['roi']:.2f}" if ts.get("roi") is not None else "?")
+                print(f"      📋 #{p['pgm']} {ts['cat']}: "
+                      f"{ts['starts']:.0f} sts {wp} ROI {roi}{mark}")
         made += 1
 
     conn.commit()
@@ -417,7 +473,8 @@ def report():
     row = conn.execute("""
         SELECT COUNT(*) n, SUM(cost) cost, SUM(actual_payoff) coll,
                SUM(profit) pl, SUM(profit > 0) winners
-        FROM exotic_tickets WHERE profit IS NOT NULL AND race_shape != 'SELFTEST'
+        FROM exotic_tickets WHERE profit IS NOT NULL
+          AND race_shape NOT IN ('SELFTEST', 'NOTE')
     """).fetchone()
     if not row["n"]:
         print("no settled tickets"); return
@@ -427,7 +484,7 @@ def report():
     for r in conn.execute("""
         SELECT race_shape, ticket_type, COUNT(*) n, SUM(cost) c,
                SUM(profit) pl FROM exotic_tickets
-        WHERE profit IS NOT NULL AND race_shape != 'SELFTEST'
+        WHERE profit IS NOT NULL AND race_shape NOT IN ('SELFTEST', 'NOTE')
         GROUP BY race_shape, ticket_type"""):
         print(f"  {r['race_shape']:<9} {r['ticket_type']:<8} n={r['n']:<3} "
               f"staked ${r['c']:<7.2f} P/L {r['pl']:+.2f} "

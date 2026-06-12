@@ -1479,7 +1479,7 @@ function buildHorseTable(race, raceIdx) {
     return `
       <tr class="${rowCls}">
         <td><span class="pgm-num">${esc(h.pgm)}</span></td>
-        <td>${esc(h.name)}${nameFlag}<button class="expand-btn" onclick="toggleExpand(this)" title="Show metrics">▶</button></td>
+        <td>${esc(h.name)}${h.run_style ? ` <span class="pace-pill pace-normal" title="BRIS run style">${esc(h.run_style)}</span>` : ''}${h.layoff ? ` <span class="pace-pill pace-hot" title="days since last race">L${esc(h.layoff)}</span>` : ''}${nameFlag}<button class="expand-btn" onclick="toggleExpand(this)" title="Show metrics">▶</button></td>
         <td>${esc(h.ml)}</td>
         <td>${esc(h.ws4)}</td>
         <td>${esc(h.trend)}</td>
@@ -1488,6 +1488,7 @@ function buildHorseTable(race, raceIdx) {
         <td>${esc(h.ped)}</td>
         <td>${esc(h.tj)}</td>
         <td>${esc(h.pce)}</td>
+        <td>${esc(h.q || '-')}</td>
         <td>${esc(h.val)}</td>
         <td><span class="comp-val ${ccls}">${esc(h.comp)}</span></td>
         <td>${pWinBadge(h)}</td>
@@ -1495,7 +1496,7 @@ function buildHorseTable(race, raceIdx) {
         <td>${esc(h.edge || '--')}${h.overlay ? ' <span title="advisory — vs morning line">▲</span>' : ''}${h.val_watch ? ' <span title="val_n ≥ 8 tracker">◆</span>' : ''}</td>
       </tr>
       <tr class="horse-expand hidden">
-        <td colspan="15">
+        <td colspan="16">
           <div class="horse-expand-grid">
             <div class="hx-item"><span class="hx-label">ML</span><span class="hx-val">${esc(h.ml)}</span></div>
             <div class="hx-item"><span class="hx-label">WS4</span><span class="hx-val">${esc(h.ws4)}</span></div>
@@ -1506,6 +1507,7 @@ function buildHorseTable(race, raceIdx) {
             <div class="hx-item"><span class="hx-label">T/J</span><span class="hx-val">${esc(h.tj)}</span></div>
             <div class="hx-item"><span class="hx-label">Pce</span><span class="hx-val">${esc(h.pce)}</span></div>
             <div class="hx-item"><span class="hx-label">Val</span><span class="hx-val">${esc(h.val)}</span></div>
+            ${h.wet ? `<div class="hx-item"><span class="hx-label">Wet</span><span class="hx-val">${esc(h.wet)}</span></div>` : ''}
           </div>
         </td>
       </tr>`;
@@ -1518,7 +1520,7 @@ function buildHorseTable(race, raceIdx) {
           <tr>
             <th>#</th><th>Horse</th><th>ML</th>
             <th>WS4</th><th>Trend</th><th>FCI</th><th>vPar</th>
-            <th>Ped</th><th>T/J</th><th>Pce</th><th>Val</th>
+            <th>Ped</th><th>T/J</th><th>Pce</th><th>Q</th><th>Val</th>
             <th>Comp</th><th>P(win)</th><th>Fair</th><th>Edge</th>
           </tr>
         </thead>

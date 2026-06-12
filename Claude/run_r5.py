@@ -175,6 +175,10 @@ def main():
     parser.add_argument("--pdf",  action="store_true", help="Save output to PDF (one page per race)")
     parser.add_argument("--track", action="store_true",
                         help="Log picks to SQLite results DB (opt-in)")
+    parser.add_argument("--wet", action="store_true",
+                        help="Today's track is OFF (muddy/sloppy/soft/yielding/good) — "
+                             "show wet-form lines for contenders. Track condition is a "
+                             "race-day input; the DRF cannot carry it.")
     args = parser.parse_args()
 
     drf_path = args.drf_file
@@ -311,7 +315,7 @@ def main():
                   "Also-Eligible (AE) horses that draw in if scratches occur.")
             print()
 
-        report(active_field)
+        report(active_field, wet=args.wet)
 
     if args.race:
         run_report_with_scratch_notice(horses)
