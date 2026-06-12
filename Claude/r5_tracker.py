@@ -238,7 +238,7 @@ def settle_rank3_bets():
         won    = 1 if row["won"] else 0
         sp     = row["sp_odds"]
         payoff = sp if (won and sp) else None
-        profit = (sp * 2) if (won and sp) else (-2.0)
+        profit = (sp - 2.0) if (won and sp) else (-2.0)  # sp_odds = mutuel payout per $2
         conn.execute(
             "UPDATE rank3_tracker SET result=?, sp_odds=?, payoff=?, profit=? WHERE id=?",
             (won, sp, payoff, profit, row["id"]))
