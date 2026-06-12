@@ -1166,9 +1166,77 @@ const btnViewSummary   = document.getElementById('btnViewSummary');
 const btnViewDetail    = document.getElementById('btnViewDetail');
 const btnViewAnalytics = document.getElementById('btnViewAnalytics');
 
+/* ── File System Access API — IndexedDB handle persistence ────────────────
+   Stores the last FileSystemFileHandle for the DRF picker and the PDF
+   picker separately so each opens in the folder it was last used from.
+   Falls back to the hidden <input type="file"> on non-supporting browsers.
+   ─────────────────────────────────────────────────────────────────────── */
+const _IDB_NAME  = 'r5_handles';
+const _IDB_STORE = 'handles';
+
+function _openHandleDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(_IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(_IDB_STORE);
+    req.onsuccess = e => res(e.target.result);
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+async function _saveHandle(key, handle) {
+  try {
+    const db = await _openHandleDB();
+    await new Promise((res, rej) => {
+      const tx = db.transaction(_IDB_STORE, 'readwrite');
+      tx.objectStore(_IDB_STORE).put(handle, key);
+      tx.oncomplete = res; tx.onerror = rej;
+    });
+  } catch(e) { /* non-fatal */ }
+}
+async function _loadHandle(key) {
+  try {
+    const db = await _openHandleDB();
+    return await new Promise(res => {
+      const tx  = db.transaction(_IDB_STORE, 'readonly');
+      const req = tx.objectStore(_IDB_STORE).get(key);
+      req.onsuccess = e => res(e.target.result || null);
+      req.onerror   = () => res(null);
+    });
+  } catch(e) { return null; }
+}
+
+async function openDrfPicker() {
+  if (!window.showOpenFilePicker) { fileInput.click(); return; }
+  try {
+    const last = await _loadHandle('drf_last');
+    const handles = await window.showOpenFilePicker({
+      multiple: true,
+      startIn: last || 'downloads',
+      types: [{ description: 'BRIS DRF / ZIP', accept: { '*/*': ['.drf','.DRF','.zip','.ZIP'] } }]
+    });
+    if (handles.length) {
+      await _saveHandle('drf_last', handles[0]);
+      addFiles(await Promise.all(handles.map(h => h.getFile())));
+    }
+  } catch(e) { if (e.name !== 'AbortError') fileInput.click(); }
+}
+
+async function openPdfPicker() {
+  if (!window.showOpenFilePicker) { getResultFileInput().click(); return; }
+  try {
+    const last = await _loadHandle('pdf_last');
+    const [handle] = await window.showOpenFilePicker({
+      multiple: false,
+      startIn: last || 'documents',
+      types: [{ description: 'PDF results chart', accept: { 'application/pdf': ['.pdf','.PDF'] } }]
+    });
+    await _saveHandle('pdf_last', handle);
+    updateResultFile((await handle.getFile()).name);
+  } catch(e) { if (e.name !== 'AbortError') getResultFileInput().click(); }
+}
+
 /* ── Upload zone ───────────────────────────────────────────────────────── */
-dropZone.addEventListener('click', () => fileInput.click());
-dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+dropZone.addEventListener('click', openDrfPicker);
+dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openDrfPicker(); });
 
 dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
@@ -2248,8 +2316,8 @@ resPdfPath.addEventListener('input', updateLogBtn);
 // Wire up result drop zone — captures filename for display + auto-fills path
 function getResultFileInput() { return document.getElementById('resultFileInput'); }
 
-resultDropZone.addEventListener('click', () => getResultFileInput().click());
-resultDropZone.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') getResultFileInput().click(); });
+resultDropZone.addEventListener('click', openPdfPicker);
+resultDropZone.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') openPdfPicker(); });
 resultDropZone.addEventListener('dragover',  e => { e.preventDefault(); resultDropZone.classList.add('over'); });
 resultDropZone.addEventListener('dragleave', () => resultDropZone.classList.remove('over'));
 resultDropZone.addEventListener('drop', e => {
