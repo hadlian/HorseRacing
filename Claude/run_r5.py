@@ -179,6 +179,9 @@ def main():
                         help="Today's track is OFF (muddy/sloppy/soft/yielding/good) — "
                              "show wet-form lines for contenders. Track condition is a "
                              "race-day input; the DRF cannot carry it.")
+    parser.add_argument("--year", type=int, default=None,
+                        help="Override the race year (e.g. --year 2025 for backfill cards). "
+                             "Default: current calendar year.")
     args = parser.parse_args()
 
     drf_path = args.drf_file
@@ -195,7 +198,7 @@ def main():
         track   = Path(drf_path).stem[:3].upper()
         mmdd    = Path(drf_path).stem[3:7]
         from datetime import date as _date_cls
-        date_str = str(_date_cls.today().year) + mmdd
+        date_str = str(args.year or _date_cls.today().year) + mmdd
 
         # Collect top 3 horses per race by raw WS4 (pre-finalize best proxy)
         _by_race_raw = _dd(list)
@@ -335,10 +338,10 @@ def main():
 
         track_code = Path(drf_path).stem[:3].upper()
         drf_date   = Path(drf_path).stem[3:7]
-        # Derive date: stem is e.g. DBY0502 → track=DBY, mmdd=0502, year from today
+        # Derive date: stem is e.g. DBY0502 → track=DBY, mmdd=0502, year from today or --year
         from datetime import date as _date
         mmdd       = Path(drf_path).stem[3:7]
-        year       = str(_date.today().year)
+        year       = str(args.year or _date.today().year)
         date_str   = year + mmdd  # e.g. 20260502
 
         active_for_db = [h for h in horses if not h.get("scratched")]
@@ -385,7 +388,7 @@ def main():
         pdf_out    = Path(drf_path).stem + "_R5.pdf"
 
         from datetime import date as _date
-        year     = str(_date.today().year)
+        year     = str(args.year or _date.today().year)
         date_str = year + mmdd
 
         _pdfmod.generate_pdf(

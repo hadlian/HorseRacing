@@ -97,7 +97,8 @@ def extract_drfs(zip_path: Path, dest: Path) -> list[Path]:
 
 
 def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = False,
-           log_to_db: bool = False, want_wet: bool = False) -> tuple[str, Path | None, str]:
+           log_to_db: bool = False, want_wet: bool = False,
+           year_override: int | None = None) -> tuple[str, Path | None, str]:
     """Returns (stdout_text, pdf_path_or_None, warning_string)."""
     cmd = [R5_PYTHON, str(CLAUDE_DIR / "run_r5.py"), str(drf_path)]
     if want_scout:
@@ -108,6 +109,8 @@ def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = Fa
         cmd.append("--track")
     if want_wet:
         cmd.append("--wet")
+    if year_override:
+        cmd += ["--year", str(year_override)]
 
     # PYTHONUTF8=1 forces UTF-8 stdout/stderr on Windows (avoids cp1252 emoji crash)
     import os as _os
@@ -463,6 +466,8 @@ def analyze():
     want_cm     = request.form.get("cm",      "false").lower() == "true" and CM_AVAILABLE
     log_to_db   = request.form.get("log_db",  "false").lower() == "true"
     want_wet    = request.form.get("wet",     "false").lower() == "true"
+    _yr_raw     = request.form.get("year_override", "").strip()
+    year_override = int(_yr_raw) if _yr_raw.isdigit() and len(_yr_raw) == 4 else None
 
     job_id  = str(uuid.uuid4())
     work_dir = WORK_BASE / job_id
@@ -494,7 +499,7 @@ def analyze():
 
         for drf in drfs:
             try:
-                text, pdf_path, warning = run_r5(drf, work_dir, want_pdf, want_scout, log_to_db, want_wet)
+                text, pdf_path, warning = run_r5(drf, work_dir, want_pdf, want_scout, log_to_db, want_wet, year_override)
                 drf_races = parse_output(text)
 
                 # Extract track/date from DRF stem for DB ops
