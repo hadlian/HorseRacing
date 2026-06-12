@@ -121,7 +121,7 @@ def main():
     conn.row_factory = sqlite3.Row
 
     races = conn.execute(
-        "SELECT * FROM races WHERE result_fetched=1 ORDER BY date").fetchall()
+        "SELECT * FROM races WHERE result_fetched=1 AND is_backtest=0 ORDER BY date").fetchall()
 
     n_matched = n_changed = 0
     deltas = []

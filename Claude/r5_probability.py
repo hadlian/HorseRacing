@@ -48,6 +48,12 @@ VAL_BET_SIZE     = 2.0
 def get_conn():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    # Guard: add is_backtest column if this DB predates 2026-06-12
+    try:
+        conn.execute("ALTER TABLE races ADD COLUMN is_backtest INTEGER DEFAULT 0")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
     return conn
 
 
@@ -85,7 +91,7 @@ def _load_fit_races(conn):
     winner lacks comp_ex_val are dropped and counted."""
     races, dropped = [], 0
     for race in conn.execute(
-            "SELECT id FROM races WHERE result_fetched=1").fetchall():
+            "SELECT id FROM races WHERE result_fetched=1 AND is_backtest=0").fetchall():
         rows = conn.execute(
             "SELECT comp_ex_val x, won FROM picks WHERE race_id=? "
             "AND finish_pos IS NOT NULL AND finish_pos != -1", (race["id"],)
@@ -218,7 +224,8 @@ def calibration_report(db_path=DB_PATH):
     rows = conn.execute("""
         SELECT p.p_win, p.won, p.model_rank FROM picks p
         JOIN races r ON r.id=p.race_id
-        WHERE r.result_fetched=1 AND p.p_win IS NOT NULL
+        WHERE r.result_fetched=1 AND r.is_backtest=0
+          AND p.p_win IS NOT NULL
           AND p.finish_pos IS NOT NULL AND p.finish_pos != -1
     """).fetchall()
 

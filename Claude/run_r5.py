@@ -182,6 +182,8 @@ def main():
     parser.add_argument("--year", type=int, default=None,
                         help="Override the race year (e.g. --year 2025 for backfill cards). "
                              "Default: current calendar year.")
+    parser.add_argument("--backtest", action="store_true",
+                        help="Tag these races as backtest (is_backtest=1); excluded from live analytics")
     args = parser.parse_args()
 
     drf_path = args.drf_file
@@ -350,7 +352,8 @@ def main():
             db_by_race[h["race"]].append(h)
         print("\n📋 Logging picks to DB...")
         for race_num, race_horses in sorted(db_by_race.items(), key=lambda x: int(x[0])):
-            _tmod.log_race_picks(race_horses, track_code, date_str, race_num)
+            _tmod.log_race_picks(race_horses, track_code, date_str, race_num,
+                                 is_backtest=args.backtest)
 
     # Save if requested
     if args.save:
