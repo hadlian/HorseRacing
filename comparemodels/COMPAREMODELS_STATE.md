@@ -285,13 +285,24 @@ Isolation rules:
 
 ---
 
-## Advisory Conclusion
+## Advisory Conclusion — REVISED 2026-06-11 (corrected ROI; supersedes everything above)
 
-CM and R5 tied on raw win rate (25.4% each). SP ROI diverges significantly: R5 +93.0% vs CM +50.6% — R5 finds better-priced winners. ML ROI is negative for both (−7.3% R5, −6.7% CM).
+> The "+93.0% / +50.6% SP ROI" figures were accounting artifacts (formula treated $2 mutuel
+> payoffs as decimal odds). Corrected on the 152-race SAR-inclusive aligned universe
+> ($2 flat win bets): **CM rank-1 −21.9% (25.7% win) · R5 rank-1 −16.8% (23.3% win)**.
+> Neither model beats takeout on win bets. Authoritative tables:
+> `results/SIGNAL_VALIDATION_20260611.md` and `results/CORRECTED_BASELINE_2026-06.md`.
 
-**Recommended deployment:** CM as a supplemental confidence filter on R5 selections.
-- When R5 top pick also has CM consensus ≥ 4 → increased confidence, consider higher bet size
-- When R5 top pick also has Prime Power underline → strongest CM confirmation signal (33.3%)
-- When R5 and CM disagree AND CM consensus < 4 → lean R5
-- Do NOT use CM as standalone replacement for R5
-- Do NOT use Overlay Watch until definition is revised (CM-1)
+**Every confirmation-filter deployment of CM failed corrected-ROI testing and is withdrawn:**
+- Consensus ≥ 4: fires on 91% of races post field-fix (saturated), −20.5% ROI; all levels negative
+- Agreement boost (R5+CM same pick → bet more): 32.2% win but **−22.9% ROI** — chalk trap
+- PP underline on R5 top pick: −13.9% ROI (stacking raises win%, lowers price)
+- Overlay Watch: remains broken (CM-1), remains retired
+
+**Retained roles for CM:**
+- **Divergence flag** — disagreement races are the candidate value zone (bet-R5 leg −12.8%,
+  best relative leg, single-outlier sensitive; unproven, tracked)
+- **Exotics contender-set generator** — CM rank-2 is +3.6% ROI (22.4% win), the CM analogue
+  of R5's rank-3 (+17.4%): each model's near-miss slot is where the market misprices.
+  Contender set: CM ranks 1–2 ∪ R5 ranks 1–3, pending the Issue 15 payoff-capture backtest.
+- Do NOT use CM as a standalone betting model; do NOT resume any confidence-filter use.

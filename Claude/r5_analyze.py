@@ -41,7 +41,8 @@ C_ORANGE  = "E67E22"
 C_WHITE   = "FFFFFF"
 C_LIGHT   = "F5F5F5"
 
-COMPONENTS = ["fci_n", "class_n", "bias_n", "tj_n", "form_n", "ped_n", "val_n"]
+COMPONENTS = ["fci_n", "class_n", "bias_n", "tj_n", "form_n", "ped_n", "val_n",
+              "best_dist_n", "pp_n"]
 COMP_LABELS = {
     "fci_n":   "FCI (Speed/Trend)",
     "class_n": "Class vs Par",
@@ -50,6 +51,8 @@ COMP_LABELS = {
     "form_n":  "Form Angle",
     "ped_n":   "Pedigree",
     "val_n":   "Value vs ML",
+    "best_dist_n": "Best @ Distance",
+    "pp_n":    "Prime Power",
 }
 
 
@@ -86,10 +89,14 @@ def pct(num, den):
     return round(num / den * 100, 1) if den else 0.0
 
 
-def roi(wins, total_bets, avg_sp):
+def roi(sp_payoffs, n_wins, total_bets):
+    """ROI% for $2 flat win bets.
+    sp_payoffs: list of $2 mutuel payoffs for winners with a recorded SP.
+    Winners with no recorded payoff are counted as stake-back ($2 return)."""
     if not total_bets:
         return 0.0
-    return round((wins * avg_sp - total_bets) / total_bets * 100, 1)
+    total_return = sum(sp_payoffs) + 2 * (n_wins - len(sp_payoffs))
+    return round((total_return - 2 * total_bets) / (2 * total_bets) * 100, 1)
 
 
 def safe_avg(values):
@@ -170,7 +177,7 @@ def calc_summary(races, picks):
         "value_wins":     len(value_wins),
         "value_pct":      pct(len(value_wins), len(value_plays)),
         "value_avg_sp":   safe_avg(value_sp),
-        "value_roi":      roi(len(value_wins), len(value_plays), safe_avg(value_sp) or 0),
+        "value_roi":      roi(value_sp, len(value_wins), len(value_plays)),
         "high_picks":     len(high_picks),
         "high_wins":      len(high_wins),
         "high_pct":       pct(len(high_wins), len(high_picks)),
@@ -300,7 +307,7 @@ def calc_value_roi(all_picks, min_val=6.0, step=0.5):
             "wins":      len(wins),
             "win_pct":   pct(len(wins), len(plays)),
             "avg_sp":    avg_sp,
-            "roi":       roi(len(wins), len(plays), avg_sp),
+            "roi":       roi(sp_list, len(wins), len(plays)),
         })
     return rows
 

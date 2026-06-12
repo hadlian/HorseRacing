@@ -151,17 +151,20 @@ def load_sheet2_data() -> list[dict]:
         # R5 ROI: top pick won?
         r5_won_flag = 1 if r5_row.get('r5_won') == 1 else 0
         r5_ml = r5_row.get('r5_ml')
-        r5_roi    = ((r5_ml * 2) - 2) if r5_won_flag and r5_ml else -2
-        r5_sp_roi = ((r5_sp_val * 2) - 2) if r5_won_flag and r5_sp_val else -2
+        # ML profit on $2 win bet at X-1 odds = 2X; SP column stores $2 mutuel
+        # payoff, so profit = payoff - 2. (Corrected 2026-06-11 — old formulas
+        # treated the payoff as decimal odds, inflating SP ROI ~2x.)
+        r5_roi    = (r5_ml * 2) if r5_won_flag and r5_ml else -2
+        r5_sp_roi = (r5_sp_val - 2) if r5_won_flag and r5_sp_val else -2
 
         # CM ROI: did CM top pick win?
         cm_result = cm_results_all.get((track, date, race_num, cm_pgm), {})
         cm_finish = cm_result.get('finish')
         cm_won = 1 if cm_finish == 1 else 0
         cm_ml = cm.get('cm_ml')
-        cm_roi    = ((cm_ml * 2) - 2) if cm_won and cm_ml else -2
+        cm_roi    = (cm_ml * 2) if cm_won and cm_ml else -2
         # CM SP ROI uses actual winner SP (same horse pays same regardless of who picked it)
-        cm_sp_roi = ((winner_sp * 2) - 2) if cm_won and winner_sp else -2
+        cm_sp_roi = (winner_sp - 2) if cm_won and winner_sp else -2
 
         rows.append({
             'date':         date,
@@ -236,7 +239,7 @@ def load_cm_signals() -> dict:
     cur.execute("""
         SELECT COUNT(*) as total,
                SUM(CASE WHEN r.finish_position=1 THEN 1 ELSE 0 END) as wins,
-               SUM(CASE WHEN r.finish_position=1 THEN (p.morning_line*2-2) ELSE -2 END) as profit,
+               SUM(CASE WHEN r.finish_position=1 THEN (p.morning_line*2) ELSE -2 END) as profit,
                COUNT(*)*2 as invested
         FROM picks p
         JOIN results r ON p.track=r.track AND p.race_date=r.race_date
@@ -646,7 +649,8 @@ def run_recalc(xlsx_path: str) -> dict:
 
 def generate_report() -> str:
     ts = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
-    out = os.path.join(REPORTS_DIR, f"comparemodels_vs_r5_63races_{ts}.xlsx")
+    n = len(load_sheet2_data())
+    out = os.path.join(REPORTS_DIR, f"comparemodels_vs_r5_{n}races_{ts}.xlsx")
 
     print(f"Building comparison report → {out}")
     build_report(out)
