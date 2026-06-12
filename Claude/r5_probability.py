@@ -38,11 +38,13 @@ BETA_PATH = ROOT / "Results" / "logit_beta.json"
 
 OVERLAY_EDGE_MIN = 0.25
 OVERLAY_P_MIN    = 0.08
-VAL_N_THRESHOLD  = 8.0
-VAL_STOP_BETS    = 30      # 0 wins in this many settled bets -> stop
-VAL_STOP_LOSS    = -60.0   # SUM(profit) floor
-VAL_MAX_PER_CARD = 2
-VAL_BET_SIZE     = 2.0
+VAL_N_THRESHOLD   = 8.0
+VAL_N_PAPER75     = 7.5    # paper-only population for n≥120 re-decision
+VAL_STOP_BETS     = 30      # 0 wins in this many settled bets -> stop
+VAL_STOP_LOSS     = -60.0   # SUM(profit) floor
+VAL_MAX_PER_CARD  = 2
+VAL_BET_SIZE      = 2.0
+VAL_MAX_RANK      = 5       # model_rank filter for both lines
 
 
 def get_conn():
@@ -72,14 +74,20 @@ def ensure_schema(conn):
             ml_odds REAL,
             bet_size REAL DEFAULT 2.0,
             is_paper INTEGER DEFAULT 1,
+            line TEXT DEFAULT 'live8',
             result INTEGER,
             payoff REAL,
             profit REAL,
             stop_triggered INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(pick_id)
+            UNIQUE(pick_id, line)
         )
     """)
+    # Add line column to existing DBs that predate this change
+    try:
+        conn.execute("ALTER TABLE val_n_tracker ADD COLUMN line TEXT DEFAULT 'live8'")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
 
 
@@ -298,7 +306,8 @@ def val_gate_state(conn):
 
 def log_val_bet(pick_id, live=False):
     """Log a val_n >= 8 qualifier. live=True requests a live bet; every gate
-    is checked here and a refused live bet is logged as paper instead."""
+    is checked here and a refused live bet is logged as paper instead.
+    line is 'live8' for live bets, 'paper8' for paper (gate-blocked or default)."""
     conn = get_conn()
     ensure_schema(conn)
     p = conn.execute(
@@ -313,6 +322,7 @@ def log_val_bet(pick_id, live=False):
 
     reason = None
     is_paper = 1
+    line = "paper8"
     if live:
         stopped, why, *_ = val_gate_state(conn)
         card_count = conn.execute("""
@@ -327,15 +337,85 @@ def log_val_bet(pick_id, live=False):
                       f"{p['track']} {p['date']}; logged as paper")
         else:
             is_paper = 0
+            line = "live8"
     conn.execute("""
         INSERT OR IGNORE INTO val_n_tracker
-        (pick_id, val_n, ml_odds, bet_size, is_paper, stop_triggered)
-        VALUES (?,?,?,?,?,?)
-    """, (pick_id, p["val_n"], p["ml_odds"], VAL_BET_SIZE, is_paper,
+        (pick_id, val_n, ml_odds, bet_size, is_paper, line, stop_triggered)
+        VALUES (?,?,?,?,?,?,?)
+    """, (pick_id, p["val_n"], p["ml_odds"], VAL_BET_SIZE, is_paper, line,
           1 if (live and reason and "hard stop" in reason) else 0))
     conn.commit()
     conn.close()
     return is_paper, reason
+
+
+def log_val_paper75(pick_id):
+    """Log a val_n >= 7.5, rank <= 5 qualifier to the paper75 line.
+    Always paper. If this pick also qualifies for live8/paper8, it is logged
+    separately in that line — both rows are independent."""
+    conn = get_conn()
+    ensure_schema(conn)
+    p = conn.execute(
+        "SELECT p.*, r.track, r.date, r.is_backtest FROM picks p "
+        "JOIN races r ON r.id=p.race_id WHERE p.id=?", (pick_id,)).fetchone()
+    if not p:
+        conn.close()
+        return None, "pick not found"
+    if (p["val_n"] or 0) < VAL_N_PAPER75:
+        conn.close()
+        return None, f"val_n {p['val_n']} below {VAL_N_PAPER75}"
+    if (p["model_rank"] or 99) > VAL_MAX_RANK:
+        conn.close()
+        return None, f"model_rank {p['model_rank']} > {VAL_MAX_RANK}"
+    if p["is_backtest"]:
+        conn.close()
+        return None, "backtest race — skipped"
+    conn.execute("""
+        INSERT OR IGNORE INTO val_n_tracker
+        (pick_id, val_n, ml_odds, bet_size, is_paper, line, stop_triggered)
+        VALUES (?,?,?,?,1,'paper75',0)
+    """, (pick_id, p["val_n"], p["ml_odds"], VAL_BET_SIZE))
+    conn.commit()
+    conn.close()
+    return 1, None
+
+
+def auto_log_val_trackers_for_race(track, date, race_num, live=False):
+    """Called automatically after log_race_picks.
+    - live8/paper8 line: val_n >= 8, model_rank <= VAL_MAX_RANK
+    - paper75 line:      val_n >= 7.5, model_rank <= VAL_MAX_RANK (always paper)
+    live=True requests live bets for the live8 line (subject to gate checks)."""
+    conn = get_conn()
+    ensure_schema(conn)
+    picks = conn.execute("""
+        SELECT p.id, p.val_n, p.model_rank FROM picks p
+        JOIN races r ON r.id = p.race_id
+        WHERE r.track=? AND r.date=? AND r.race_num=?
+          AND r.is_backtest=0
+          AND p.model_rank <= ?
+          AND (p.val_n IS NOT NULL AND p.val_n >= ?)
+    """, (track, date, str(race_num), VAL_MAX_RANK, VAL_N_PAPER75)).fetchall()
+    conn.close()
+
+    logged8, logged75 = [], []
+    for p in picks:
+        val = p["val_n"]
+        pid = p["id"]
+        if val >= VAL_N_THRESHOLD:
+            is_paper, reason = log_val_bet(pid, live=live)
+            tag = "paper8" if is_paper else "live8"
+            logged8.append((pid, val, tag, reason))
+        # paper75 always logged for the complete >= 7.5 population
+        log_val_paper75(pid)
+        logged75.append((pid, val))
+
+    if logged8:
+        for pid, val, tag, reason in logged8:
+            note = f" ({reason})" if reason else ""
+            print(f"  💰 val_n {val:.1f} [{tag}] pick_id={pid}{note}")
+    if logged75:
+        print(f"  📝 paper75 logged: {len(logged75)} qualifier(s)")
+    return logged8, logged75
 
 
 def settle_val_bets():
@@ -391,9 +471,20 @@ def main():
         ensure_schema(conn)
         stopped, why, settled, wins, profit = val_gate_state(conn)
         total = conn.execute("SELECT COUNT(*) FROM val_n_tracker").fetchone()[0]
-        print(f"val_n tracker: {total} logged | live settled {settled}, "
+        print(f"val_n tracker: {total} logged | live/paper8 settled {settled}, "
               f"wins {wins}, profit ${profit:.2f}")
         print(f"hard stop: {'TRIGGERED — ' + why if stopped else 'clear'}")
+        # paper75 line summary
+        p75 = conn.execute("""
+            SELECT COUNT(*) n, COALESCE(SUM(result),0) wins, COALESCE(SUM(profit),0) profit
+            FROM val_n_tracker WHERE line='paper75' AND result IS NOT NULL
+        """).fetchone()
+        p75_total = conn.execute(
+            "SELECT COUNT(*) FROM val_n_tracker WHERE line='paper75'"
+        ).fetchone()[0]
+        roi75 = p75["profit"] / (p75["n"] * 2) * 100 if p75["n"] else 0
+        print(f"paper75 line: {p75_total} logged | settled {p75['n']} | "
+              f"wins {p75['wins']} | profit ${p75['profit']:.2f} | ROI {roi75:.1f}%")
         conn.close()
 
     if not any([args.fit, args.calibrate, args.val_status]):

@@ -3,15 +3,22 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-06-12 (is_backtest guardrail complete)
+> **Last updated:** 2026-06-12 (pre-SAR instrumentation: pace diagnostic, rank-3 paper logger, val_n paper75 line, backtest audit)
 > **Current version:** R5 v3.10 | CompareModels v1.1
 > **Deployment target:** Saratoga 2026 — opens July 3, 2026
 >
 > **Canonical baseline denominator:** `races WHERE result_fetched=1 AND is_backtest=0` = **160 resolved live races** (as of 2026-06-12). Backtest cards (SAR 2025 Jul 12/23, Aug 2) live in production DB tagged `is_backtest=1`; log future historical cards with `--backtest` flag (CLI) or Year override field (webapp). All analytics, β fit, and calibration exclude backtest rows automatically.
 >
 > **Current performance (160-race clean baseline, 2026-06-12):**
-> Top pick win 22.9% | ROI **−18.5%** | Rank-3 ROI **+17.4%** (only positive slot)
+> Top pick win 22.9% | ROI **−18.5%** | Rank-3 ROI **+158.0%** on 35/151 (suspicious concentration — 6 winners one LRL card; see pace session notes)
 > Play/spread gate RETIRED | Tier ladder RETIRED | Overlay live win betting NOT AUTHORIZED
+>
+> **Pace diagnostic result:** E/EP win-share ≈ starter-share within each scenario (HOT: 23.5% wins / 25.5% starters; SLOW: 21.7% / 10.7%). No pace dynamic — scenario table was measuring field composition.
+>
+> **Paper trackers running from day 1 (auto-logged by run_r5.py --track):**
+> - `rank3_tracker`: $2 flat paper bet on every rank-3 pick, every race
+> - `val_n_tracker` line=paper75: $2 flat paper bet on val_n ≥7.5, model_rank ≤5 (complete population for n≥120 re-decision)
+> - `val_n_tracker` line=paper8/live8: val_n ≥8 under guardrails (unchanged); live requires `--live` flag
 >
 > **In-meet key numbers to watch:**
 > STANDOUT keys 0-for-10 (−100%); DEFAULT EX box −35.1%; TIGHT TRI box +384.7% (2 hits in 4 cards)
@@ -41,6 +48,7 @@
 - **Decision:** Is the threshold right? Adjust to ≥8 or ≥9? Or widen rank filter?
 - **Guardrails in place from day 1** (flat $2, max 2/card, hard stop: 0 wins in 30 bets OR SUM(profit) < −$60)
 - **Script:** `r5_probability.py` `log_val_bet()` + `val_n_tracker` table in DB
+- **paper75 line running from day 1:** complete ≥7.5 population logged as `line='paper75'` for n≥120 comparison. Use `python3 Claude/r5_probability.py --val-status` for both-line status.
 
 ### ⏳ Mid-July 2026 — Live odds capture build (Issue 16)
 - **Scope:** Fetch live tote odds snapshot near post time; add Live column to report; optionally recompute val_n using live odds rank
@@ -119,6 +127,14 @@
 - +2 bonus silently skipped. Engine bug (would have been +16) patched 2026-05-29.
 
 ---
+
+## ✅ COMPLETED — Session pre-SAR instrumentation (2026-06-12)
+
+- **Pace lift diagnostic:** E/EP win-share ≈ starter-share in all three scenarios (HOT/NORMAL/SLOW). Conclusion: pace scenario was measuring field composition, not a true pace dynamic. No action needed.
+- **Rank-3 paper logger:** `rank3_tracker` table; auto-logged via `log_race_picks` (runs every card). Settled via `r5_results_cli.py` STEP 5. Status: `r5_tracker.rank3_status()`.
+- **val_n ≥7.5 paper line:** `val_n_tracker` `line='paper75'` for val_n ≥7.5 AND model_rank ≤5. Auto-logged via `run_r5.py --track`. Status: `python3 Claude/r5_probability.py --val-status`.
+- **val_n ≥8 wired to card workflow:** Auto-logs as `paper8` from `run_r5.py --track`; use `--live` flag for live bets (subject to gate). Both lines share `val_n_tracker`, distinguished by `line` column.
+- **Backtest audit (b990cc7 gap):** `r5_exotics.py generate_card` and `settle_card` now filter `is_backtest=0`. `report()` query joins to races. `val_n_tracker` entries = 0 backtest rows (clean). `exotic_tickets` = 0 backtest rows (clean).
 
 ## ✅ COMPLETED — Session 3A (2026-06-12, commit 72d72ca)
 

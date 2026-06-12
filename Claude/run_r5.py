@@ -184,6 +184,8 @@ def main():
                              "Default: current calendar year.")
     parser.add_argument("--backtest", action="store_true",
                         help="Tag these races as backtest (is_backtest=1); excluded from live analytics")
+    parser.add_argument("--live", action="store_true",
+                        help="Request live val_n >=8 bets (subject to gate checks); default is paper")
     args = parser.parse_args()
 
     drf_path = args.drf_file
@@ -354,6 +356,17 @@ def main():
         for race_num, race_horses in sorted(db_by_race.items(), key=lambda x: int(x[0])):
             _tmod.log_race_picks(race_horses, track_code, date_str, race_num,
                                  is_backtest=args.backtest)
+
+        if not args.backtest:
+            import importlib.util as _ilu2
+            _ppath = Path(__file__).parent / "r5_probability.py"
+            _pspec = _ilu2.spec_from_file_location("r5_probability", _ppath)
+            _pmod  = _ilu2.module_from_spec(_pspec)
+            _pspec.loader.exec_module(_pmod)
+            print("\n📝 Auto-logging val_n paper trackers...")
+            for race_num in sorted(db_by_race.keys(), key=lambda x: int(x)):
+                _pmod.auto_log_val_trackers_for_race(
+                    track_code, date_str, race_num, live=getattr(args, "live", False))
 
     # Save if requested
     if args.save:

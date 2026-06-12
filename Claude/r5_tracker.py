@@ -112,6 +112,17 @@ def init_db():
             finish_pos   INTEGER,
             won          INTEGER DEFAULT 0
         );
+
+        CREATE TABLE IF NOT EXISTS rank3_tracker (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            pick_id    INTEGER UNIQUE NOT NULL REFERENCES picks(id),
+            bet_size   REAL DEFAULT 2.0,
+            result     INTEGER,
+            sp_odds    REAL,
+            payoff     REAL,
+            profit     REAL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
     """)
     conn.commit()
     return conn
@@ -199,9 +210,58 @@ def log_race_picks(horses, track, date, race_num, is_backtest=False):
               int(h["best_off"]) if h.get("best_off") else None,
               json.dumps(h.get("trnr_stats")) if h.get("trnr_stats") else None))
 
+    # Auto-log rank-3 paper bet ($2 flat)
+    r3 = conn.execute(
+        "SELECT id FROM picks WHERE race_id=? AND model_rank=3", (race_id,)
+    ).fetchone()
+    if r3 and not is_backtest:
+        conn.execute(
+            "INSERT OR IGNORE INTO rank3_tracker (pick_id) VALUES (?)", (r3[0],)
+        )
+
     conn.commit()
     conn.close()
     print(f"  📋 Logged {len(ranked)} picks → {track} {date} Race {race_num} [{pace_scenario} PACE]")
+
+
+def settle_rank3_bets():
+    """Settle pending rank3_tracker rows from pick results."""
+    conn = init_db()
+    n = 0
+    for row in conn.execute("""
+        SELECT rt.id, p.won, p.sp_odds, p.finish_pos
+        FROM rank3_tracker rt JOIN picks p ON p.id = rt.pick_id
+        WHERE rt.result IS NULL AND p.finish_pos IS NOT NULL
+    """).fetchall():
+        if row["finish_pos"] == -1:
+            continue
+        won    = 1 if row["won"] else 0
+        sp     = row["sp_odds"]
+        payoff = sp if (won and sp) else None
+        profit = (sp * 2) if (won and sp) else (-2.0)
+        conn.execute(
+            "UPDATE rank3_tracker SET result=?, sp_odds=?, payoff=?, profit=? WHERE id=?",
+            (won, sp, payoff, profit, row["id"]))
+        n += 1
+    conn.commit()
+    conn.close()
+    return n
+
+
+def rank3_status():
+    """Print rank3_tracker summary."""
+    conn = init_db()
+    row = conn.execute("""
+        SELECT COUNT(*) n, COALESCE(SUM(result),0) wins,
+               COALESCE(SUM(profit),0) profit
+        FROM rank3_tracker WHERE result IS NOT NULL
+    """).fetchone()
+    total = conn.execute("SELECT COUNT(*) FROM rank3_tracker").fetchone()[0]
+    conn.close()
+    settled, wins, profit = row["n"], row["wins"], row["profit"]
+    roi = profit / (settled * 2) * 100 if settled else 0
+    print(f"rank3_tracker: {total} logged | settled {settled} | wins {wins} | "
+          f"profit ${profit:.2f} | ROI {roi:.1f}%")
 
 
 # ── RESULT FETCHING ───────────────────────────────────────────────────────────
