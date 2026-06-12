@@ -57,6 +57,11 @@ def get_conn():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
+    try:
+        conn.execute("ALTER TABLE races ADD COLUMN is_backtest INTEGER DEFAULT 0")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
     return conn
 
 
@@ -76,6 +81,7 @@ def init_db():
             speed_count    INTEGER,
             logged_at      TEXT DEFAULT (datetime('now')),
             result_fetched INTEGER DEFAULT 0,
+            is_backtest    INTEGER DEFAULT 0,
             UNIQUE(track, date, race_num)
         );
 
@@ -113,7 +119,7 @@ def init_db():
 
 # ── LOGGING (called from run_r5.py) ──────────────────────────────────────────
 
-def log_race_picks(horses, track, date, race_num):
+def log_race_picks(horses, track, date, race_num, is_backtest=False):
     """
     Save R5 pick set for one race to the database.
     horses: finalized, scout-adjusted, scratch-removed list for this race.
@@ -133,16 +139,17 @@ def log_race_picks(horses, track, date, race_num):
 
     cur = conn.execute("""
         INSERT INTO races (track, date, race_num, surface, dist_f,
-                           race_type, purse, pace_scenario, speed_count)
-        VALUES (?,?,?,?,?,?,?,?,?)
+                           race_type, purse, pace_scenario, speed_count, is_backtest)
+        VALUES (?,?,?,?,?,?,?,?,?,?)
         ON CONFLICT(track,date,race_num) DO UPDATE SET
             surface=excluded.surface, dist_f=excluded.dist_f,
             race_type=excluded.race_type, purse=excluded.purse,
             pace_scenario=excluded.pace_scenario, speed_count=excluded.speed_count,
-            logged_at=datetime('now'), result_fetched=0
+            logged_at=datetime('now'), result_fetched=0,
+            is_backtest=excluded.is_backtest
     """, (track, date, str(race_num),
           h0.get("surface"), dist_f, h0.get("race_type"),
-          h0.get("purse"), pace_scenario, speed_count))
+          h0.get("purse"), pace_scenario, speed_count, 1 if is_backtest else 0))
 
     race_id = cur.lastrowid or conn.execute(
         "SELECT id FROM races WHERE track=? AND date=? AND race_num=?",
@@ -492,7 +499,7 @@ def show_status():
         SELECT r.track, r.date, r.race_num, r.purse, r.pace_scenario,
                COUNT(p.id) as n
         FROM races r JOIN picks p ON p.race_id=r.id
-        WHERE r.result_fetched=0
+        WHERE r.result_fetched=0 AND r.is_backtest=0
         GROUP BY r.id ORDER BY r.date DESC, CAST(r.race_num AS INT)
     """).fetchall()
 
@@ -504,9 +511,10 @@ def show_status():
     else:
         print("\n  No pending results")
 
-    done  = conn.execute("SELECT COUNT(*) FROM races WHERE result_fetched=1").fetchone()[0]
-    total = conn.execute("SELECT COUNT(*) FROM races").fetchone()[0]
-    print(f"\n✅ Completed: {done} / {total} races logged")
+    done  = conn.execute("SELECT COUNT(*) FROM races WHERE result_fetched=1 AND is_backtest=0").fetchone()[0]
+    total = conn.execute("SELECT COUNT(*) FROM races WHERE is_backtest=0").fetchone()[0]
+    bt    = conn.execute("SELECT COUNT(*) FROM races WHERE is_backtest=1").fetchone()[0]
+    print(f"\n✅ Completed: {done} / {total} live races logged" + (f"  ({bt} backtest excluded)" if bt else ""))
 
     if done >= 10:
         print(f"\n🟢 Ready for analysis — run: python3 r5_analyze.py")
@@ -530,6 +538,8 @@ def main():
                         help="Bulk load from CSV file")
     parser.add_argument("--finalize", nargs=2, metavar=("TRACK","DATE"),
                         help="Detect NULL finish positions and mark as late scratches (e.g. CD 20260514)")
+    parser.add_argument("--backtest", action="store_true",
+                        help="Tag logged races as backtest (is_backtest=1); excluded from analytics")
     args = parser.parse_args()
 
     if args.fetch:

@@ -3,12 +3,14 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-06-12 (Session 3A complete; system feature-frozen for Saratoga)
+> **Last updated:** 2026-06-12 (is_backtest guardrail complete)
 > **Current version:** R5 v3.10 | CompareModels v1.1
 > **Deployment target:** Saratoga 2026 — opens July 3, 2026
 >
-> **Current performance (174-race DB, corrected 2026-06-11):**
-> Top pick win 23.1% | ROI **−18.5%** | Rank-3 ROI **+17.4%** (only positive slot)
+> **Canonical baseline denominator:** `races WHERE result_fetched=1 AND is_backtest=0` = **160 resolved live races** (as of 2026-06-12). Backtest cards (SAR 2025 Jul 12/23, Aug 2) live in production DB tagged `is_backtest=1`; log future historical cards with `--backtest` flag (CLI) or Year override field (webapp). All analytics, β fit, and calibration exclude backtest rows automatically.
+>
+> **Current performance (160-race clean baseline, 2026-06-12):**
+> Top pick win 22.9% | ROI **−18.5%** | Rank-3 ROI **+17.4%** (only positive slot)
 > Play/spread gate RETIRED | Tier ladder RETIRED | Overlay live win betting NOT AUTHORIZED
 >
 > **In-meet key numbers to watch:**

@@ -65,6 +65,12 @@ def get_conn():
         sys.exit(1)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    # Guard: add is_backtest column if this DB predates 2026-06-12
+    try:
+        conn.execute("ALTER TABLE races ADD COLUMN is_backtest INTEGER DEFAULT 0")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass
     return conn
 
 
@@ -108,7 +114,7 @@ def safe_avg(values):
 
 def load_data(track_filter=None):
     conn = get_conn()
-    where = "WHERE r.result_fetched=1"
+    where = "WHERE r.result_fetched=1 AND r.is_backtest=0"
     params = []
     if track_filter:
         where += " AND r.track=?"

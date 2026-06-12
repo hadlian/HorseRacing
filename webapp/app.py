@@ -111,6 +111,7 @@ def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = Fa
         cmd.append("--wet")
     if year_override:
         cmd += ["--year", str(year_override)]
+        cmd.append("--backtest")  # non-current-year cards are always backtest
 
     # PYTHONUTF8=1 forces UTF-8 stdout/stderr on Windows (avoids cp1252 emoji crash)
     import os as _os
