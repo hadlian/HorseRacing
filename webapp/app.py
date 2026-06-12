@@ -97,7 +97,7 @@ def extract_drfs(zip_path: Path, dest: Path) -> list[Path]:
 
 
 def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = False,
-           log_to_db: bool = False) -> tuple[str, Path | None, str]:
+           log_to_db: bool = False, want_wet: bool = False) -> tuple[str, Path | None, str]:
     """Returns (stdout_text, pdf_path_or_None, warning_string)."""
     cmd = [R5_PYTHON, str(CLAUDE_DIR / "run_r5.py"), str(drf_path)]
     if want_scout:
@@ -106,6 +106,8 @@ def run_r5(drf_path: Path, work_dir: Path, want_pdf: bool, want_scout: bool = Fa
         cmd.append("--pdf")
     if log_to_db:
         cmd.append("--track")
+    if want_wet:
+        cmd.append("--wet")
 
     # PYTHONUTF8=1 forces UTF-8 stdout/stderr on Windows (avoids cp1252 emoji crash)
     import os as _os
@@ -460,6 +462,7 @@ def analyze():
     want_scout  = request.form.get("scout",   "false").lower() == "true"
     want_cm     = request.form.get("cm",      "false").lower() == "true" and CM_AVAILABLE
     log_to_db   = request.form.get("log_db",  "false").lower() == "true"
+    want_wet    = request.form.get("wet",     "false").lower() == "true"
 
     job_id  = str(uuid.uuid4())
     work_dir = WORK_BASE / job_id
@@ -491,7 +494,7 @@ def analyze():
 
         for drf in drfs:
             try:
-                text, pdf_path, warning = run_r5(drf, work_dir, want_pdf, want_scout, log_to_db)
+                text, pdf_path, warning = run_r5(drf, work_dir, want_pdf, want_scout, log_to_db, want_wet)
                 drf_races = parse_output(text)
 
                 # Extract track/date from DRF stem for DB ops
@@ -553,6 +556,7 @@ def analyze():
         "pdf_available": len(pdf_paths) > 0,
         "cm_run":        want_cm,
         "logged_to_db":  log_to_db,
+        "wet_track":     want_wet,
         "errors":        errors,
     })
 
@@ -631,6 +635,14 @@ def log_results():
                 p2 = Path(str(p).replace(track, track[:2]))  # all occurrences
             if p2.exists():
                 p = p2
+        if not p.exists():
+            # PDF may be stored under a different year folder (e.g. user saved 2026 card to 2025/)
+            import re as _re
+            for alt_year in ("2025", "2026", "2027"):
+                p_alt = Path(_re.sub(r'/\d{4}/', f'/{alt_year}/', str(p), count=1))
+                if p_alt != p and p_alt.exists():
+                    p = p_alt
+                    break
         try:
             if not p.exists():
                 raise FileNotFoundError(f"No such file or directory: '{p}'")

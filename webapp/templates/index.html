@@ -293,6 +293,7 @@
       letter-spacing: 0.04em;
     }
     .pace-hot    { background: rgba(231,76,60,0.18);  color: #ff8080; border: 1px solid rgba(231,76,60,0.4); }
+    .pace-wet    { background: rgba(52,152,219,0.18); color: #7ec8f5; border: 1px solid rgba(52,152,219,0.4); }
     .pace-normal { background: rgba(39,174,96,0.18);  color: #5ddb8e; border: 1px solid rgba(39,174,96,0.4); }
     .pace-slow   { background: rgba(41,128,185,0.18); color: #7abfff; border: 1px solid rgba(41,128,185,0.4); }
 
@@ -934,6 +935,15 @@
           <input type="checkbox" id="logDbOpt" checked>
           📋 Log picks to DB (enables Results logging after races run)
         </label>
+        <div class="check-label" style="display:flex;align-items:center;gap:10px;">
+          Track condition:
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+            <input type="radio" name="trackCond" id="condFast" value="fast" checked> Fast
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+            <input type="radio" name="trackCond" id="condWet" value="wet"> 🌧 Wet
+          </label>
+        </div>
       </div>
 
       <button class="btn-primary" id="analyzeBtn" disabled>
@@ -1205,6 +1215,7 @@ async function runAnalysis() {
   fd.append('scout',  scoutOpt.checked  ? 'true' : 'false');
   fd.append('cm',     cmOpt.checked     ? 'true' : 'false');
   fd.append('log_db', logDbOpt.checked  ? 'true' : 'false');
+  fd.append('wet',    condWet.checked   ? 'true' : 'false');
 
   try {
     const res  = await fetch('/api/analyze', { method: 'POST', body: fd });
@@ -1378,9 +1389,13 @@ function renderResults(data) {
   rawPre.textContent = data.text || '';
 
   const tracks = [...new Set((data.races || []).map(r => r.track).filter(Boolean))];
-  resultsTitle.textContent =
-    tracks.length ? `${tracks.join(' / ')} — ${races.length} Race${races.length !== 1 ? 's' : ''}`
-                  : `${races.length} Race${races.length !== 1 ? 's' : ''} analyzed`;
+  const titleText = tracks.length
+    ? `${tracks.join(' / ')} — ${races.length} Race${races.length !== 1 ? 's' : ''}`
+    : `${races.length} Race${races.length !== 1 ? 's' : ''} analyzed`;
+  const wetBadge = data.wet_track
+    ? ` <span class="pace-pill pace-wet" title="--wet flag active">🌧 WET TRACK</span>`
+    : '';
+  resultsTitle.innerHTML = titleText + wetBadge;
 
   /* Tabs */
   raceTabs.innerHTML = races.map((r, i) => {
