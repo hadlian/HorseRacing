@@ -54,13 +54,15 @@ def _max(parts, fields_1indexed):
 
 
 def _parse_ml(parts, field_1indexed) -> float | None:
+    """Returns morning line as odds-to-1, matching R5's ml_odds convention.
+    Fractional '5-2' -> 2.5; plain floats pass through unchanged."""
     s = _f(parts, field_1indexed)
     if not s:
         return None
     if '-' in s:
         try:
             a, b = s.split('-')
-            return float(a) / float(b) + 1
+            return float(a) / float(b)
         except Exception:
             return None
     try:

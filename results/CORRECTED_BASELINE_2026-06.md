@@ -46,5 +46,9 @@ SP ROI" and "val_n ROI +172.9%" are artifacts of the accounting bug and are void
 ## Open items this baseline depends on
 
 1. SAR 06/05 stragglers + SAR 06/06 results → re-run `results SAR <date>` for CM after R5 loads them.
-2. Tight-cluster deduction re-validation blocked on persisting `tight_cluster_severe` / `pre_tight_comp` to the picks schema (current analysis is approximate; it suggests the −0.40 deduction may be backwards on ROI).
+2. ~~Tight-cluster deduction re-validation blocked~~ **RESOLVED 2026-06-11:** schema
+   columns persisted and exact reconstruction completed (0 unexplained deltas). The
+   approximate analysis is superseded — the deduction is NOT backwards: post-deduction
+   rank-1 in the 33 fired races = 25.9% win / −1.3% ROI vs demoted horse −43.3%.
+   Harry ruling: deduction stays active, documented in v3.10 spec.
 3. Class weight confirmed by Harry 2026-06-11 as **20%** (code is authoritative; v3.5's documented "13%" was never implemented). R5_SPEC.md refresh to v3.10 can proceed on that basis.
