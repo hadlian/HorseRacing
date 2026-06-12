@@ -3,59 +3,80 @@
 > This document is the persistent context file for R5 development sessions.
 > Update it after every meaningful session. It is the clean prompt source for Opus evaluations.
 >
-> **Last updated:** 2026-06-05 (Results pipeline complete — SAR 06/03-05 + older partials loaded; 157 races in DB)
-> **Current version:** R5 v3.10
+> **Last updated:** 2026-06-12 (Session 3A complete — display fields, wet bundle, 3B research done)
+> **Current version:** R5 v3.10 — **DEPLOYED / feature-frozen through Saratoga meet**
+> **Weights:** frozen through Saratoga (Harry ruling 2026-06-11). Any change requires explicit approval + version bump.
+> **Saratoga opens:** July 3, 2026
 > **Primary AI collaborator:** Claude Code — all code implementation
-> **Advisory:** Claude Sonnet (advisory only, no direct file edits), Opus (major arch decisions)
+> **Advisory:** Fable 5 (architecture decisions), Sonnet (session advisor)
 
 ---
 
-## 🆕 v3.8 — Stage 1 DRF Field Additions — 2026-05-29
+## 🏗️ Architecture (v3.10)
 
-- **Fields added:** 41 (AE/MTO from DRF), 58 (program post), 62 (medication/1st-time Lasix), 64 (equipment/blinkers), 1179 (best BRIS speed turf)
-- **Scoring:** 1st-time Lasix +0.20; blinkers ON +0.10; blinkers OFF −0.05; turf `best_dist_n` uses best_turf; post bias uses updated program post when available
-- **Display:** `[1stLasix]`, `[BlkON]`, `[BlkOFF]` row tags; "Best BRIS Turf" in top pick on turf; AE flag now available without scout
-- **Stage 2 pending:** distance record into val_n, beaten-favorite signal, T/J meet blend, per-race class pars — all require 91-race backtest + val_n weight resolution first
+```
+files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1,435 fields per record)
+         │
+  r5_parser_v2.py         ← Parse + 9-component composite score
+         │                   + run style / Quirin / layoff / wet bundle (3A)
+  r5_probability.py       ← Conditional logit P(win) layer (β=0.7674)
+         │
+  r5_exotics.py           ← Contender set + structure menu + ticket gen/settle
+         │
+  r5_scout.py             ← Pre-race intel via HRN/Blood-Horse/TDN + Claude API
+         │
+  run_r5.py               ← Master runner: --save --track --wet --live
+         │
+  r5_tracker.py           ← SQLite logger; val_n_tracker guardrails
+         │
+  r5_payoffs.py           ← Equibase chart PDF ingestion (pdftotext -layout)
+         │
+  r5_analyze.py           ← Performance analysis → Excel workbook
+         │
+  webapp/app.py            ← Flask UI (localhost:5050)
+```
 
-## v3.7 — Tight Cluster Deduction (Issue 6) + Scout-3 AE Fix — 2026-05-28
-
-- **Issue 6:** When top-3 composite spread ≤ 0.5 pts, apply -0.40 deduction to top horse (slips one tier, often swaps Rank 1↔Rank 2). Validated against 99-race DB: severe-cluster Rank 1 wins 17.1% vs Rank 2 wins 25.7%. Backtest delta: +3.0 pts overall win rate, +8.3 pts on severe subset.
-- **Scout-3:** Fixed `scratchIndicator='A'` (Also-Eligible) being treated as scratch. AEs now scored and tagged `[AE]` in report. CDX0528 R7 #13 OUR STARRY NIGHT was the trigger case — drew in, finished 2nd at $8.04, missed entirely under old logic.
-- **Report enhancements:** Field disclosure line (entries → starters); ALSO-ELIGIBLE warning; VERY TIGHT CLUSTER advisory with Rank 2 promotion notice.
-- **Pending investigation:** val_n component winners avg -0.23 lower than losers across 99 races → chalk-heavy bias. Consider weight reduction or formula reformulation. Issue 16 (live odds) is the upstream fix.
-- **2026-06-11 — STATUS: ACTIVE, CONFIRMED (Harry ruling).** Exact reconstruction
-  (`scripts/reconstruct_tight_cluster.py`, 0 unexplained deltas / 1,747 picks)
-  reversed the approximate corrected-ROI analysis: in the 33 fired races, the
-  post-deduction rank-1 ran 25.9% win / −1.3% ROI vs the demoted horse's
-  20.0% / −43.3% and the unfired rank-1 baseline of −47.8%. The deduction stays
-  active; `pre_tight_comp` / `tight_cluster_severe` now persist to picks so all
-  future validation is exact.
+**DB:** `Results/r5_results.db` (SQLite)
+**Stack:** Python 3.9+, Flask, SQLite, ReportLab, openpyxl, BeautifulSoup4, Anthropic API
 
 ---
 
-## 🎯 Project Goal
+## ⚖️ Composite Weights — v3.10 (FROZEN)
 
-Build a data-driven handicapping engine for **premier thoroughbred racing**, with Saratoga 2026 as the first real-world deployment target. The system must perform well in graded stakes and high-class allowance fields — not calibrated for mid-week claiming cards.
+| Component | Weight | Field | Notes |
+|-----------|--------|-------|-------|
+| Class vs Speed Par | **20%** | class_n | Harry confirmed 2026-06-11; v3.5 docs said 13% (wrong) |
+| FCI (WS4 + Trend) | 22% | fci_n | Par-anchored normalisation (v3.6) |
+| Trainer / Jockey | 15% | tj_n | Min 20 meet starts; elite-name fallback |
+| Form Angle | 10% | form_n | Recent pattern |
+| Best @ Distance | 8% | best_dist_n | BRIS best speed @ today's distance/surface |
+| Bias / Pace Fit | 8% | bias_n | Post bias + pace scenario fit |
+| Pedigree | 7% | ped_n | Distance/surface suitability |
+| Prime Power | 5% | pp_n | BRIS Prime Power (anchor 130, formula: (pp-100)/6) |
+| Value vs ML | 5% | val_n | ML-rank divergence; excluded from P(win) calc |
+
+**Tier ladder (HIGH/SOLID/FAIR/SPEC): RETIRED.** Tiers were zero-fires dead weight at the top and inverse-performance (FAIR was the worst bet). Output shows P(win) and fair_odds instead.
+
+**comp_ex_val:** Market-free composite for P(win) = Σ(weight/0.95) over the 8 non-val components.
 
 ---
 
-## 📊 Results Database Status
+## 📊 Results Database Status (2026-06-12)
 
-> **⚠️ 2026-06-11 — ROI accounting corrected.** All ROI figures published before this date
-> were inflated by a unit bug ($2 payoffs credited against $1 stakes). Authoritative numbers:
-> `results/CORRECTED_BASELINE_2026-06.md` and `results/SIGNAL_VALIDATION_20260611.md`.
-> Derby duplicate (DBY/CDX 0502 R12) removed; 2 payoff rows chart-corrected.
+> **⚠️ ROI accounting corrected 2026-06-11.** All figures prior to that date were inflated
+> by a unit bug ($2 payoffs vs $1 stakes). Convention: **$2 flat win bets, profit = payoff − 2**.
+> Authoritative source: `Results/CORRECTED_BASELINE_2026-06.md` + `Results/SIGNAL_VALIDATION_20260611.md`.
 
 | Metric | Value | Notes |
 |--------|-------|-------|
-| Races with results | 160 | Post-dedupe, through SAR0605 (3 races pending; SAR0606 not loaded) |
-| Top pick win rate | 23.1% | SAR new-track drag (9.4% in 32 races) pulling overall down |
+| Races with results | 174 | 174/179 with full payoffs (5 absent from chart PDFs) |
+| Top pick win rate | 23.1% | SAR drag (9.4% in 32 races — new-track calibration gap) |
 | Top-3 hit rate | 59.4% | |
-| Top pick flat-bet ROI | **−18.5%** | ≈ takeout — no win-bet edge yet. Corrected formula |
-| Rank-3 flat-bet ROI | **+17.4%** | Only positive-ROI slot (23.2% win, 151 bets) — see signal validation |
-| Play signal (spread ≥0.50) | **RETIRED** | Corrected ROI −40.3% vs −9.1% complement — selects chalk |
-| FAIR tier rank-1 | 12.5% win, −70.2% ROI | HIGH: 0 fires ever; SOLID: 1 fire ever — tier ladder dead above FAIR |
-| val_n ≥7 ROI | −8.2% | ≥8: +41.8% (4 wins), ≥9: +85.7% (2 wins) — gradient right, n too small |
+| Top pick flat-bet ROI | **−18.5%** | ≈ takeout; no win-bet edge |
+| **Rank-3 flat-bet ROI** | **+17.4%** | **Only positive-ROI slot** (35 wins / 151 bets, 23.2% win) |
+| CM rank-1 ROI | −21.9% | CM wins more often; R5 loses less money |
+| CM rank-2 ROI | **+3.6%** | Near-miss pattern mirrors R5 rank-3 |
+| Final-odds overlay | −56.9% | 142 bets — **NOT AUTHORIZED** for live win betting |
 
 ### By track
 | Track | Races | Win% | Top-3% |
@@ -66,138 +87,176 @@ Build a data-driven handicapping engine for **premier thoroughbred racing**, wit
 | LRL | 13 | 15.4% | 61.5% |
 | SAR | 32 | 9.4% | 53.1% — 3 days, new track |
 
-### Cards logged
+### Cards logged (through SAR 06/06)
 | Card | Races | Status |
 |------|-------|--------|
 | CDX 20260502 | 14 | Results loaded (partial — 1 missing) |
-| DBY 20260502 | 1 | Results loaded (Golden Tempo $48.24, our Rank 5) |
-| CDX 20260507 | 8 | Results loaded |
+| CDX 20260507–0531 | ~50 | Results loaded (multiple cards) |
 | BAQ 20260509 | 11 | Results loaded (1 missing) |
-| CDX 20260514 | 8 | Results loaded — 4/8 wins (50%), best card to date |
 | LRL 20260516 | 14 | Results loaded (1 missing) |
-| CDX 20260521 | 8 | Results loaded — 2/8 wins |
-| CDX 20260524 | 10 | Results loaded. 0 wins, 3 top-3. Sloppy track. |
-| SAX 20260525 | 10 | Results loaded — 3/10 wins (30%) |
-| CDX 20260528 | 8 | Results loaded |
-| CDX 20260529 | 9 | Results loaded — 3/9 wins (33%) |
-| CDX 20260530 | 11 | Results loaded — 5/11 wins (45%) |
-| CDX 20260531 | 10 | Results loaded — 4/10 wins (40%), 9/10 top-3 (best board day) |
-| SAR 20260603 | 10 | Results loaded — 0/10 wins, 6/10 top-3. R1 was hurdle race (skip). 5 second-place finishes. |
-| SAR 20260604 | 11 | Results loaded — 1/11 wins. Scout fired on Corruption (+0.2). |
-| SAR 20260605 | 14 | Results loaded (3 missing). 2/11 wins. |
+| SAX 20260525 | 10 | Results loaded |
+| SAR 20260603–0606 | 45 | Results loaded; 06/06 payoffs backfilled |
 
-### 60-race threshold
-**60-race gate MET (157 races). Weight changes require explicit Harry approval + version bump.**
+**Payoff backfill:** 174/179 races carry full exotic payoffs + finish order + final tote odds.
+**Remaining 5 races:** CDX 0502 R13–14, BAQ 0509 R11, LRL 0516 R14, +1 — chart PDFs lack these races.
 
 ---
 
-## 🔑 Key Findings to Date
+## 🚫 Signals Retired (failed corrected-ROI testing)
 
-1. **Graded stakes = best model environment.** Both G2 races on BAQ0509 (Peter Pan, Ruffian) had model winners inside Rank 2. FCI and TJ are most predictive in quality fields. Supports Saratoga target.
-
-2. **Pace scenario validated.** HOT pace flag correctly identified closer-favoured setup in BAQ R6. Durante (Rank 5, closer) won at $16.50. Preakness 2026: 8 speed horses declared → HOT pace, MID/CLOSER styles favored, Ocelli (CLOSER) flagged as value alt.
-
-3. **Rank 5 upsets (pattern).** Roman Grace, Durante, Arkhipov all won from Rank 5 on BAQ. Common pattern: one strong component (TJ or Trend) overwhelmed by FCI/Class drag. Supports TJ underweight thesis.
-
-4. **Composite score ceiling problem.** No mid-week CDX race reaches SOLID tier (7.5). fci_n normalisation (baseline 60, ÷6) calibrated too high for lower-class fields. Dynamic normalisation needed — Issue 4.
-
-5. **Value signal — CORRECTED 2026-06-11.** The "+172.9% ROI" was an accounting artifact ($2 payoffs vs $1 stakes) plus a double-counted Derby winner. Corrected: val_n≥7 = **−8.2%**; val_n≥8 = +41.8% and ≥9 = +85.7% but on 4 and 2 wins respectively — gradient direction is right, sample is not yet bettable. SOLEIL VOLANT ($52.06, val_n=10.0) remains the proof-of-concept catch. ROI is still the correct metric for this component; the corrected baseline is the reference.
-
-6. **CDX0514 best card to date.** 4/8 top-pick wins (50%). Late scratch VIVIANITE (R8, #5, Rank 8) correctly caught by new --finalize command and set to finish_pos=-1.
-
-7. **Preakness v3.5 retroactive test.** TAJ MAHAL ranked 1st (6.88 FAIR — only FAIR in the 14-horse field) with TJ=10.0, max Trend +5.0, PP=144.6. Scratched on race day. NAPOLEON SOLO (actual winner, $17.80) ranked 10th — low TJ (3.0) dragged it down despite PP=143.7 (3rd in field). HOT PACE (8 speed) correctly flagged; OCELLI (CLOSER, 6-1) was value alt — the correct closer angle. Model logic sound; outcome was a scratch event, not a miss.
-
-8. **Scratch gate confirmed working** (via `run_r5.py --auto-scout`). When a Rank 1–3 horse is in the scout scratch list, the report prints `🚨 SCRATCH NOTICE` with the revised top pick and passes only active horses to `report()`. Running `r5_parser_v2.py` directly bypasses this (no scout data). Gap: scratches of Rank 4+ are silently removed with no notice.
+| Signal | ROI | Verdict |
+|--------|-----|---------|
+| Play gate: spread(r1−r2) ≥ 0.5 | −40.3% | Strictly worse than complement |
+| PLAY ≥ 6.0 verdict | −18.5% | Identical ROI to complement; win rate now inverted |
+| HIGH tier | 0 fires | Dead weight — never fired |
+| SOLID tier | 1 fire, lost | Dead weight |
+| FAIR as confidence marker | −70.2% | "Higher confidence" was the worst bet |
+| CM consensus ≥ 4 | −20.5% | Fires 91% of races — saturated, no discrimination |
+| Agreement boost (R5+CM agree) | −22.9% | Chalk trap — highest win rate, loses most |
+| val_n ≥ 7 | −8.2% | Threshold too loose |
+| Overlay Watch (CM) | already retired | Stays retired |
 
 ---
 
-## 🔀 CompareModels v1.0 — Parallel System (2026-05-21)
+## 👀 Signals on Watch (promising, not yet bettable)
+
+| Signal | Wins | ROI | Status |
+|--------|------|-----|--------|
+| R5 rank-3 flat win bets | 35 / 151 bets | **+17.4%** | **Only positive slot at meaningful n** |
+| CM rank-2 flat win bets | 33 / 147 bets | +3.6% | Mirrors rank-3 pattern |
+| val_n ≥ 8 | 4 wins | +41.8% | Gradient right; n too small (gate: n≥120) |
+| val_n ≥ 9 | 2 wins | +85.7% | Gradient right; n too small |
+| PP underline standalone | 40 / 127 bets, 31.5% win | −9.6% | Best large-n win-rate signal; exotics anchor only, not a win bet |
+| Divergence: bet R5 leg | 16 / 91 bets | −12.8% | Best relative leg; single-outlier sensitive |
+
+---
+
+## ⚙️ Probability Layer (P(win)) — v3.10
+
+**Model:** Conditional logit, one-parameter softmax within race field.
+`P(win)_i = exp(β · comp_ex_val_i) / Σ_j exp(β · comp_ex_val_j)`
+`β = 0.7674` (fit by Newton's method on 97 races; `Results/logit_beta.json`).
+
+**comp_ex_val:** market-free composite (excludes val_n; renormalised over 0.95 sum).
+**val_n is permanently excluded from P(win).** val_n uses morning-line rank and would contaminate the probability estimate.
+
+**Overlay rule:** P(win) × (final_odds + 1) ≥ 1.25 AND P ≥ 0.08.
+**Live overlay win betting NOT AUTHORIZED** — retro-test returned −56.9% (142 bets, in-sample β + hindsight odds).
+**Overlay flags are advisory/diagnostic only.** Revisit at n≥300 with decorrelated model, paper-first.
+
+---
+
+## 🎰 Exotics Module (r5_exotics.py) — v3.10
+
+**Contender set:** R5 ranks 1–3 ∪ CM ranks 1–2. Captures winner in 66.9% of races vs 59.4% R5-only.
+Exclusions: field ≤ 5 (PASS), debuts (flag only), PP-underline as underneath-only.
+
+**Structure menu:**
+- **TIGHT** (spread r1−r3 ≤ 0.5): EX box + TRI box + r3 key on top if ML≥6-1
+- **STANDOUT** (spread r1−r2 ≥ 1.0): EX key r1/set + TRI key r1 over set
+- **DEFAULT**: EX box r1+r2
+
+**$12 cap** with trim priority: TRI third leg first → r3 key → primary EX never dropped.
+
+**Paper-default / --live flag required for real money.** `is_paper=0` only when `--live` explicitly passed.
+
+**SAR paper results (4 cards, 70 tickets):**
+- TIGHT TRI box: +384.7%; TIGHT EX box: +86.6%; DEFAULT EX box: −35.1%; STANDOUT keys: −100% (0-for-10)
+- Total: +52.2% (two TRI hits carry it — n=4 cards = anecdote; n≥40-race gate stands)
+
+---
+
+## 🔒 Harry Rulings (2026-06-11) — All BINDING
+
+| Ruling | Decision |
+|--------|----------|
+| Weights | FROZEN through Saratoga meet; any change = explicit approval + version bump |
+| Exotics | LIVE at $12 cap from opening day; --live flag enables real money |
+| val_n ≥ 8 tracker | LIVE with guardrails (flat $2, max 2/card, stop at 0-for-30 or −$60 SUM) |
+| Overlay win betting | NOT AUTHORIZED — advisory flags only |
+| Tight-cluster deduction | ACTIVE + CONFIRMED (−0.40 to pre-deduction rank-1 when top-3 spread ≤0.5) |
+
+---
+
+## 📅 In-Meet Checkpoints
+
+| Gate | Decision | Watches |
+|------|----------|---------|
+| SAR n≥40 payoff races | Structure menu ROI review | DEFAULT EX box (−35.1%), STANDOUT keys (0-for-10) |
+| SAR n≥60 races | SAR-only β refit; tj_n year-stats fallback rerun | SAR win rate vs overall (9.4% drag) |
+| SAR n≥100 races | CM merge-or-keep decision | CM legs: +7.5pp capture justifies inclusion until then |
+| val_n n≥120 qualifying bets | val_n ≥8 re-decision; consider threshold adjustment | val_n ≥8 +41.8% on 4 wins — too thin now |
+| Mid-July 2026 | Live odds capture build (Issue 16) | Required for any future overlay reconsideration |
+| n≥300 total races | Decorrelated probability layer upgrade; overlay reconsideration paper-first | One-parameter model overestimates longshots |
+
+**tj_n year-stats fallback (3B research):** 84% of picks affected but SAR win rate unchanged at 9.4% — no pre-Saratoga change. Re-run at SAR n≥60 with `scripts/tj_fallback_backtest.py`.
+
+---
+
+## 🔑 Key Findings
+
+1. **No win-bet edge exists yet.** Every signal tested — tiers, gates, consensus, agreement, stacking, model-vs-market overlays — fails corrected ROI. R5 rank-1 = ≈ takeout (−18.5%).
+
+2. **The edge, if any, is in ranks 2–3 contention and exotics.** R5 rank-3 (+17.4%) and CM rank-2 (+3.6%) both win at near-rank-1 rates at better prices. The market prices the first choice efficiently; it does not price the third.
+
+3. **Tight-cluster deduction is confirmed helpful.** Exact reconstruction (0 unexplained deltas) reversed the approximate analysis: post-deduction rank-1 in the 33 fired races = 25.9% win / −1.3% ROI vs demoted horse −43.3%. ACTIVE, CONFIRMED.
+
+4. **SAR opener drag (9.4%) has unknown causes.** tj_n year-stats hypothesis tested: fallback changes 84% of picks but win rate unchanged. The drag is not meet-stats starvation. Re-examine at n≥60.
+
+5. **Graded stakes = best model environment.** Peter Pan G2 and Ruffian G2 both had model winners in top 2. FCI + TJ most predictive in quality fields. Supports Saratoga target.
+
+6. **Rank-3 structural dominance.** Rank-3 beats rank-2 on win%, top-2%, and top-3% (23.2/35.1/47.7 vs 15.6/34.4/42.9) — rank-2 is the weakest of the top-3 and should be treated as an underneath leg, not a key.
+
+7. **BRIS run style + pace profile confirmed parseable** (fields 210/211). Lone-E with Q≥6 is the TIGHT-race candidate worth paper-tracking from opening day.
+
+---
+
+## 🔀 CompareModels v1.1 — Parallel System
 
 Full state doc: `comparemodels/COMPAREMODELS_STATE.md`
-Report: `comparemodels/reports/comparemodels_vs_r5_63races_20260521_020626.xlsx`
 
-**BRIS Summary methodology** — 8-category consensus scoring (Prime Power, Avg Speed, Best Speed, Distance Speed, Avg Class, Jockey Rating, Trainer Rating, Earnings). Scored independently from raw DRF data. No R5 code imported.
+**Head-to-head (152-race aligned universe, corrected 2026-06-11):**
+- CM top pick: 25.7% win / −21.9% ROI
+- R5 same races: 23.3% win / −16.8% ROI
+- Neither beats takeout. CM wins more; R5 loses less.
 
-### Head-to-head — CORRECTED 2026-06-11 (152-race aligned universe, SAR-inclusive)
+**CM segment outperformance:** Non-graded Stakes (38.5% vs R5 15.4%), Dirt (30.0% vs 25.0%), CDX (33.3% vs 23.3%)
 
-| Metric | CM | R5 (same races) |
-|---|---|---|
-| Top pick win rate | 25.7% | 23.3% |
-| Flat-bet ROI ($2, corrected) | **−21.9%** | **−16.8%** |
+**Retained roles:**
+- Divergence flag (disagreement = potential value zone; R5 leg −12.8% = best relative leg)
+- Exotics contender-set generator (CM ranks 1–2 ∪ R5 ranks 1–3; CM rank-2 +3.6%)
 
-The old "+50.6% / +93.0% SP ROI" figures were accounting artifacts — void. Neither model
-beats takeout on flat win bets. CM wins slightly more, R5's winners pay more.
-Full corrected signal table: `results/SIGNAL_VALIDATION_20260611.md`.
-
-### CM segment outperformance
-- **Non-graded Stakes:** CM 38.5% vs R5 15.4% (13 races) — strongest signal
-- **Dirt:** CM 30.0% vs R5 25.0% (40 races)
-- **CDX:** CM 33.3% vs R5 23.3% (30 races)
-
-R5 outperforms CM on: Turf, BAQ, Allowance/Opt-Clm races.
-
-### CM signals — CORRECTED 2026-06-11 (all confirmation filters failed ROI testing)
-- **Consensus ≥ 4: RETIRED** — fires on 91% of races post field-fix (saturated), ROI −20.5%; negative at every level ≥5/≥6/≥7
-- **Prime Power underline:** 31.5% win / **−9.6% ROI** standalone — best win-rate signal in the project but still loses flat-betting; stacked on R5 top pick it gets *worse* (−13.9%). Candidate exotics anchor only.
-- **Agreement (R5+CM same pick): 32.2% win / −22.9% ROI** — chalk trap, do not increase bet size on agreement
-- **Overlay Watch:** still broken, still retired
-
-### Advisory integration — REVISED 2026-06-11
-CM is **not** a confidence filter — every confirmation-style use is ROI-negative. Retained roles:
-divergence flag (disagreement = potential value zone, R5 leg −12.8% = best relative leg, unproven),
-and exotics contender-set generator (CM ranks 1–2 ∪ R5 ranks 1–3; CM rank-2 is +3.6% ROI,
-R5 rank-3 is +17.4%). See `results/SIGNAL_VALIDATION_20260611.md`.
+**CM is NOT a confidence filter.** Every confirmation-style use is ROI-negative.
 
 ---
 
-## 🔴 Open Issues — Engine (Priority Order)
+## 🔴 Open Issues — Engine
 
 All weight changes require explicit approval + version bump per spec rules.
 
 | Issue | Description | Status | Priority |
 |-------|-------------|--------|----------|
-| 4 | Composite score ceiling — par-anchored fci_n + best_dist_n | **FIXED — v3.6, 2026-05-24** | ✅ |
-| 6 | Crowded Room Penalty — score deduction (flag is live) | Pending post-Preakness validation | MODERATE |
-| 7 | Surface-specific WS4 weights (dirt vs turf) | Gate lifted post-Preakness | MODERATE |
-| 8 | Data scarcity confidence cap (per-horse, < 2 starts) | Proposed | MODERATE |
-| 9 | Tight cluster UI flag (engine side of Issue 6) | Proposed | LOW |
-| 10 | Surface weighting validation task | Gate lifted post-Preakness | VALIDATION |
-| 11 | Distance-specific speed floor (best-at-distance) | Gate lifted post-Preakness | LOW |
-| 12 | Career average class flag (dropdown angle) | Proposed | LOW |
+| 7 | Surface-specific WS4 weights (dirt vs turf) | Post-SAR validation needed | MODERATE |
+| 8 | Data scarcity confidence cap (< 2 starts) | Proposed | MODERATE |
+| 16 | Live tote odds integration (val_n recomputation + overlay) | Mid-July build | HIGH — in-meet checkpoint |
+| CM-1 | Overlay Watch definition broken | Post SAR-calibration | LOW |
+| CM-3 | Trainer Rating signal weak | Re-evaluate post-SAR | LOW |
+| CM-4 | BRIS Top Pick field not located | +2 bonus silently skipped | LOW |
 
-**Note:** --auto-scout path bug fixed in v3.6 (uses `_scout_path`). API key env-var passthrough still requires manual pre-run of scout before --auto-scout.
-
----
-
-## ✅ Completed Issues
-
-| Issue | Fix | Version | Date |
-|-------|-----|---------|------|
-| 1 | Maiden/firster class_n=0.0 + [DEBUT] flag | v3.3 | 2026-05-09 |
-| 2 | Value score inversion — floor raised max(1.0)→max(5.0) | v3.4 | 2026-05-10 |
-| 3 | TJ weight 10%→15%; best_dist_n 8% + pp_n 5% added; bias 15→8%, val 10→5%, ped 10→7%, fci 25→22% | v3.5 | 2026-05-16 |
-| 3a | result_fetched flag not set on direct SQL logging | v3.4 | 2026-05-12 |
-| 5 | Scratch gate — revised top pick when Rank 1-3 scratched | v3.3 | 2026-05-10 |
-| 6-display | TIGHT CLUSTER warning flag (display only, no deduction yet) | v3.4 | 2026-05-10 |
-| 13 | Late scratch detection — auto-detect in apply_result(), --finalize command, two-tier analyze filter | v3.4 | 2026-05-15 |
-| PDF-bug | NameError: `active` undefined in PDF block → replaced with filtered horses loop | v3.4 | 2026-05-15 |
-| Scout | API model fix, track keyword expansion, auto-scout matching, stacking cap | v3.3 | 2026-05-09 |
-| UI-1 | Mobile responsive design | v4.0 | 2026-05-10 |
-| UI-webapp | PDF error surfacing, scratch notice regex fix, scratch-map pre-collection | v4.0 | 2026-05-16 |
-| UI-2 | Analytics tab — Chart.js dashboard (4 charts: tier hits, val ROI, score dist, track/surface splits) | v4.0 | 2026-05-24 |
-| 4 | Composite ceiling — par-anchored fci_n + best_dist_n; race header shows Par value | v3.6 | 2026-05-24 |
-| auto-scout | --auto-scout path bug fixed (subprocess now uses _scout_path, not CWD) | v3.6 | 2026-05-24 |
+**Deferred (requires post-SAR data):**
+- No-odds val_n inflation fix (horses with missing ML get spurious overlay signal at 5% weight — low impact)
+- pp_n neutral anchor adjustment (pending advisory on typical BRIS PP range by race type)
+- Negative distance flag −0.3 (n≥60–80 needed on negative flag subset)
+- Surface WS4 split weights (validate against 150+ race DB)
 
 ---
 
-## 🟡 Open Issues — UI (Priority Order)
-
-All UI work in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
+## 🟡 Open Issues — UI
 
 | Issue | Description | Status |
 |-------|-------------|--------|
-| UI-2 | Analytics tab — Chart.js dashboard (tier hits, val ROI, score dist, track splits) | **COMPLETE — commit 872db8b** |
-| UI-3 | Live odds divergence alerts | Not started |
+| UI-3 | Live odds divergence alerts | Blocked on Issue 16 (live odds build) |
+| UI-4 | BRIS Summary docx download (Dennis format) | Spec written 2026-05-29; not started |
 
 ---
 
@@ -205,74 +264,20 @@ All UI work in `webapp/`. Do not modify `Claude/` scripts in UI sessions.
 
 | Phase | Version | Description | Gate |
 |-------|---------|-------------|------|
-| **Current** | **v3.10** | pp_n calibration (anchor 130→125); scout-before-finalize architecture; code-review fixes | **Live — 2026-06-03** |
-| Next | v3.11+ | T/J meet combo signal; negative distance flag (−0.3 for <10% dist W%); pp_n anchor advisory | After 30+ SAR races |
-| Future | v4.1 | Wager construction module (EX/TRI backtest) | After SAR calibration confirmed |
-| Future | v4.x | Live odds divergence alerts (UI-3, Issue 16) | After v3.x validated |
-| Future | v5.0 | ML pattern recognition, anomaly detection, LLM coaching summaries | Long term |
-| Target | — | Saratoga 2026 deployment | **IN PROGRESS — Summer 2026** |
-
----
-
-## 🏗️ Architecture
-
-```
-files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1435 fields per record)
-         │
-  r5_parser_v2.py        ← Parse + score (9-component composite — v3.5)
-         │
-  r5_scout.py            ← Live intel via HRN, Blood-Horse, TDN + Claude API extraction
-         │
-  run_r5.py              ← Combine + print race card rankings
-         │
-  r5_tracker.py          ← Log picks to SQLite; --finalize for late scratch detection
-         │
-  r5_analyze.py          ← Performance analysis → Excel workbook (5 sheets)
-         │
-  webapp/app.py           ← Flask UI (localhost:5050)
-```
-
-**DB:** `results/r5_results.db` (SQLite)
-**Stack:** Python 3.9+, Flask, SQLite, ReportLab, openpyxl, BeautifulSoup4, Anthropic API
-
----
-
-## ⚖️ Current Composite Weights (v3.6 — LIVE 2026-05-24)
-
-| Component | Weight | Field | Winner Diff (81 races) | Change from v3.4 |
-|-----------|--------|-------|------------------------|------------------|
-| FCI (WS4 + Trend) | 22% | fci_n | +0.61 | 25% → 22% |
-| Class vs Speed Par | 13% | class_n | +0.59 | 20% → 13% |
-| Trainer / Jockey | 15% | tj_n | +0.63 | **10% → 15%** |
-| Best @ Distance | 8% | best_dist_n | — | **NEW v3.5** |
-| Bias / Pace Fit | 8% | bias_n | −0.02 | 15% → 8% |
-| Form Angle | 10% | form_n | +0.26 | unchanged |
-| Pedigree | 7% | ped_n | +0.13 | 10% → 7% |
-| Prime Power | 5% | pp_n | — | **NEW v3.5** |
-| Value vs ML | 5% | val_n | −0.19 | 10% → 5% |
-
-**v3.6 par-anchored normalisation:**
-- `fci_n` = 5.0 + (fci − par_eff) / 5.0  where par_eff = clamp(par, 70, 105)
-- `best_dist_n` = same formula applied to best-at-distance figure
-- Debut / no figures: fci_n = 4.0 (slight negative vs neutral 5.0)
-- Race header prints "Par {val}" for live validation
-
-**Signal ranking (81 races, winner diff):**
-tj_n +0.63 > fci_n +0.61 > class_n +0.59 > form_n +0.26 > ped_n +0.13 > bias_n −0.02 > val_n −0.19
+| **Current** | **v3.10** | P(win) layer + exotics module + display fields; weights FROZEN | **Saratoga deploy July 3, 2026** |
+| v3.11 | — | tj_n year-stats fallback (if SAR n≥60 shows separation) | SAR n≥60 |
+| v3.x | — | Negative distance flag −0.3 | n≥60–80 on flag subset |
+| v4.1 | — | Live odds capture; overlay reconsideration (paper-first) | Mid-July 2026 |
+| v5.0 | — | Decorrelated P(win) upgrade; ML patterns | n≥300 total |
 
 ---
 
 ## 🤖 AI Collaborator Notes
 
-- **Claude Code** — all actual code implementation happens here.
-- **Claude Sonnet** — primary session advisor, code snippets, architecture recommendations. Advisory only — never edits project files directly.
-- **Opus** — reserved for major architectural decisions and weight evaluation sessions. Use with a clean, focused prompt: current weights + component correlations + race type breakdown + Saratoga context.
-- **Gemini / ChatGPT** — design ideas and pseudocode only. Do not write to repo.
-
-### When to escalate to Opus
-- Post-v3.5 validation (next card, ~20 races) — did weight shift improve top-pick win rate?
-- Phase 2 architectural planning (betting model, Kelly sizing)
-- Saratoga-specific calibration session
+- **Claude Code** — all actual code implementation
+- **Fable 5** — architecture decisions (probability layer, exotics framework, roadmap). Use for major design questions with corrected, audited ROI data (not win rate)
+- **Claude Sonnet** — session advisor; code snippets; research. Advisory only — never edits project files
+- **Gemini / ChatGPT** — design ideas, pseudocode only. Do not write to repo
 
 ---
 
@@ -280,35 +285,27 @@ tj_n +0.63 > fci_n +0.61 > class_n +0.59 > form_n +0.26 > ped_n +0.13 > bias_n �
 
 | Date | Session | Key Outcomes |
 |------|---------|--------------|
-| 2026-05-09 | Engine fixes | Issues 1, Scout fixes resolved — v3.3 |
-| 2026-05-10 | BAQ card + fixes | Issue 2 (val_n), Issue 5 (scratch), UI-1 (mobile) — v3.4. BAQ audit: graded stakes validated |
-| 2026-05-12 | DB review | Issue 3a fixed. 34 races logged. Model frozen pre-Preakness |
-| 2026-05-14 | CDX scout test | Scout and scratch report validated before CDX card |
-| 2026-05-15 | CDX0514 results + Issue 13 | 4/8 wins (50%). Issue 13 built (late scratch detection, --finalize, two-tier filter). PDF NameError fixed. 50 races in DB. |
-| 2026-05-16 | Preakness Day | LRL0516 scout + analysis run (14 races). HOT pace in Preakness. Memory + state files synced. Results pending. |
-| 2026-05-16 | LRL0516 Results | R1–R13 logged. 2 wins (R7 OBLITERATION rank 1 $3.40, R9 TURF STAR rank 1 $10.40, R2 WICKEDDIVINE rank 1 $5.20). Preakness: NAPOLEON SOLO (rank 11) won $17.80. Rank-3 horses won R1/R3/R4/R6/R10/R11/R12. pgm-number mismatch noted on R2 and R5 (DRF vs official chart). 63 races in DB. |
-| 2026-05-21 | CDX0521 live card | First v3.5 live card post-backfill. R5 2/8 wins, CM 2/8 wins (tied). Both agree on R3 SHINING MOMENT (cons=7 DOM, 5-cat underline, won at $3.96). CM edge: R2 SASSY PRINCESS (cons=7 DOM, $5.14). R5 edge: R1 LACK OF RIESLING ($8.00). Massive scratches (R1 had 7 scratches). Results loaded to r5_results.db + CM DB. Daily xlsx: `comparemodels/reports/CDX_20260521_daily.xlsx`. R5 analysis xlsx: `results/r5_analysis_20260521_2156.xlsx`. |
-| 2026-05-21 | CompareModels v1.0 | Built full BRIS Summary parallel system in `comparemodels/`. Backfill: 63 races, 7 cards, 669 picks, 631 results joined. Head-to-head: CM 25.4% vs R5 25.4% (tied). SP ROI: CM +50.6% vs R5 +93.0%. Disagreements: 43 races, 10-10-23 (R5/CM/Neither). CM outperforms on non-graded Stakes (38.5% vs 15.4%) and Dirt (30.0% vs 25.0%). Key CM signals: consensus ≥4 (30.8%), Prime Power underline (33.3%). Overlay Watch broken (5.6% win rate). Advisory: CM as supplemental confidence filter on R5. |
-| 2026-05-16 | Signal analysis + v3.5 | 63-race correlation analysis: prime_power, best_dist, best_life, best_fast, life_earn evaluated. best_fast eliminated (negative signal). Approved v3.5 weight rebalance: TJ 10→15%, best_dist_n NEW 8%, pp_n NEW 5%, bias 15→8%, val 10→5%, ped 10→7%, fci 25→22%. Commit 5678ff6. |
-| 2026-05-16 | Preakness v3.5 test + scratch audit | Ran v3.5 retroactively on LRL R13 (Preakness). TAJ MAHAL Rank 1 (6.88 FAIR, TJ=10.0, PP=144.6) — scratched race day. NAPOLEON SOLO (winner $17.80) Rank 10 — low TJ dragged score despite strong PP. HOT pace + CLOSER value alt correctly flagged. Scratch gate confirmed working via run_r5.py --auto-scout; gap noted: Rank 4+ scratches silent. |
-| 2026-05-24 | v3.6 + CDX0524 | Issue 4 fixed: par-anchored fci_n + best_dist_n (commit 5c103ff). auto-scout path bug fixed. UI-2 Analytics tab (Chart.js 4 charts) shipped (commit 872db8b). CDX0524 ran as first v3.6 live card (10 races). Results: 0 wins, 3 top-3 (R1 GLADLY 2nd, R8 BEING MYSELF 2nd, R10 SOLAIA 2nd). Sloppy track. R3/R7 top picks scratched. LAZLO R9 (FAIR/double-consensus) finished 7th. README + TODO brought current to v3.6. DB: 81 races. |
-| 2026-05-28–31 | CDX live cards | CDX0528–0531 all run on v3.10. Best stretch of season. CDX0531: 4/10 wins, 9/10 top-3. CDX0530: 5/11 wins (45%). |
-| 2026-06-03 | v3.10 + SAR opener | pp_n calibration complete (anchor 130→125). Scout-before-finalize architecture confirmed working. SAR0603 first Saratoga card: 0/10 wins, 6/10 top-3. R1 was hurdle race (skip). 5 second-place finishes. New-track calibration gap expected. |
-| 2026-06-04 | SAR0604 | 11-race card. 1/11 wins (R6 Careless Whisper). Scout fired on Corruption (+0.2 trainer quote). R10 Corruption (FAIR) won Belmont Gold Cup G2T. |
-| 2026-06-05 | Results pipeline | SAR0603-05 + CDX0502 + BAQ0509 + LRL0516 results all loaded. DB: 157 races. Memory + TODO + PROJECT_STATE all updated. |
+| 2026-05-09 | Engine fixes | Issues 1, Scout fixes — v3.3 |
+| 2026-05-10 | BAQ card + fixes | Issue 2 (val_n), Issue 5 (scratch), UI-1 (mobile) — v3.4 |
+| 2026-05-12 | DB review | Issue 3a fixed. 34 races. Model frozen pre-Preakness |
+| 2026-05-14 | CDX scout test | Scout and scratch report validated |
+| 2026-05-15 | CDX0514 results | 4/8 wins (50%). Issue 13 (late scratch). PDF NameError fixed. 50 races. |
+| 2026-05-16 | Preakness Day | LRL0516. HOT pace in Preakness. Memory + state synced. |
+| 2026-05-21 | CDX0521 + CM v1.0 | CompareModels built. 63-race backfill. CM 25.4% vs R5 25.4% tied. |
+| 2026-05-24 | v3.6 + CDX0524 | Par-anchored fci_n. Analytics tab (UI-2). 81 races. |
+| 2026-05-28–31 | CDX live cards | CDX0528–0531. Best stretch: CDX0531 4/10 wins, 9/10 top-3. |
+| 2026-06-03 | v3.9 + SAR opener | Code-review fixes. Scout-before-finalize. SAR 06/03: 0/10 wins. |
+| 2026-06-05 | Results pipeline | SAR0603-05 + older cards loaded. DB: 157 races. |
+| 2026-06-11 | **Session 2 (full)** | ROI audit corrected. Weeks 1–3 complete: payoff infrastructure (r5_payoffs.py), tight-cluster exact re-validation (ACTIVE/CONFIRMED), conditional logit P(win) β=0.7674, tier ladder DELETED, exotics module (r5_exotics.py) $12 cap, overlay retro-test −56.9% NOT AUTHORIZED, SAR 06/06 payoffs loaded (174/179 backfill), R5_SPEC v3.10. All 5 Harry rulings locked. DB: 174 races. |
+| 2026-06-12 | **Session 3A + 3B** | Display-only: days_since_last (f224) + LAYOFF tags, BRIS run style/Quirin (f210/211) + pace-profile header + lone-E logger (paper), trainer angles for full contender set, wet-track bundle (f80-84 + best_off) via --wet. Backfill: 1,620/1,747 picks (TRACK_MAP fix). Webapp parser lockstep + pre-existing lowercase-surface bug fixed (3 races/card recovered). 3B research: tj_n year-stats — 84% picks affected, +2.4 ROI pts overall, SAR unchanged 9.4% → NO pre-SAR change, rerun at n≥60. Commit 72d72ca. **System feature-frozen for Saratoga.** |
 
 ---
 
 ## 📋 Immediate Next Steps
 
-1. **Accumulate SAR data** — 3 days in, 9.4% win rate. Do not draw conclusions or adjust weights until 30+ SAR races. Speed winning NORMAL pace at SAR is worth tracking — may reflect track bias not yet captured.
-2. **Hurdle/jump race skip rule** — R1 SAR 06/03 was a hurdle race (2 3/8M turf, all debut flags, Par N/A, 0 speed). Recognize and skip manually. No code change needed.
-3. **FAIR tier inversion** — 13.0% win rate vs SPEC 27.2%. Small sample (23 races). Monitor through Saratoga before acting.
-4. **T/J combo at SAR meet** — backtest when 2+ weeks of SAR data accumulated.
-5. **Issue 15 (wager construction)** — gated on Saratoga calibration. Not before 60+ SAR races.
-6. **Negative distance flag** — deferred post-Saratoga (need n≥60–80 on the negative flag subset).
-7. **pp_n anchor advisory** — neutral anchor at pp=130 may be too high for lower-class fields. Get Gemini/ChatGPT input. Query: `SELECT median(prime_power) FROM picks WHERE prime_power > 0`.
+1. **Run June festival cards** — any remaining SAR June cards (DRF → R5 → picks logged to DB). System is ready; just needs race-day execution.
+2. **Load SAR June 6 results** — run picks through r5_tracker for the SAR 06/06 card if DRF was not analyzed at race time.
+3. **Monitor in-meet checkpoints** — SAR n≥40 (structure menu review), n≥60 (β refit + tj_n test), n≥100 (CM decision), val_n n≥120. See checkpoint table above.
+4. **No code changes before opening day** — system is feature-frozen. Any observation at Saratoga that suggests a change requires n≥threshold validation, not race-day adjustment.
 
----
-
-*Update this file after each session. Keep the session log current. This is the handoff document for every new Claude conversation and for Opus evaluation sessions.*
+*Update this file after each session. Keep the session log current. This is the handoff document for every new Claude conversation and for Fable 5 architecture sessions.*

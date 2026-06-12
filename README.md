@@ -1,15 +1,15 @@
 # R5 Horse Racing Handicapping System
 
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-3.9-gold)]()
-[![Status](https://img.shields.io/badge/status-Active%20Development-brightgreen)]()
+[![Version](https://img.shields.io/badge/version-3.10-gold)]()
+[![Status](https://img.shields.io/badge/status-Saratoga%20Ready-brightgreen)]()
 [![License](https://img.shields.io/badge/license-Proprietary-blue)](#-license)
 
-**Version:** 3.9
+**Version:** 3.10 — deployed, weights frozen through Saratoga meet
+**Saratoga opens:** July 3, 2026
+**Operations guide:** [SARATOGA_OPERATIONS.md](SARATOGA_OPERATIONS.md)
 
-**Status:** Active Development
-
-A data-driven handicapping engine built on BRIS DRF files. Combines speed figures, pace analysis, trainer/jockey stats, pedigree, and live scouting into a single composite score that ranks every horse in a field.
+A data-driven handicapping engine built on BRIS DRF files. Combines speed figures, pace analysis, trainer/jockey stats, pedigree, and probabilistic ranking into a composite score that ranks every horse in a field, generates a probability of winning for each, and produces exotic wager recommendations.
 
 > ⚠️ **For personal use only.** This system is a research and analysis tool. All wagering decisions are the sole responsibility of the user.
 
@@ -17,7 +17,7 @@ A data-driven handicapping engine built on BRIS DRF files. Combines speed figure
 
 ## Project Origin & Authorship
 
-The **R5 Handicapping System™** and the **R5 Composite Score™** were created by **Harry Adalian** ([@hadlian](https://github.com/hadlian)).
+The **R5 Handicapping System™** and the **R5 Composite Score™** were created by **Harry Adalian**.
 
 All original algorithms, scoring formulas, pace analysis methods, and handicapping logic are the intellectual property of Harry Adalian. This project is actively developed and shared for collaboration and evaluation purposes.
 
@@ -25,40 +25,51 @@ All original algorithms, scoring formulas, pace analysis methods, and handicappi
 
 ---
 
-## System Overview
+## Architecture
 
 ```
-files 2/TRACK_MMDD.DRF   ← BRIS DRF input
+files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1,435 fields per record)
          │
-         ▼
-  r5_parser_v2.py         ← Parse + score every horse
+  r5_parser_v2.py         ← Parse + 9-component composite + display fields
          │
-  r5_scout.py             ← Scrape trainer quotes, scratches, sharp money
+  r5_probability.py       ← Conditional logit P(win) layer (β=0.7674)
          │
-  run_r5.py               ← Combine + print race card rankings
+  r5_exotics.py           ← Contender set + structure menu + ticket gen/settle
          │
-  r5_tracker.py           ← Log picks to SQLite (opt-in)
+  r5_scout.py             ← Pre-race intel: trainer quotes, scratches, sharp money
+         │
+  run_r5.py               ← Master runner (--save --track --wet --live)
+         │
+  r5_tracker.py           ← SQLite logger; val_n tracker with guardrails
+         │
+  r5_payoffs.py           ← Chart PDF payoff ingestion (pdftotext -layout)
          │
   r5_analyze.py           ← Performance analysis → Excel workbook
+         │
+  webapp/app.py            ← Flask UI (localhost:5050)
 ```
+
+**DB:** `Results/r5_results.db` (SQLite)
 
 ---
 
-## R5 Composite Score (0–10) — v3.9
+## R5 Composite Score (0–10) — v3.10
 
-| Component           | Weight | Source |
-|---------------------|--------|--------|
-| FCI (Speed+Trend)   | 22%    | BRIS speed figs, par-anchored normalisation |
-| Class vs Par        | 13%    | Race class vs pace pars |
-| Bias/Pace Fit       | 8%     | Track post bias + pace scenario fit |
-| Trainer/Jockey      | 15%    | Actual win % (min 20 starts) |
-| Form Angle          | 10%    | Recent race pattern |
-| Pedigree            | 7%     | Distance/surface suitability |
-| Value vs ML         | 5%     | Model rank divergence from morning line |
-| Best @ Distance     | 8%     | BRIS best speed figure at today's distance |
-| Prime Power         | 5%     | BRIS Prime Power figure |
+| Component | Weight | Source |
+|-----------|--------|--------|
+| Class vs Speed Par | **20%** | Race class vs pace pars |
+| FCI (Speed + Trend) | 22% | BRIS speed figs, par-anchored normalisation |
+| Trainer / Jockey | 15% | Actual win % (min 20 meet starts; elite-name fallback) |
+| Form Angle | 10% | Recent race pattern |
+| Best @ Distance | 8% | BRIS best speed at today's distance/surface |
+| Bias / Pace Fit | 8% | Post bias + pace scenario fit |
+| Pedigree | 7% | Distance/surface suitability |
+| Value vs ML | 5% | Model-rank divergence from morning line |
+| Prime Power | 5% | BRIS Prime Power figure |
 
-**Confidence Tiers:** `HIGH ≥8.5` | `SOLID 7.5–8.4` | `FAIR 6.5–7.4` | `SPECULATIVE <6.5`
+**Weights are frozen through the Saratoga meet.** Any change requires Harry ruling + version bump.
+
+**Confidence tiers (HIGH/SOLID/FAIR/SPEC) are retired** — they were zero-fires dead weight or inverse-performing. Output now shows P(win) and fair odds.
 
 ### WS4 (Weighted Speed)
 ```
@@ -70,92 +81,199 @@ fci_n = 5.0 + (fci − par_eff) / 5.0   where par_eff = clamp(par, 70, 105)
 Debut / no figures: fci_n = 4.0
 ```
 
+### P(win) Layer
+```
+comp_ex_val = Σ(weight/0.95) over the 8 non-val components  (market-free)
+P(win)_i = exp(0.7674 × comp_ex_val_i) / Σ_j exp(0.7674 × comp_ex_val_j)
+fair_odds = (1 − P) / P    (implied fair price)
+edge = P × (final_odds + 1) − 1  (overlay when ≥ 0.25 AND P ≥ 0.08)
+```
+
+**OVERLAY flags are advisory only.** Live overlay win betting is NOT authorized (retro-test: −56.9% ROI on 142 bets).
+
 ---
 
-## Scripts
-
-### `Claude/r5_parser_v2.py`
-Core DRF parser and scoring engine.
-- Parses BRIS `.DRF` fixed-format CSV (1496 fields per record)
-- `parse_drf(path)` → list of horse dicts with all 7 component scores
-- `finalize_field(horses)` → two-pass field context: pace scenario + value scores
-- `report(horses)` → prints ranked race card to stdout
-- `tier(score)` → confidence tier label
-
-### `Claude/r5_scout.py`
-Web scraper for live pre-race intel.
-- Sources: Horse Racing Nation, Blood-Horse, TDN
-- Searches by track-specific keywords (e.g. "Kentucky Derby", "Churchill")
-- Claude API (claude-haiku) extracts structured JSON: scratches, trainer quotes, sharp money, workout notes, equipment changes, jockey switches
-- `format_for_r5(intel)` → formatted text block for report header
-
-### `Claude/run_r5.py`
-Master runner — combines parser + scout.
+## Quick Start — Race Card
 
 ```bash
-# Basic analysis
-python3 Claude/run_r5.py "files 2/DBY0502.DRF"
+# Activate your virtual environment
+source venv/bin/activate   # or: source webapp/.venv/bin/activate
 
-# With auto scouting
-python3 Claude/run_r5.py "files 2/DBY0502.DRF" --auto-scout
+# Run a full card and save output
+python3 Claude/run_r5.py "files 2/SAR0703.DRF" --save --track
+
+# With auto scouting (requires ANTHROPIC_API_KEY)
+python3 Claude/run_r5.py "files 2/SAR0703.DRF" --auto-scout --save --track
+
+# Off-track day (surfaces may be muddy/wet)
+python3 Claude/run_r5.py "files 2/SAR0703.DRF" --wet --save --track
 
 # Single race only
-python3 Claude/run_r5.py "files 2/DBY0502.DRF" --race 12
+python3 Claude/run_r5.py "files 2/SAR0703.DRF" --race 5
 
-# Save output to file
-python3 Claude/run_r5.py "files 2/DBY0502.DRF" --save
-
-# Log picks to results DB (opt-in)
-python3 Claude/run_r5.py "files 2/DBY0502.DRF" --track
-
-# Full pipeline
-python3 Claude/run_r5.py "files 2/DBY0502.DRF" --auto-scout --save --track
+# Via web UI (easiest)
+cd webapp && python app.py
+# → open http://localhost:5050, drag-drop DRF file
 ```
-
-### `Claude/r5_tracker.py`
-SQLite-backed results logger. Stores picks and records actual finishes.
-
-```bash
-# View pending races (no results yet)
-python3 Claude/r5_tracker.py --status
-
-# Auto-fetch results from Equibase / HRN
-python3 Claude/r5_tracker.py --fetch CD 20260502
-
-# Enter results manually: track date race "1st,2nd,3rd,4th" [SP_winner]
-python3 Claude/r5_tracker.py --manual DBY 20260502 12 "15,6,14,1" 18.40
-
-# Bulk load from CSV
-python3 Claude/r5_tracker.py --csv results/results_template.csv
-```
-
-**CSV format:**
-```csv
-track,date,race,finish,sp_winner
-DBY,20260502,12,"15,6,14,1",18.40
-```
-
-### `Claude/r5_analyze.py`
-Performance analysis — reads SQLite DB, outputs Excel workbook.
-
-```bash
-python3 Claude/r5_analyze.py                 # all tracks
-python3 Claude/r5_analyze.py --track CD      # single track
-python3 Claude/r5_analyze.py --out my.xlsx   # custom filename
-```
-
-**Excel sheets:**
-- **Summary** — top pick %, top-3 hit rate, value ROI, HIGH tier hit rate
-- **Race by Race** — every race logged with winner rank and SP
-- **Component Correlations** — which of the 7 components best predicts winners
-- **Value ROI** — ROI curve across val_n thresholds (6.0–10.0)
-- **Scout Impact** — horses with scout adjustments vs without
 
 ---
 
-## Web Frontend
+## Exotics Module
 
-A browser-based UI for running analyses without touching the command line.
+```bash
+# Generate paper tickets for a card (default — no real money)
+python3 Claude/r5_exotics.py --track SAR --date 20260703
+
+# Settle paper tickets after results are in
+python3 Claude/r5_exotics.py --settle SAR 20260703
+
+# Go live at $12 cap (Harry ruling required each card)
+python3 Claude/r5_exotics.py --track SAR --date 20260703 --live
+
+# View ticket summary
+python3 Claude/r5_exotics.py --report SAR 20260703
+```
+
+**Structure menu:**
+- **TIGHT** (top-3 spread ≤ 0.5): EX box + TRI box + r3 key (if ML ≥ 6-1)
+- **STANDOUT** (r1−r2 spread ≥ 1.0): EX key r1/set + TRI key r1 over set
+- **DEFAULT**: EX box r1+r2
+
+**$12 cap per race.** Trim order: TRI third leg → rank-3 key → primary EX never dropped.
+
+---
+
+## Loading Results and Settling Tickets
+
+```bash
+# Step 1: Download chart PDF from Equibase → Results/2026/YYYYMMDDTRACKUSA0.pdf
+
+# Step 2: Ingest chart payoffs
+python3 Claude/r5_payoffs.py Results/2026/20260703SARUSA0.pdf
+
+# Step 3: Load race results into picks DB
+python3 Claude/r5_tracker.py --fetch SAR 20260703
+# or manually:
+python3 Claude/r5_tracker.py --manual SAR 20260703 5 "3,11,5,7" 6.20
+
+# Step 4: Finalize late scratches
+python3 Claude/r5_tracker.py --finalize SAR 20260703
+
+# Step 5: Settle tickets
+python3 Claude/r5_exotics.py --settle SAR 20260703
+
+# Step 6: Generate analysis workbook
+python3 Claude/r5_analyze.py
+```
+
+---
+
+## Wet Track Workflow
+
+The DRF does not contain today's track condition — it's generated before race day. Supply the condition at run time:
+
+```bash
+# When track is muddy, sloppy, or wet
+python3 Claude/run_r5.py "files 2/SAR0703.DRF" --wet --save --track
+```
+
+With `--wet`, the report prints a wet-track block for the top 3 contenders:
+```
+WET: #4 INCENTIVE PAY — 0-for-1 wet, best off-track BRIS 95
+WET: #8 SENIOR OFFICER — no wet starts (first off-track)
+```
+
+Wet stats (fields 80–84: starts/wins/places/shows on off-tracks; field 1180: best off-track speed) are always parsed and logged — the `--wet` flag controls display only.
+
+---
+
+## Output — What to Look For
+
+### Race header
+```
+SAR R5  1m Turf  $85k Allowance  10 starters  Par 113
+pace profile 3E/EP vs 6P/S
+```
+
+### Horse table columns
+`# | Horse (style) | ML | Q | WS4 | Trnd | FCI | vPar | Ped | T/J | Pce | Val | Comp | P(win)`
+
+- **Q**: Quirin speed points (0–8); higher = more early pace
+- **style**: run style appended to name — E (early), E/P, P (presser), S (closer)
+- **P(win)**: probability of winning this race (conditional logit)
+- **LAYOFF** tags: `[LAYOFF 45+]`, `[LAYOFF 90+]`, `[LAYOFF 180+]` in name cell
+
+### Top-pick block
+```
+P(WIN): 31.2%  |  FAIR ODDS: 2.2-1  |  ML: 5-2  |  EDGE: +0.08
+OVERLAY: ⚠️ P(win) × (final+1) = 1.29 ≥ 1.25 — ADVISORY ONLY (not authorized)
+```
+
+### val_n watch signal
+```
+VAL WATCH: val_n=8.4 — flag for guardrail tracker (flat $2 only, max 2/card)
+```
+
+### TRAINER ANGLES section
+Firing categories for R5 ranks 1–3. `← LAYOFF MATCH` when horse is ≥45 days out and trainer fires in that spot.
+
+---
+
+## val_n Guardrail Rules
+
+Flat $2 win bet, max 2 per card, evaluated before each live log:
+
+| Stop condition | Rule |
+|----------------|------|
+| Win drought | 0 wins in last 30 settled bets |
+| Loss limit | SUM(profit) < −$60 |
+| Card limit | Already 2 val_n bets logged this card |
+
+When any condition is met, `log_val_bet()` prints a refusal and does not log. No running total is stored — conditions are re-evaluated from the DB each time.
+
+---
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `Claude/run_r5.py` | Master runner — start here |
+| `Claude/r5_parser_v2.py` | DRF parser + composite scorer |
+| `Claude/r5_probability.py` | P(win) layer, val_n tracker |
+| `Claude/r5_exotics.py` | Exotic ticket generator + settler |
+| `Claude/r5_payoffs.py` | Chart PDF payoff ingestion |
+| `Claude/r5_tracker.py` | Results DB logger |
+| `Claude/r5_analyze.py` | Performance analysis → Excel |
+| `Claude/r5_scout.py` | Pre-race web intel (optional) |
+| `Claude/R5_SPEC.md` | Full specification v3.10 |
+| `R5_PROJECT_STATE.md` | Current system state (dev handoff) |
+| `SARATOGA_OPERATIONS.md` | Opening-day operations guide |
+| `TODO.md` | Task list + in-meet checkpoints |
+| `Results/r5_results.db` | SQLite DB (picks, payoffs, tickets) |
+| `Results/logit_beta.json` | β=0.7674 serialized |
+| `Results/CORRECTED_BASELINE_2026-06.md` | Authoritative ROI baseline |
+| `comparemodels/` | CompareModels v1.1 parallel system |
+
+---
+
+## Setup
+
+```bash
+# Python 3.9+
+python3 -m venv venv
+source venv/bin/activate
+pip install requests beautifulsoup4 anthropic openpyxl reportlab
+
+# Set Anthropic API key (for r5_scout.py only)
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# pdftotext is required for chart ingestion
+# macOS: brew install poppler
+```
+
+Place BRIS DRF files in `files 2/` (unzipped `.DRF`). Chart PDFs go in `Results/2026/`.
+
+### Web UI
 
 ```bash
 cd webapp
@@ -165,156 +283,45 @@ python app.py
 # → open http://localhost:5050
 ```
 
-| Feature | Detail |
-|---------|--------|
-| Upload | Drag-drop or browse — `.DRF` or `.ZIP`, multiple files OK |
-| Overview toggle | 📋 Overview: one-row-per-race card summary; 🏇 Race Detail: full tabbed view |
-| Race tabs | One tab per race, instant switching; click Overview row to jump |
-| Horse table | WS4, Trend, FCI, vPar, Ped, T/J, Pace, Val, Comp, Tier — colour-coded |
-| Pick boxes | Top Win Pick (green) and Value Alt (gold) |
-| Bet Recommendation | PLAY (comp ≥ 6.0) / NEAR (5.5–5.99) / SKIP (<5.5) with For/Against bullets |
-| Exotics | Win / Exacta / Trifecta / Superfecta |
-| Raw text | Full formatted output in collapsible block |
-| Downloads | TXT (always) + PDF (tick "Generate PDF" before uploading) |
-| Analytics tab | 📊 Chart.js dashboard: tier hit rates, value ROI curve, score distribution, track/surface splits (requires logged results) |
+---
 
-See [`webapp/README.md`](webapp/README.md) for full options and troubleshooting.
+## Roadmap
+
+### Current: v3.10 (June 2026) — Saratoga Deploy
+- ✅ 9-component composite (FCI, Class, TJ, Form, BestDist, Bias, Ped, PP, Val)
+- ✅ Conditional logit P(win) layer (β=0.7674, comp_ex_val, val_n excluded)
+- ✅ Exotics module: TIGHT/STANDOUT/DEFAULT menu, $12 cap, settlement self-test gated
+- ✅ val_n tracker with guardrails (flat $2, max 2/card, hard stops)
+- ✅ Payoff infrastructure: Equibase chart PDF ingestion, 174/179 races backfilled
+- ✅ Display fields: run style/Quirin, LAYOFF tags, pace-profile header, wet-track bundle
+- ✅ Trainer angles for full contender set (R5 ranks 1–3)
+- ✅ Tier ladder retired; OVERLAY advisory only (−56.9% retro-test)
+- ✅ CompareModels v1.1 (field-extraction corrected)
+- ✅ Web frontend: P(win) badges, run-style display, corrected analytics
+
+### In-Meet: v3.x (during Saratoga 2026)
+- ⏳ Structure menu review (n≥40 SAR payoff races)
+- ⏳ SAR-only β refit + tj_n year-stats fallback (n≥60 SAR races)
+- ⏳ CM merge-or-keep (n≥100 SAR races)
+- ⏳ val_n ≥8 re-decision (n≥120 qualifying bets)
+
+### Mid-July 2026: v4.x
+- 🔲 Live tote odds capture (Issue 16) — required for overlay reconsideration
+- 🔲 Live odds divergence alerts in webapp (UI-3)
+
+### Long-term: v5.0
+- 🔲 Decorrelated P(win) upgrade (n≥300); overlay reconsideration paper-first
+- 🔲 ML pattern recognition; anomaly detection; LLM coaching summaries
 
 ---
 
-## Setup (CLI)
-
-```bash
-# Python 3.9+
-python3 -m venv venv
-source venv/bin/activate
-pip install requests beautifulsoup4 anthropic openpyxl
-
-# Set Anthropic API key (for r5_scout.py)
-export ANTHROPIC_API_KEY="sk-ant-..."
-```
-
-Place BRIS DRF files in `files 2/` (unzipped `.DRF`).
-
----
-
-## Directory Layout
-
-```
-HorseRacing/
-├── Claude/                  ← R5 scripts (this repo)
-│   ├── run_r5.py
-│   ├── r5_parser_v2.py
-│   ├── r5_scout.py
-│   ├── r5_tracker.py
-│   ├── r5_analyze.py
-│   └── R5_SETUP.md
-├── webapp/                  ← Web frontend (Flask)
-│   ├── app.py               ← Flask server + output parser
-│   ├── requirements.txt     ← Flask only
-│   ├── README.md            ← Setup + usage for the web UI
-│   └── templates/
-│       └── index.html       ← Single-page UI
-├── files 2/                 ← BRIS .DRF input files (not in git)
-├── results/                 ← SQLite DB + Excel reports (not in git)
-│   └── results_template.csv ← CSV template for manual result entry
-├── scout/                   ← Scout JSON cache (not in git)
-└── venv/                    ← Python virtual environment (not in git)
-```
-
----
-
-## Typical Workflow
-
-### Via Web UI (easiest)
-```bash
-cd webapp && source .venv/bin/activate
-python app.py
-# Drop DRF or ZIP onto http://localhost:5050, click Analyze
-```
-
-### Via CLI
-```bash
-source venv/bin/activate
-
-# Morning of race day
-python3 Claude/run_r5.py "files 2/CD0503.DRF" --auto-scout --save --track
-
-# After races run
-python3 Claude/r5_tracker.py --manual CD 20260503 8 "3,11,5,7" 6.20
-
-# Weekly review (after 10+ races)
-python3 Claude/r5_analyze.py
-open results/r5_analysis_20260503_*.xlsx
-```
-
----
-
-## Scout Adjustments
-
-Applied to composite score before final ranking:
-
-| Signal | Adjustment |
-|--------|-----------|
-| Positive trainer quote | +0.20 |
-| Sharp money | +0.15 |
-| Bullet workout | +0.10 |
-| First-time blinkers | +0.10 |
-| Elite jockey switch | +0.10 |
-| Workout concern | −0.15 |
-| Negative trainer signal | −0.30 |
-| Health concern | −0.30 |
-| Scratch | Removed from field |
-
----
-
-## 🗺️ Roadmap
-
-### Current Version: v3.9 (June 2026)
-- ✅ **DRF Parser** — Fixed-format BRIS DRF parsing (1496 fields per record), 9-component scoring pipeline
-- ✅ **WS4™ Speed Formula** — Weighted 4-race speed figure, surface-matched; par-anchored `fci_n` normalisation (v3.6)
-- ✅ **Pace Scenario Engine** — HOT / NML / PRESS classification; speed horse vs closer fit scoring
-- ✅ **Web Scout** — Live pre-race intel from Horse Racing Nation, Blood-Horse, TDN via Claude API
-- ✅ **Results Tracker** — SQLite-backed logger; `--finalize` late-scratch detection; two-tier NULL filter in analyzer
-- ✅ **Performance Analyzer** — Excel workbook with 5 sheets: Summary, Race by Race, Component Correlations, Value ROI, Scout Impact
-- ✅ **Web Frontend** — Flask upload UI with structured race cards, colour-coded horse table, pick boxes, exotic suggestions
-- ✅ **Bet Recommendation** — PLAY / NEAR / SKIP verdict driven by R5 Composite Score™ with For/Against rationale bullets
-- ✅ **Overview Toggle** — Card-level summary (📋 Overview) alongside full tabbed race detail (🏇 Race Detail)
-- ✅ **Analytics Tab** — Chart.js dashboard (📊 Analytics): tier hit rates, value ROI curve, score distribution, track/surface splits
-- ✅ **Mobile Responsive** — Horse table, race tabs, summary table all adapt to phone-width screens
-- ✅ **PDF Download** — ReportLab-generated PDF reports via `--pdf` flag or web UI checkbox
-- ✅ **Maiden/Firster Class Fix** — First-time starters receive `class_n=0.0`; `[DEBUT]` flag in output
-- ✅ **Value Score Fix** — One-sided floor: underlays neutral at 5.0, overlays rewarded up to 10.0; val_n ROI validated
-- ✅ **T/J Weight Raised** — 10% → 15% (v3.5); Best @ Distance (8%) and Prime Power (5%) added as new components
-- ✅ **Par-Anchored Normalisation** — `fci_n` and `best_dist_n` relative to par rather than fixed floor; mid-week cards score correctly (v3.6)
-- ✅ **Tight Cluster Deduction** — Two-tier system: MODERATE advisory (spread 0.5–1.5 pts); SEVERE −0.40 deduction on Rank 1 when spread ≤0.5 (v3.7, validated on 99-race DB)
-- ✅ **DRF Field Expansion** — 1st-time Lasix (+0.20), blinkers on/off, turf best speed, AE detection from DRF, post-scratch program post (v3.8)
-- ✅ **Scout-Before-Finalize** — Scout intel applied before `finalize_field()` so tight-cluster deduction sees scout-aware composites (v3.9)
-- ✅ **CompareModels v1.1** — Parallel BRIS Summary system; field-extraction corrected; Prime Power underline is strongest single signal (42.9% win rate)
-
-### Active: v3.x — Engine Improvements
-- 🔲 **pp_n Neutral Anchor** — Pending advisory: confirm typical BRIS Prime Power range by race type before adjusting formula anchor
-- 🔲 **Surface-Specific WS4** — Dirt: weight recent form more; Turf: lean on Trend/FCI. Validate against 129-race DB
-- 🔲 **Data Scarcity Cap** — Per-horse confidence reduction when horse has < 2 lifetime starts; `LOW INFO FIELD` header warning
-- 🔲 **v3.8 Stage 2** — Distance W%, beaten-favorite flag, T/J combo at meet (pending backtest against 129-race DB)
-
-### Active: v4.x — UI Enhancements
-- 🔲 **Live Odds Divergence Alerts** — Compare morning line vs live board; flag strong overlays in real time (UI-3)
-
-### Future: v5.0 — Intelligence Layer
-- 🔲 ML-powered lap time prediction and pattern recognition
-- 🔲 Anomaly detection for workout and form angle outliers
-- 🔲 Optional LLM coaching summaries per race
-
----
-
-## 🙏 Acknowledgments
+## Acknowledgments
 
 ### Contributors
 - **Dennis Jersey** — Technical advisor — handicapping domain expertise, race analysis methodology, and real-world validation
-- **[Claude AI](https://claude.ai)** (Anthropic) — AI development collaborator — code implementation, architecture, documentation, and scoring system design
-- **[ChatGPT](https://chat.openai.com)** (OpenAI) — AI research and development collaborator
-- **[Gemini](https://gemini.google.com)** (Google) — AI research and development collaborator
+- **[Claude AI](https://claude.ai)** (Anthropic) — AI development collaborator — code implementation, architecture, documentation
+- **[ChatGPT](https://chat.openai.com)** (OpenAI) — AI research collaborator
+- **[Gemini](https://gemini.google.com)** (Google) — AI research collaborator
 
 ### Built With
 - **Flask** — Web framework
@@ -322,31 +329,19 @@ Applied to composite score before final ranking:
 - **Anthropic Claude API** — Scout intel extraction
 - **openpyxl** — Excel workbook generation
 - **ReportLab** — PDF report generation
+- **poppler / pdftotext** — Chart PDF extraction
 
 ---
 
-## 📝 License
+## License
 
 © 2026–Present Harry Adalian. All rights reserved.
 
-This project is proprietary software created by Harry Adalian.
-
-The source code is shared for collaboration and evaluation purposes. The R5 Composite Score™ algorithms, WS4™ speed formula, pace analysis methods, and handicapping logic are original intellectual property and may not be redistributed or republished without explicit written permission from the author.
-
-Third-party dependencies used in this project (Flask, requests, BeautifulSoup4, openpyxl, ReportLab, etc.) retain their respective open-source licenses.
-
----
-
-## 📞 Contact & Support
-
-- **Author:** Harry Adalian ([@hadlian](https://github.com/hadlian))
-- **Repository:** [github.com/hadlian/HorseRacing](https://github.com/hadlian/HorseRacing)
-- **Issues & Support:** [GitHub Issues](https://github.com/hadlian/HorseRacing/issues)
+This project is proprietary software. The R5 Composite Score™ algorithms, WS4™ speed formula, pace analysis methods, and handicapping logic are original intellectual property and may not be redistributed without explicit written permission.
 
 ## Trademark Notice
 
 R5 Handicapping System™, R5 Composite Score™, and WS4™ are trademarks of Harry Adalian.
-The R5 name, WS4 formula, and associated branding are not licensed under the software license of this project and may not be used without explicit written permission from the author.
 
 ---
 
