@@ -329,7 +329,7 @@ def generate_card(track, date, race_num=None, live_mode=False):
     cm.row_factory = sqlite3.Row
 
     races = conn.execute(
-        "SELECT * FROM races WHERE track=? AND date=?" +
+        "SELECT * FROM races WHERE track=? AND date=? AND is_backtest=0" +
         (" AND race_num=?" if race_num else ""),
         (track.upper(), date) + ((str(race_num),) if race_num else ())
     ).fetchall()
@@ -444,7 +444,7 @@ def settle_card(track, date, race_num=None):
     conn = sqlite3.connect(R5_DB)
     conn.row_factory = sqlite3.Row
     races = conn.execute(
-        "SELECT * FROM races WHERE track=? AND date=?" +
+        "SELECT * FROM races WHERE track=? AND date=? AND is_backtest=0" +
         (" AND race_num=?" if race_num else ""),
         (track.upper(), date) + ((str(race_num),) if race_num else ())
     ).fetchall()
@@ -471,10 +471,11 @@ def report():
     conn = sqlite3.connect(R5_DB)
     conn.row_factory = sqlite3.Row
     row = conn.execute("""
-        SELECT COUNT(*) n, SUM(cost) cost, SUM(actual_payoff) coll,
-               SUM(profit) pl, SUM(profit > 0) winners
-        FROM exotic_tickets WHERE profit IS NOT NULL
-          AND race_shape NOT IN ('SELFTEST', 'NOTE')
+        SELECT COUNT(*) n, SUM(et.cost) cost, SUM(et.actual_payoff) coll,
+               SUM(et.profit) pl, SUM(et.profit > 0) winners
+        FROM exotic_tickets et JOIN races r ON r.id=et.race_id
+        WHERE et.profit IS NOT NULL AND r.is_backtest=0
+          AND et.race_shape NOT IN ('SELFTEST', 'NOTE')
     """).fetchone()
     if not row["n"]:
         print("no settled tickets"); return
@@ -482,10 +483,12 @@ def report():
           f"staked ${row['cost']:.2f} | collected ${row['coll']:.2f} | "
           f"P/L {row['pl']:+.2f} | ROI {row['pl']/row['cost']*100:+.1f}%")
     for r in conn.execute("""
-        SELECT race_shape, ticket_type, COUNT(*) n, SUM(cost) c,
-               SUM(profit) pl FROM exotic_tickets
-        WHERE profit IS NOT NULL AND race_shape NOT IN ('SELFTEST', 'NOTE')
-        GROUP BY race_shape, ticket_type"""):
+        SELECT et.race_shape, et.ticket_type, COUNT(*) n, SUM(et.cost) c,
+               SUM(et.profit) pl FROM exotic_tickets et
+        JOIN races r ON r.id=et.race_id
+        WHERE et.profit IS NOT NULL AND r.is_backtest=0
+          AND et.race_shape NOT IN ('SELFTEST', 'NOTE')
+        GROUP BY et.race_shape, et.ticket_type"""):
         print(f"  {r['race_shape']:<9} {r['ticket_type']:<8} n={r['n']:<3} "
               f"staked ${r['c']:<7.2f} P/L {r['pl']:+.2f} "
               f"({r['pl']/r['c']*100:+.1f}%)")

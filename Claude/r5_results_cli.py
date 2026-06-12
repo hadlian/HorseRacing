@@ -106,6 +106,18 @@ def main():
     subprocess.run([sys.executable, str(CM_CLI), "finalize", track, date_str],
                    cwd=str(HORSE_RACING_ROOT))
 
+    # ── STEP 5: Settle paper trackers ─────────────────────────────────────────
+    print(f"\n{'='*64}")
+    print(f"  STEP 5 — Settle paper trackers (rank3 + val_n)")
+    print(f"{'='*64}\n")
+
+    probability = _load("r5_probability", CLAUDE_DIR / "r5_probability.py")
+    n_r3  = tracker.settle_rank3_bets()
+    n_val = probability.settle_val_bets()
+    print(f"  rank3_tracker: {n_r3} bets settled")
+    print(f"  val_n_tracker: {n_val} bets settled")
+    tracker.rank3_status()
+
     # ── Summary ───────────────────────────────────────────────────────────────
     _print_summary(track, date_str, results)
 
