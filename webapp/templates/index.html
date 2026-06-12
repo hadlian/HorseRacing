@@ -912,6 +912,7 @@
         <div class="drop-icon">📂</div>
         <p class="drop-main">Drop <strong>.DRF</strong> or <strong>.ZIP</strong> files here</p>
         <p class="drop-hint">or click to browse — multiple files OK</p>
+        <p id="drfLastHint" style="margin:4px 0 0;font-size:0.72rem;color:var(--muted);opacity:0.7"></p>
         <input type="file" id="fileInput" multiple
                accept=".drf,.DRF,.zip,.ZIP" style="display:none">
       </div>
@@ -1050,6 +1051,7 @@
         <div class="drop-icon" style="font-size:1.6rem">📄</div>
         <p class="drop-main" style="margin:4px 0">Drop results <strong>.PDF</strong> here</p>
         <p class="drop-hint" style="margin:0">or click to browse</p>
+        <p id="pdfDirHint" style="margin:4px 0 0;font-size:0.72rem;color:var(--muted);opacity:0.7"></p>
         <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
       </div>
 
@@ -1178,10 +1180,19 @@ function addFiles(incoming) {
     const ext = f.name.slice(f.name.lastIndexOf('.')).toLowerCase();
     if (!allowed.has(ext)) return;
     if (!files.find(x => x.name === f.name)) files.push(f);
+    localStorage.setItem('r5_last_drf_file', f.name);
   });
   renderFileList();
   analyzeBtn.disabled = files.length === 0;
   updateBrisSummaryBtn();
+  updateDrfHint();
+}
+
+function updateDrfHint() {
+  const hint = document.getElementById('drfLastHint');
+  if (!hint) return;
+  const last = localStorage.getItem('r5_last_drf_file');
+  hint.textContent = last ? `Last used: ${last}` : '';
 }
 
 function removeFile(name) {
@@ -2249,8 +2260,17 @@ function updateResultFile(filename) {
     <p class="drop-hint" style="margin:0">Click to choose a different file</p>
     <input type="file" id="resultFileInput" accept=".pdf,.PDF" style="display:none">
   `;
-  // Auto-fill path from track+date if not already set, else keep existing
-  const suggested = suggestPdfPath(resTrackInput.value.trim().toUpperCase(), resDateInput.value.trim());
+  // Build path suggestion — never touch the date field (it must match the DB key from DRF analysis).
+  // Priority: (1) last used PDF directory + this filename, (2) filename-embedded date for year folder.
+  let suggested;
+  const lastDir = localStorage.getItem('r5_last_pdf_dir');
+  if (lastDir) {
+    suggested = `${lastDir}/${filename}`;
+  } else {
+    const fnDateMatch = filename.match(/^(\d{8})/);
+    const dateForPath = fnDateMatch ? fnDateMatch[1] : resDateInput.value.trim();
+    suggested = suggestPdfPath(resTrackInput.value.trim().toUpperCase(), dateForPath);
+  }
   if (!resPdfPath.value.trim() && suggested) resPdfPath.value = suggested;
   resPdfStatus.textContent = '📍 Confirm path below is correct before logging';
   resPdfStatus.style.color = 'var(--gold)';
@@ -2296,7 +2316,16 @@ function setupResultsLogger() {
   }
 
   updateLogBtn();
+  // Show last used PDF directory as hint below the results drop zone
+  const pdfDirHint = document.getElementById('pdfDirHint');
+  if (pdfDirHint) {
+    const last = localStorage.getItem('r5_last_pdf_dir');
+    pdfDirHint.textContent = last ? `Last PDF folder: ${last}` : '';
+  }
 }
+
+// Show DRF last-used hint on page load
+updateDrfHint();
 
 logResultsBtn.addEventListener('click', async () => {
   const trackVal  = resTrackInput.value.trim().toUpperCase();
@@ -2377,6 +2406,12 @@ logResultsBtn.addEventListener('click', async () => {
     }
 
     resultsLogOut.innerHTML = html;
+    // Remember PDF directory for next session
+    const usedPath = resPdfPath.value.trim();
+    if (usedPath && data.logged > 0) {
+      const dir = usedPath.slice(0, usedPath.lastIndexOf('/'));
+      if (dir) localStorage.setItem('r5_last_pdf_dir', dir);
+    }
   } catch(err) {
     resultsLogOut.innerHTML = `<span style="color:var(--red)">❌ ${err.message}</span>`;
   } finally {
