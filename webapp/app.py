@@ -878,6 +878,7 @@ def analytics():
             JOIN races r ON p.race_id = r.id
             WHERE p.model_rank = ?
               AND r.result_fetched = 1
+              AND r.is_backtest = 0
               AND p.finish_pos != -1
               AND p.finish_pos IS NOT NULL
         """, (rank,)).fetchone()
@@ -905,6 +906,7 @@ def analytics():
             WHERE p.val_n >= ?
               AND p.model_rank <= 5
               AND r.result_fetched = 1
+              AND r.is_backtest = 0
               AND p.finish_pos != -1
               AND p.finish_pos IS NOT NULL
         """, (threshold,)).fetchone()
@@ -927,12 +929,14 @@ def analytics():
     score_dist = []
     for label, lo, hi in buckets_def:
         row = conn.execute("""
-            SELECT COUNT(*) AS cnt, SUM(won) AS wins
-            FROM picks
-            WHERE finish_pos > 0
-              AND comp IS NOT NULL
-              AND CAST(comp AS REAL) >= ?
-              AND CAST(comp AS REAL) < ?
+            SELECT COUNT(*) AS cnt, SUM(p.won) AS wins
+            FROM picks p
+            JOIN races r ON p.race_id = r.id
+            WHERE p.finish_pos > 0
+              AND p.comp IS NOT NULL
+              AND CAST(p.comp AS REAL) >= ?
+              AND CAST(p.comp AS REAL) < ?
+              AND r.is_backtest = 0
         """, (lo, hi)).fetchone()
         cnt  = row["cnt"]  or 0
         wins = row["wins"] or 0
@@ -953,6 +957,7 @@ def analytics():
         FROM races r
         JOIN picks p ON p.race_id = r.id
         WHERE r.result_fetched = 1
+          AND r.is_backtest = 0
           AND p.finish_pos != -1
         GROUP BY r.track, UPPER(COALESCE(r.surface, 'UNKNOWN'))
         ORDER BY races DESC, r.track
