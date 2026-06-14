@@ -127,6 +127,14 @@
 ### CM-1 — Overlay Watch definition broken `POST-SAR`
 - Current: consensus ≥ 5 AND ML ≥ 6.0 → 5.6% win rate
 - Fix: raise threshold or add qualifier
+- Note: key-normalization defensive fix shipped 2026-06-14 (see CM-2 below). Signal logic is a separate issue.
+
+### CM-2 — Key normalization hardened `COMPLETE 2026-06-14`
+- Added `canon(hn)` helper; `format_top_three()` returns 3-tuple `(line, keys, underlined_key)`.
+- All horse-number keys now flow through `canon()` — `appearances`, `composite`, `underlined_horses`, `ml_lookup`.
+- Removed fragile `line.count("__")` underline detection; `ukey is not None` replaces it.
+- **Verified:** for clean integer horse numbers, old and new output is bit-identical (bug was never active on standard cards).
+- **Actual divergence:** coupled entries (`"1A"`) caused a hard crash in old code; new code handles them cleanly.
 
 ### CM-3 — Trainer Rating signal weak `POST-SAR`
 - Re-evaluate against SAR data (Trainer Rating extraction is correct; signal may just be weak)
