@@ -56,6 +56,16 @@ def clean_number(value):
         return None
 
 
+def canon(hn):
+    """Return a canonical horse-number key — never decorated."""
+    s = str(hn).strip().replace("_", "")
+    try:
+        f = float(s)
+        return str(int(f)) if f.is_integer() else str(f)
+    except ValueError:
+        return s
+
+
 def top_three(df, column):
     temp = df.copy()
     temp[column] = temp[column].apply(clean_number)
@@ -65,17 +75,20 @@ def top_three(df, column):
 
 
 def format_top_three(label, ranked):
+    """Return (display_line, canonical_keys, underlined_key_or_None)."""
     if not ranked:
-        return f"{label}: NA", []
+        return f"{label}: NA", [], None
 
-    horse_numbers = [str(int(row[0])) if float(row[0]).is_integer() else str(row[0]) for row in ranked]
+    keys = [canon(row[0]) for row in ranked]
     values = [row[1] for row in ranked]
 
-    # Underline top horse if top rating is 2+ points higher than third horse
+    underlined_key = None
+    display_keys = list(keys)
     if len(values) >= 3 and values[0] - values[2] >= 2:
-        horse_numbers[0] = f"__{horse_numbers[0]}__"
+        underlined_key = keys[0]
+        display_keys[0] = f"__{keys[0]}__"
 
-    return f"{label}: " + " - ".join(horse_numbers), [str(int(row[0])) if float(row[0]).is_integer() else str(row[0]) for row in ranked]
+    return f"{label}: " + " - ".join(display_keys), keys, underlined_key
 
 
 def get_bris_top_pick(df):
@@ -86,8 +99,7 @@ def get_bris_top_pick(df):
     if picks.empty:
         return "BRIS Top Pick: NA", None
 
-    horse = picks.iloc[0]["Horse Number"]
-    horse = str(int(horse)) if float(horse).is_integer() else str(horse)
+    horse = canon(picks.iloc[0]["Horse Number"])
     return f"BRIS Top Pick: {horse}", horse
 
 
@@ -100,7 +112,7 @@ def pace_edge(df, column):
     if temp.empty:
         return "NA"
     horse = temp.sort_values(column, ascending=False).iloc[0]["Horse Number"]
-    return str(int(horse)) if float(horse).is_integer() else str(horse)
+    return canon(horse)
 
 
 def morning_line_value(value):
@@ -131,12 +143,11 @@ def build_race_summary(df):
             continue
 
         ranked = top_three(df, column)
-        line, horses = format_top_three(label, ranked)
+        line, horses, ukey = format_top_three(label, ranked)
         lines.append(line)
 
-        if line.count("__") >= 2:
-            top_horse = horses[0]
-            underlined_horses.add(top_horse)
+        if ukey is not None:
+            underlined_horses.add(ukey)
 
         for idx, horse in enumerate(horses):
             appearances[horse] += 1
@@ -162,7 +173,7 @@ def build_race_summary(df):
     overlay = []
     if "Morning Line" in df.columns:
         ml_lookup = {
-            str(int(row["Horse Number"])) if float(row["Horse Number"]).is_integer() else str(row["Horse Number"]): morning_line_value(row["Morning Line"])
+            canon(row["Horse Number"]): morning_line_value(row["Morning Line"])
             for _, row in df.iterrows()
         }
         for horse, _count in consensus[:5]:
