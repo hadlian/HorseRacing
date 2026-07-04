@@ -300,6 +300,48 @@ def find_chart_pdf(track, date_str):
     return None
 
 
+def reconcile_picks(conn, rid, finishers, scratches, win_payoff, name_to_pgm):
+    """Back-fill picks.finish_pos/won/sp_odds straight from the chart.
+
+    This mirrors r5_tracker --manual and is the offline counterpart to
+    r5_tracker --fetch: when the live results source (Equibase/HRN) is
+    unreachable, --fetch fails and never populates the picks table, so
+    r5_analyze (which reads picks.*) silently misses the card even though the
+    finish order/payoffs are already in race_finish_order. The Equibase chart
+    is authoritative, so we populate the same fields --fetch would. Only called
+    when result_fetched=0 (no live fetch has claimed the race).
+    """
+    conn.execute(
+        "UPDATE picks SET finish_pos=NULL, won=0, sp_odds=NULL WHERE race_id=?",
+        (rid,))
+    pick_pgms = {str(r["pgm"]) for r in conn.execute(
+        "SELECT pgm FROM picks WHERE race_id=?", (rid,))}
+    for pos, f in enumerate(finishers, 1):
+        pgm = f["pgm"]
+        # coupled entries: chart may carry a letter suffix (e.g. 1A); fall back
+        # to the base program number if the exact string isn't a logged pick.
+        target = pgm if pgm in pick_pgms else re.sub(r"[A-Z]$", "", pgm)
+        conn.execute(
+            "UPDATE picks SET finish_pos=?, won=? WHERE race_id=? AND pgm=?",
+            (pos, 1 if pos == 1 else 0, rid, target))
+        if pos == 1 and win_payoff:
+            conn.execute(
+                "UPDATE picks SET sp_odds=? WHERE race_id=? AND pgm=?",
+                (win_payoff, rid, target))
+    # confirmed scratches -> finish_pos=-1 (excluded from model stats)
+    for name in scratches:
+        pgm = name_to_pgm.get(name.upper())
+        if pgm:
+            conn.execute(
+                "UPDATE picks SET finish_pos=-1 WHERE race_id=? AND pgm=?",
+                (rid, pgm))
+    # ran but finished outside the recorded order -> loss (matches --manual)
+    conn.execute(
+        "UPDATE picks SET finish_pos=5 WHERE race_id=? AND finish_pos IS NULL",
+        (rid,))
+    conn.execute("UPDATE races SET result_fetched=1 WHERE id=?", (rid,))
+
+
 def ingest_race(conn, race_row, parsed):
     """Idempotent write of one race's payoffs + finish order."""
     rid = race_row["id"]
@@ -362,17 +404,31 @@ def ingest_race(conn, race_row, parsed):
     conn.execute("UPDATE races SET field_size_post=?, has_coupled_entry=? WHERE id=?",
                  (len(finishers), 1 if coupled else 0, rid))
 
-    # data-quality cross-check: chart WIN payoff vs logged winner sp_odds
-    warn = None
     win = next((w for w in parsed["wps"] if w["pool"] == "WIN"), None)
-    if win:
+
+    # Safety net: if no live results fetch has populated picks (result_fetched=0),
+    # back-fill picks.finish_pos/won/sp_odds from the chart so r5_analyze sees the
+    # card. When --fetch succeeds first (result_fetched=1) we leave its data alone
+    # and instead run the independent cross-check below.
+    already_fetched = conn.execute(
+        "SELECT result_fetched FROM races WHERE id=?", (rid,)).fetchone()[0]
+    reconciled = False
+    if not already_fetched:
+        reconcile_picks(conn, rid, finishers, parsed["scratches"],
+                        win["payoff"] if win else None, pick_pgms)
+        reconciled = True
+
+    # data-quality cross-check: chart WIN payoff vs an *independent* fetch's
+    # sp_odds. Skipped when we just reconciled from the chart (self-comparison).
+    warn = None
+    if win and not reconciled:
         row = conn.execute(
             "SELECT sp_odds FROM picks WHERE race_id=? AND won=1", (rid,)
         ).fetchone()
         if row and row["sp_odds"] and abs(row["sp_odds"] - win["payoff"]) > 0.02:
             warn = (f"WIN payoff mismatch: chart ${win['payoff']:.2f} vs "
                     f"logged sp_odds ${row['sp_odds']:.2f}")
-    return warn
+    return warn, reconciled
 
 
 def run_ingest(track, date_str, race_num=None, pdf=None, txt=None):
@@ -405,7 +461,7 @@ def run_ingest(track, date_str, race_num=None, pdf=None, txt=None):
     print(f"\n📥 Ingesting {track} {date_str} from {src} "
           f"(chart races: {sorted(chart)}; DB races: {sorted(db_races, key=int)})")
 
-    done, skipped, warns = 0, [], []
+    done, skipped, warns, reconciled_n = 0, [], [], 0
     for rn in targets:
         if rn not in db_races:
             skipped.append((rn, "not logged in races table"))
@@ -417,7 +473,7 @@ def run_ingest(track, date_str, race_num=None, pdf=None, txt=None):
         if not parsed["finishers"]:
             skipped.append((rn, "finish table parse failed"))
             continue
-        warn = ingest_race(conn, db_races[rn], parsed)
+        warn, reconciled = ingest_race(conn, db_races[rn], parsed)
         np_, nf = (conn.execute(
             f"SELECT (SELECT COUNT(*) FROM race_payoffs WHERE race_id=?),"
             f"(SELECT COUNT(*) FROM race_finish_order WHERE race_id=?)",
@@ -425,11 +481,14 @@ def run_ingest(track, date_str, race_num=None, pdf=None, txt=None):
         flags = []
         if parsed["dq"]:        flags.append("DQ — verify across-wire order manually")
         if parsed["dead_heat"]: flags.append("DEAD HEAT")
+        if reconciled:          flags.append("picks reconciled from chart")
         if warn:                flags.append(warn)
         print(f"  ✅ R{rn}: {nf} finishers, {np_} payoff rows"
               + (f"  ⚠️ {'; '.join(flags)}" if flags else ""))
         if warn:
             warns.append((rn, warn))
+        if reconciled:
+            reconciled_n += 1
         done += 1
 
     conn.commit()
@@ -438,7 +497,10 @@ def run_ingest(track, date_str, race_num=None, pdf=None, txt=None):
         print(f"  ℹ️  Chart races not in DB (not analyzed, skipped): {chart_only}")
     for rn, why in skipped:
         print(f"  ⚠️  R{rn} skipped: {why}")
-    print(f"\n✅ {done} race(s) ingested.")
+    print(f"\n✅ {done} race(s) ingested."
+          + (f"  ({reconciled_n} reconciled from chart — no live fetch needed; "
+             f"run r5_tracker --finalize to check late scratches)"
+             if reconciled_n else ""))
     conn.close()
     return done
 
