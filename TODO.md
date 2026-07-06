@@ -27,6 +27,18 @@
 
 ---
 
+## 🚨 2026-07-06 — MARKET-ANCHORED GATE: NO-GO (supersedes several items below)
+
+Ran the falsification gate (`scripts/market_anchor_gate.py`, Fable round-2 spec): does `comp_ex_val` add win info orthogonal to the CLOSING market? **n=120, OOS mean ΔLL = −0.0164/race (90% CI [−0.023,−0.010], excludes 0 negative); β=+0.031 (LR 0.06, NS); SAR fold −0.072.** α=0.973 confirms the market anchor is calibrated and the test had power. **Verdict: NO-GO** — the fundamental score carries no conditional signal over the market and slightly hurts OOS. Pre-registered rule: one confirmatory re-run at n≈300, else ABANDON the market-anchored win-overlay program.
+
+**Consequences (all freeze-safe):**
+- **rank-3 / CM rank-2 RETIRED as "positive slots."** Reconciled: rank-3 non-SAR +24.4%→**+1.7% ex-outlier** / SAR −43.8%; CM rank-2 flipped negative. Every headline is one payout. `rank3_tracker` also has NULL profits on all rows — do not quote numbers from it.
+- **val_n ≥8 DOWNGRADED to PAPER** (Harry ruling): ≥8 +12.4%→−18.7% ex-outlier; ≥9 +49.7%→−4.8% ex-outlier — the next PURE-MADNESS mirage. Re-decide at n≥120 with selection discount (≥8 and ≥9 jointly; require positive point + bootstrap CI > ~−5%).
+- **Class/FCI n≥100 investigation ON ICE** — β measures the information set, not the weights; reweighting can't extract signal that isn't conditionally there. Formal abandonment pending the n≈300 gate re-run.
+- **Honest position:** no positive-ROI signal exists anywhere (rank-1 ≈ −takeout, overlay −56.9%, rank-3 outlier-only, val_n outlier-only, gate NO-GO). System's durable value = parsing, scratch/refund reconciliation, structured exotics, bankroll discipline. Pending n≈300 confirm, reclassify R5 as analysis/construction, not a win-betting edge.
+
+---
+
 ## 🟢 IN-MEET CHECKPOINTS — Saratoga 2026 (all start July 3)
 
 ### ⏳ SAR n≥40 payoff races — Structure menu ROI review
@@ -35,15 +47,22 @@
 - **Script:** Paper tickets are logging automatically from day 1 via `r5_exotics.py` (paper mode default)
 - **No changes before this gate.**
 
-### ⏳ SAR n≥60 races — SAR β refit + tj_n fallback rerun
+### 🔵 SAR n≥60 races — SAR β refit + tj_n fallback rerun `GATE REACHED 2026-07-06 (n=63)`
 - **β refit:** Fit a SAR-only conditional logit and compare to global β=0.7674. If SAR β diverges materially, flag for Harry ruling on whether to use track-specific β.
 - **tj_n fallback:** Rerun `scripts/tj_fallback_backtest.py`. At n≥60 SAR races, meet-stat starvation is worst (exactly the cases the year-stats chain would fix). If SAR win rate improves under year-stats, bring to ruling as v3.11.
 - **Note:** 3B research found SAR win rate unchanged (9.4% either way) on existing data — drag has other causes. This is the right test set.
+- **✅ Pre-registered model-vs-market test RUN (n=63): CONFIRMED.** Mean model-rank of winner 4.40 vs market-rank 3.13 (Δ +1.27); model under-ranks winner in 65% of races; winner in MODEL top-3 = 41% vs MARKET top-3 = 67%. This is the mechanism behind the SAR drag. **β-refit constraint:** close the winner-rank gap WITHOUT killing the value-divergence edge (rank-3 +17.4% overlay came from diverging FROM the market, not matching it). Requires Harry ruling + version bump before any weight change — NOT a race-day fix.
 
 ### ⏳ SAR n≥100 races — CM merge-or-keep decision
 - **Decision:** Is CM still earning its place in the contender set (+7.5pp capture)?
 - **If CM capture degrades below +3pp:** propose removing CM legs (reduces set size, simplifies exotics)
 - **If CM capture holds:** keep as is
+
+### ⏳ SAR n≥100 races — v3.11 class/FCI over-ranking investigation `QUEUED 2026-07-06 (Option-2 diagnosis at n=63)`
+- **Finding (n=63/41):** model systematically under-ranks SAR winners vs market (top-3 41% vs 67%). Attribution: **Class vs Par (37%) + FCI/speed (27%) = 64% of the mis-ranking** — model's losing picks beat actual winners by +2.13 class / +1.43 FCI on avg. Model over-trusts paper class + speed-figure superiority at SAR.
+- **At n≥100, disambiguate the two hypotheses:** (1) **Weighting** — class/FCI over-weighted for deep SAR fields; test lower-class/FCI SAR-only β/weights vs capture + ROI. (2) **Metric calibration** — class-vs-par mis-reads SAR (pars, ship-ins, foreign form); audit par values + class scoring on the under-ranked winners.
+- **HARD CONSTRAINT:** Class (+0.75) & FCI (+0.55) are the best winner/loser separators globally — do NOT cut weights globally. Any change must be SAR-scoped AND must not kill the value-divergence edge (rank-3 +17.4%). Harry ruling + version bump required.
+- **HOLD until n≥100 (Harry directive 2026-07-06). No further model analysis before then.**
 
 ### ⏳ val_n n≥120 qualifying bets — val_n ≥8 re-decision
 - **Current state:** val_n ≥8 +41.8% on 4 wins (n too small); ≥9 +85.7% on 2 wins

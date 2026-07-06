@@ -2,9 +2,12 @@
 
 > Persistent context doc for CompareModels sessions.
 >
-> **Last updated:** 2026-05-29
+> **Last updated:** 2026-07-06
 > **Version:** CM v1.1 (field-extraction corrected; engine bug patched)
-> **Status:** Field-fix shipped 2026-05-29. CM-2 resolved (was pace bug, not weights). 99-race re-backfill complete. Engine identical to Dennis's BRIS Summary spec.
+> **Status:** Field-fix shipped 2026-05-29. CM-2 resolved (was pace bug, not weights). Engine identical to Dennis's BRIS Summary spec.
+
+> ### ⛔ 2026-07-06 — CM standalone signal RETIRED (market-anchored gate NO-GO)
+> The R5 market-anchored falsification gate (`scripts/market_anchor_gate.py`) returned NO-GO: neither R5 nor CM fundamental scores carry win information orthogonal to the closing market. **CM rank-2 is retired as a "positive slot"** — its former +3.6% has flipped negative (−2.6%) and, like R5 rank-3, was outlier-carried. CM's *only* surviving role is **workflow: contender-set expansion (ranks 1–2) + divergence flag** for exotic construction — NOT a standalone or confirmation signal, and never a live win-bet basis. The head-to-head ROI figures further down (esp. "ROI on SP +50.6%") are a **pre-audit May snapshot and are void** under the corrected $2-flat convention. SAR meet cards (below) are logged in the CM DB and drive the live divergence stats; the analysis tables in this doc are a May reference only.
 
 ---
 
@@ -95,7 +98,16 @@ CATEGORY_WEIGHTS = {
 | CDX 20260514 | 8 | 86 | 66 | 20 | Backfill |
 | LRL 20260516 | 13 | 139 | 121 | 18 | Backfill |
 | **CDX 20260521** | **8** | **78** | **78** | **0** | **Live** |
-| **TOTAL** | **71** | **747** | **709** | **38** | |
+| **TOTAL (May snapshot)** | **71** | **747** | **709** | **38** | |
+| SAR 20260603 | 10 | 110 | — | — | Live (SAR) |
+| SAR 20260604 | 11 | 118 | — | — | Live (SAR) |
+| SAR 20260605 | 14 | 146 | — | — | Live (SAR) |
+| SAR 20260606 | 14 | 148 | — | — | Live (SAR) |
+| SAR 20260703 | 11 | 100 | — | — | Live (SAR) |
+| SAR 20260704 | 11 | 115 | — | — | Live (SAR) |
+| SAR 20260705 | 9 | 90 | — | — | Live (SAR) |
+
+**SAR meet (2026-07-06):** all cards above logged to CM DB via `comparemodels_cli.py log/results/finalize`. SAR capture (CM ranks 1–2): 07-03 4/11, 07-04 5/11, 07-05 1/9 — tracks R5 set-capture closely (CM adds ~divergence, not a standalone edge). Match/unmatched counts not re-tabulated here; CM DB (`comparemodels_results.db`) is authoritative.
 
 **Notes:**
 - BAQ0509 DRF has 11 races; BAQ0510 DRF has 9 races — DB is authoritative
