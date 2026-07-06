@@ -303,13 +303,20 @@ def find_chart_pdf(track, date_str):
 def reconcile_picks(conn, rid, finishers, scratches, win_payoff, name_to_pgm):
     """Back-fill picks.finish_pos/won/sp_odds straight from the chart.
 
-    This mirrors r5_tracker --manual and is the offline counterpart to
-    r5_tracker --fetch: when the live results source (Equibase/HRN) is
-    unreachable, --fetch fails and never populates the picks table, so
-    r5_analyze (which reads picks.*) silently misses the card even though the
-    finish order/payoffs are already in race_finish_order. The Equibase chart
-    is authoritative, so we populate the same fields --fetch would. Only called
-    when result_fetched=0 (no live fetch has claimed the race).
+    This is the offline counterpart to r5_tracker --fetch: when the live results
+    source (Equibase/HRN) is unreachable, --fetch fails and never populates the
+    picks table, so r5_analyze (which reads picks.*) silently misses the card
+    even though the finish order/payoffs are already in race_finish_order. The
+    Equibase chart is authoritative, so we populate the same fields --fetch
+    would. Only called when result_fetched=0 (no live fetch has claimed race).
+
+    Picks that are neither in the chart finish order nor a matched scratch are
+    left finish_pos=NULL (not forced to a loss): they are unaccounted — a parse
+    gap or a scratch whose chart name didn't match a logged horse_name. NULL is
+    what r5_tracker --finalize keys on to mark them -1 (excluded from stats).
+    Forcing them to finish_pos=5 would lock in a wrong 'loss' and hide them from
+    --finalize. Returns the count of such unaccounted picks so the caller can
+    warn.
     """
     conn.execute(
         "UPDATE picks SET finish_pos=NULL, won=0, sp_odds=NULL WHERE race_id=?",
@@ -335,11 +342,13 @@ def reconcile_picks(conn, rid, finishers, scratches, win_payoff, name_to_pgm):
             conn.execute(
                 "UPDATE picks SET finish_pos=-1 WHERE race_id=? AND pgm=?",
                 (rid, pgm))
-    # ran but finished outside the recorded order -> loss (matches --manual)
-    conn.execute(
-        "UPDATE picks SET finish_pos=5 WHERE race_id=? AND finish_pos IS NULL",
-        (rid,))
+    # Unaccounted picks (not a finisher, not a matched scratch) stay NULL for
+    # --finalize to resolve; count them for the caller's warning.
+    unaccounted = conn.execute(
+        "SELECT COUNT(*) FROM picks WHERE race_id=? AND finish_pos IS NULL",
+        (rid,)).fetchone()[0]
     conn.execute("UPDATE races SET result_fetched=1 WHERE id=?", (rid,))
+    return unaccounted
 
 
 def ingest_race(conn, race_row, parsed):
@@ -413,15 +422,22 @@ def ingest_race(conn, race_row, parsed):
     already_fetched = conn.execute(
         "SELECT result_fetched FROM races WHERE id=?", (rid,)).fetchone()[0]
     reconciled = False
+    unaccounted = 0
     if not already_fetched:
-        reconcile_picks(conn, rid, finishers, parsed["scratches"],
-                        win["payoff"] if win else None, pick_pgms)
+        unaccounted = reconcile_picks(conn, rid, finishers, parsed["scratches"],
+                                      win["payoff"] if win else None, pick_pgms)
         reconciled = True
 
-    # data-quality cross-check: chart WIN payoff vs an *independent* fetch's
-    # sp_odds. Skipped when we just reconciled from the chart (self-comparison).
     warn = None
-    if win and not reconciled:
+    if reconciled:
+        # unaccounted picks were left NULL for --finalize; surface so it's not
+        # silent (a missed/misnamed scratch would otherwise count as a loss).
+        if unaccounted:
+            warn = (f"{unaccounted} pick(s) unaccounted (not in chart finish "
+                    f"order or scratches) — run r5_tracker --finalize to resolve")
+    elif win:
+        # data-quality cross-check: chart WIN payoff vs an *independent* fetch's
+        # sp_odds. Only meaningful when we did NOT reconcile from the same chart.
         row = conn.execute(
             "SELECT sp_odds FROM picks WHERE race_id=? AND won=1", (rid,)
         ).fetchone()
