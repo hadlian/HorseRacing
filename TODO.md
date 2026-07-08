@@ -160,6 +160,11 @@ Ran the falsification gate (`scripts/market_anchor_gate.py`, Fable round-2 spec)
 
 ### CM-4 — BRIS Top Pick field not located `DEFERRED`
 - +2 bonus silently skipped. Engine bug (would have been +16) patched 2026-05-29.
+- **UPDATE (2026-07-08): Root cause confirmed — NOT a parser bug.** Full field-by-field review of `June2026Schema.txt` (all 1,435 DRF fields) confirms "BRIS Top Pick" / "Tip" / "Consensus" / "Best Bet" / "Analyst" do not exist anywhere in the DRF Ultimate PP schema. Cannot be fixed by remapping fields.
+- **Confirmed in `BRIS_Summary_Handicap_System_Code.docx`:** `get_bris_top_pick()` expects a "BRIS Top Pick" column to already exist in the input CSV (TRUE/YES/Y/1/TOP flag per horse). Since the DRF has no such field, that column is never populated → the function returns "BRIS Top Pick: NA" silently and the composite +2 bonus never fires.
+- **Origin:** Master spec doc's "Preferred future input: BRIS Summary screenshots" suggests the original workflow assumed manual/OCR transcription of BRIS's own printed Condensed Data Summary sheet (a separate proprietary BRIS product, not the DRF).
+- **DECISION NEEDED (pending Dennis):** either (a) source "BRIS Top Pick" externally — manual entry per card or OCR off the BRIS Summary sheet — or (b) retire the "BRIS Top Pick" category and +2 bonus from CM scoring entirely, since it's LOW priority and post-Saratoga anyway.
+- **Status:** Diagnosis closed. Sourcing decision remains open, still pending Dennis.
 
 ---
 
