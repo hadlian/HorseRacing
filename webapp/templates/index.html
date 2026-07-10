@@ -991,6 +991,7 @@
         <div class="dl-group">
           <button class="btn-outline" id="btnTxt" disabled>⬇ TXT</button>
           <button class="btn-outline" id="btnPdf" disabled>⬇ PDF</button>
+          <button class="btn-outline" id="btnHtml" disabled title="Export a self-contained, read-only HTML file of this analysis to share">⬇ HTML</button>
         </div>
       </div>
     </div>
@@ -1158,6 +1159,7 @@ const raceContent    = document.getElementById('raceContent');
 const rawPre         = document.getElementById('rawPre');
 const btnTxt         = document.getElementById('btnTxt');
 const btnPdf         = document.getElementById('btnPdf');
+const btnHtml        = document.getElementById('btnHtml');
 const summaryView      = document.getElementById('summaryView');
 const detailView       = document.getElementById('detailView');
 const analyticsView    = document.getElementById('analyticsView');
@@ -1496,6 +1498,7 @@ function renderResults(data) {
   /* Downloads */
   btnTxt.disabled = !jobId;
   btnPdf.disabled = !pdfOk;
+  btnHtml.disabled = !races.length;
 
   /* Build summary (uses calcBetRec — must run after races is populated) */
   buildSummary();
@@ -2018,6 +2021,115 @@ function toggleExpand(btn) {
 /* ── Downloads ─────────────────────────────────────────────────────────── */
 btnTxt.addEventListener('click', () => { if (jobId) location.href = `/api/download/txt/${jobId}`; });
 btnPdf.addEventListener('click', () => { if (jobId && pdfOk) location.href = `/api/download/pdf/${jobId}`; });
+
+/* ── Export a self-contained, read-only HTML snapshot ──────────────────────
+   Captures the CURRENTLY rendered views (Overview + every Race Detail +
+   Analytics-as-static-image) into one standalone file. Navigation (tabs,
+   Overview row-jump, ▶ expand) works offline because all race data is
+   pre-rendered and embedded; editing/upload/API controls are stripped. */
+btnHtml.addEventListener('click', exportHtml);
+
+async function exportHtml() {
+  if (!races.length) return;
+  const prevTab = activeTab, prevView = viewMode;
+  const origLabel = btnHtml.textContent;
+  btnHtml.disabled = true; btnHtml.textContent = '⏳ Building…';
+  try {
+    // 1) Overview
+    buildSummary();
+    const summaryHtml = summaryView.innerHTML;
+
+    // 2) Every race detail, cleaned to read-only (drop the manual-scratch editor)
+    const detailHtml = races.map((_, i) => {
+      renderRace(i);
+      const clone = raceContent.cloneNode(true);
+      clone.querySelectorAll('.scratch-input-row').forEach(el => el.remove());
+      return clone.innerHTML;
+    });
+    renderRace(prevTab);
+
+    // 3) Analytics → static (live charts rasterised to <img>; needs the dev DB)
+    let analyticsHtml = '<div class="an-empty" style="padding:40px 0">Analytics not included (no results DB on this machine).</div>';
+    try {
+      switchView('analytics');
+      await loadAnalytics();
+      await new Promise(r => setTimeout(r, 400));   // let Chart.js paint
+      const grid = document.getElementById('anGrid');
+      const live = [...grid.querySelectorAll('canvas')];
+      if (live.length) {
+        const gclone = grid.cloneNode(true);
+        [...gclone.querySelectorAll('canvas')].forEach((c, i) => {
+          const img = document.createElement('img');
+          img.src = live[i] ? live[i].toDataURL('image/png') : '';
+          img.style.width = '100%'; img.style.height = 'auto';
+          c.replaceWith(img);
+        });
+        analyticsHtml = gclone.outerHTML;
+      } else {
+        analyticsHtml = grid.innerHTML;   // e.g. "not enough logged races" note
+      }
+    } catch (e) { /* keep the default placeholder */ }
+
+    switchView(prevView); switchTab(prevTab);
+
+    // 4) Assemble the standalone document
+    const tabsHtml = races.map((r, i) =>
+      `<button class="race-tab${i === 0 ? ' active' : ''}" onclick="switchTab(${i})">Race ${r.race_num ?? i + 1}</button>`
+    ).join('');
+    const styles = [...document.querySelectorAll('style')].map(s => s.outerHTML).join('\n');
+    const rootCls = document.documentElement.className || '';
+    const title = (resultsTitle.textContent || 'R5 Analysis').trim();
+    const stamp = new Date().toLocaleString();
+
+    const doc =
+`<!doctype html><html lang="en" class="${rootCls}"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title} — R5 export</title>
+${styles}
+<style>
+  body{padding:16px;max-width:1200px;margin:0 auto}
+  .exp-hdr{border-bottom:1px solid var(--border,#334);padding-bottom:10px;margin-bottom:14px}
+  .exp-hdr h1{font-size:1.2rem;margin:0}
+  .exp-sub{font-size:.78rem;opacity:.7;margin-top:4px}
+  .exp-toggle{margin:12px 0}
+</style></head><body>
+<div class="exp-hdr"><h1>${title}</h1>
+  <div class="exp-sub">R5 v3.10 · read-only export · generated ${stamp}</div></div>
+<div class="exp-toggle view-toggle">
+  <button class="btn-view" id="btnViewSummary" onclick="switchView('summary')">📋 Overview</button>
+  <button class="btn-view active" id="btnViewDetail" onclick="switchView('detail')">🏇 Race Detail</button>
+  <button class="btn-view" id="btnViewAnalytics" onclick="switchView('analytics')">📊 Analytics</button>
+</div>
+<div id="summaryView" class="hidden">${summaryHtml}</div>
+<div id="detailView"><div class="race-tabs" id="raceTabs">${tabsHtml}</div><div id="raceContent"></div></div>
+<div id="analyticsView" class="hidden">${analyticsHtml}</div>
+<script>
+const DETAIL = ${JSON.stringify(detailHtml)};
+let activeTab = 0;
+const show = el => el && el.classList.remove('hidden');
+const hide = el => el && el.classList.add('hidden');
+function switchView(m){
+  ['summary','detail','analytics'].forEach(k=>document.getElementById('btnView'+k[0].toUpperCase()+k.slice(1)).classList.toggle('active',k===m));
+  hide(document.getElementById('summaryView'));hide(document.getElementById('detailView'));hide(document.getElementById('analyticsView'));
+  show(document.getElementById(m==='summary'?'summaryView':m==='analytics'?'analyticsView':'detailView'));
+}
+function switchTab(i){activeTab=i;document.querySelectorAll('.race-tab').forEach((t,j)=>t.classList.toggle('active',j===i));document.getElementById('raceContent').innerHTML=DETAIL[i];}
+function jumpToRace(i){switchView('detail');switchTab(i);document.getElementById('detailView').scrollIntoView({behavior:'smooth',block:'start'});}
+function toggleExpand(btn){var row=btn.closest('tr');var next=row.nextElementSibling;if(!next||!next.classList.contains('horse-expand'))return;var open=!next.classList.contains('hidden');next.classList.toggle('hidden',open);btn.textContent=open?'\\u25B6':'\\u25BC';btn.classList.toggle('open',!open);}
+switchTab(0);
+<\/script></body></html>`;
+
+    // 5) Download
+    const blob = new Blob([doc], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = (title.replace(/[^\w]+/g, '_').replace(/^_|_$/g, '') || 'r5_export') + '.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  } finally {
+    btnHtml.disabled = false; btnHtml.textContent = origLabel;
+  }
+}
 
 /* ── Helpers ───────────────────────────────────────────────────────────── */
 function pWinBadge(h) {
