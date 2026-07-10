@@ -28,6 +28,7 @@ Usage:
 """
 
 import argparse
+import importlib.util
 import json
 import re
 import sqlite3
@@ -506,6 +507,8 @@ def main():
     ap.add_argument("--race", type=int)
     ap.add_argument("--live", action="store_true",
                     help="EXPLICIT live mode (Harry only) — default is paper")
+    ap.add_argument("--no-ab", action="store_true",
+                    help="skip the passive post-scratch A/B comparison after --settle")
     args = ap.parse_args()
 
     if args.selftest:
@@ -518,6 +521,21 @@ def main():
         if not (args.track and args.date):
             ap.error("--settle needs --track and --date")
         settle_card(args.track, args.date, args.race)
+        # ── passive A/B monitor (non-fatal, ISOLATED to ab_tickets) ─────────
+        # Post-scratch re-score vs entries+refund. Analysis-only: it NEVER
+        # alters the logged tickets or the frozen record. NO-GO finding
+        # (2026-07-10): entries+refund beat post-scratch across July SAR, so we
+        # do NOT bet the re-score — this just accrues the comparison so we'd
+        # catch a regime change. Skips single-race settles and --no-ab.
+        if not args.race and not args.no_ab:
+            try:
+                _abp  = Path(__file__).resolve().parent / "r5_ab.py"
+                _abs  = importlib.util.spec_from_file_location("r5_ab", _abp)
+                _abm  = importlib.util.module_from_spec(_abs)
+                _abs.loader.exec_module(_abm)
+                _abm.run_for_card(args.track, args.date)
+            except Exception as _e:
+                print(f"  [A/B] skipped (non-fatal): {_e}")
     if args.report:
         report()
     if not any([args.selftest, args.generate, args.settle, args.report]):
