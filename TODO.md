@@ -168,6 +168,34 @@ Ran the falsification gate (`scripts/market_anchor_gate.py`, Fable round-2 spec)
 
 ---
 
+## 🆕 CM1 — Third comparison model `IN DESIGN` (contributor: **Frank**)
+
+> New model to run head-to-head against R5 and CM (Dennis). Built from Harry's morning-homework
+> checklist, deliberately scoped to signals R5/CM do **not** use. Spec: `comparemodels/CM1_SPEC_DRAFT.md`.
+> Probes: `comparemodels/cm1_workouts.py`, `comparemodels/cm1_pace_fit.py`.
+
+**Key finding (2026-07-11):** every CM1 signal is already inside the BRIS DRF — **no external
+stat feed needed**. Data plan has no blockers; only human input outstanding is a legendary
+dam/broodmare-sire list for the pedigree category (Cat-5).
+
+**Three design questions resolved against data (8 SAR July cards, 777 horses) — awaiting Frank's red-line confirm:**
+- **Q1 Workouts (Cat-1):** DRF f102-185. Harry's `36/48/60` bars = top-10% of works; rate is
+  track-relative (training-track premium, turf discount). RESOLVED as percentile-relative per
+  distance+surface. *Confirm: top-decile bar right? bullet bonus?*
+- **Q2 Connections (Cat-2):** meet win% (f29/30, 35/36) already used by R5/CM → not net-new;
+  CM1's edge = situational trainer angles (f1337-1366) + jockey turf/dist stat (f1367-1372),
+  scored on **win% + $2 ROI**. Watch-list dropped. Cat-4 (surface) folded in. *Confirm: ROI gate
+  ≥0 vs ≥+0.05? win% floors 20%/18%?*
+- **Q3 Pace/distance fit (Cat-3):** per-PP running lines (f316-745). Calibrated: faded = led early
+  + lost ≥4 pos; closed = back + gained ≥5 pos; ≥1.5F gap; same-surface only. *Confirm: collapse
+  bars and same-surface rule.*
+
+**Next:** Frank confirms Q1-Q3 red-lines → build CM1 on the `comparemodels/` harness (engine →
+tracker → backfill → compare) so it drops into the existing ROI-vs-R5-vs-CM report. Q5 (pedigree)
+and Q6 (weights) still open; Harry to supply the dam list.
+
+---
+
 ## ✅ COMPLETED — Session pre-SAR instrumentation (2026-06-12)
 
 - **Pace lift diagnostic:** E/EP win-share ≈ starter-share in all three scenarios (HOT/NORMAL/SLOW). Conclusion: pace scenario was measuring field composition, not a true pace dynamic. No action needed.
