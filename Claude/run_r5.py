@@ -186,6 +186,9 @@ def main():
                         help="Tag these races as backtest (is_backtest=1); excluded from live analytics")
     parser.add_argument("--live", action="store_true",
                         help="Request live val_n >=8 bets (subject to gate checks); default is paper")
+    parser.add_argument("--force", action="store_true",
+                        help="Override the settled-card refuse guard (re-log a card whose "
+                             "races are already settled). Un-settles them — recover with --finalize.")
     args = parser.parse_args()
 
     drf_path = args.drf_file
@@ -352,6 +355,67 @@ def main():
         db_by_race = _dd(list)
         for h in active_for_db:
             db_by_race[h["race"]].append(h)
+
+        # ── write-path guardrails (added after the 2026-07-12 phantom-card
+        #    incident: a 2025 DRF run without --year/--backtest landed a LIVE
+        #    card under a future date; a later 9-race real card then overwrote
+        #    R1-9 and orphaned R10-12). Warn loudly before we overwrite —
+        #    operator decides. See project_rerun_clobber memory.
+        from datetime import date as _date2, timedelta as _td
+        _warns = []
+        try:
+            _derived = _date2(int(date_str[:4]), int(date_str[4:6]), int(date_str[6:8]))
+            _days_ahead = (_derived - _date2.today()).days
+            if _days_ahead > 2:      # day-before / race-morning runs won't trip this
+                _warns.append(
+                    f"date {date_str} is {_days_ahead} days in the FUTURE — did you "
+                    f"forget --year? (year defaulted to {year} from the filename)")
+        except ValueError:
+            pass
+        _gconn = _tmod.init_db()
+        _existing = _gconn.execute(
+            "SELECT r.race_num, r.is_backtest, r.result_fetched, "
+            "(SELECT COUNT(*) FROM picks p WHERE p.race_id=r.id) "
+            "FROM races r WHERE r.track=? AND r.date=?",
+            (track_code, date_str)).fetchall()
+        _gconn.close()
+        _ex_races = {str(row[0]) for row in _existing if row[3]}
+        _new_races = {str(k) for k in db_by_race}
+        _settled = []
+        if _ex_races:
+            _settled = sorted((str(row[0]) for row in _existing if row[2]), key=int)
+            _orphans = sorted(_ex_races - _new_races, key=int)
+            _bt = any(row[1] for row in _existing)
+            _warns.append(
+                f"{len(_ex_races)} race(s) already logged for {track_code} {date_str}"
+                + (" [is_backtest=1]" if _bt else "")
+                + " — their picks will be OVERWRITTEN.")
+            if _orphans:
+                _warns.append(
+                    f"races {_orphans} exist for this date but are NOT in this card — "
+                    f"they will be left as ORPHANS under {date_str}.")
+        # HARD REFUSE on settled-card clobber (unless --force): re-logging wipes
+        # real results. This is the destructive case the warnings can't undo.
+        if _settled and not args.force:
+            print(f"\n  ⛔ REFUSING to log: races {_settled} for {track_code} "
+                  f"{date_str} are already SETTLED (result_fetched=1).")
+            print(f"     Re-logging would un-settle them and wipe their results "
+                  f"(clobber). Nothing was written.")
+            print(f"     • If this card genuinely needs re-running, recover with "
+                  f"`r5_tracker --finalize {track_code} {date_str}` first,")
+            print(f"       or purge the date, then re-run. Pass --force to override "
+                  f"and clobber deliberately.\n")
+            sys.exit(1)
+        if _warns:
+            print("\n  ⚠️  WRITE-PATH WARNING(S) before logging to DB:")
+            for _w in _warns:
+                print(f"     • {_w}")
+            if _settled:   # only reachable with --force
+                print(f"     • --force set: SETTLED races {_settled} will be "
+                      f"CLOBBERED (un-settled). Recover with --finalize.")
+            print("     Proceeding. Pass --year / --backtest, or purge the "
+                  "stale date first, if this is not what you intend.\n")
+
         print("\n📋 Logging picks to DB...")
         for race_num, race_horses in sorted(db_by_race.items(), key=lambda x: int(x[0])):
             _tmod.log_race_picks(race_horses, track_code, date_str, race_num,
@@ -367,6 +431,21 @@ def main():
             for race_num in sorted(db_by_race.keys(), key=lambda x: int(x)):
                 _pmod.auto_log_val_trackers_for_race(
                     track_code, date_str, race_num, live=getattr(args, "live", False))
+
+            # Auto-generate exotic tickets (paper) so the settle step always has
+            # an entries-basis ticket set. Prevents the standalone race-morning
+            # generate step from being silently skipped (SAR 2026-07-11 gap).
+            # Live exotics remain gated exclusively to r5_exotics.py --live.
+            _epath = Path(__file__).parent / "r5_exotics.py"
+            _espec = _ilu.spec_from_file_location("r5_exotics", _epath)
+            _emod  = _ilu.module_from_spec(_espec)
+            _espec.loader.exec_module(_emod)
+            print("\n🎟️  Auto-generating exotic tickets (paper)...")
+            try:
+                _emod.generate_card(track_code, date_str,
+                                    race_num=args.race, live_mode=False)
+            except Exception as _ee:
+                print(f"  ⚠️  Exotics generation skipped (non-fatal): {_ee}")
 
     # Save if requested
     if args.save:

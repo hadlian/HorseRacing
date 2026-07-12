@@ -449,6 +449,25 @@ def settle_card(track, date, race_num=None):
         (" AND race_num=?" if race_num else ""),
         (track.upper(), date) + ((str(race_num),) if race_num else ())
     ).fetchall()
+
+    # Guardrail: a card with zero logged tickets means the race-morning generate
+    # step was skipped (SAR 2026-07-11 gap) — warn loudly rather than silently
+    # settling a $0-staked card. Non-fatal: the A/B monitor still runs.
+    ticket_n = conn.execute(
+        "SELECT COUNT(*) FROM exotic_tickets et JOIN races r ON r.id=et.race_id "
+        "WHERE r.track=? AND r.date=? AND r.is_backtest=0 "
+        "AND et.race_shape NOT IN ('SELFTEST','NOTE')" +
+        (" AND r.race_num=?" if race_num else ""),
+        (track.upper(), date) + ((str(race_num),) if race_num else ())
+    ).fetchone()[0]
+    if ticket_n == 0:
+        print(f"\n  ⚠️  WARNING: {track.upper()} {date} has ZERO logged exotic "
+              f"tickets — nothing to settle.")
+        print(f"     The race-morning generate step was likely skipped. Run:")
+        print(f"       python3 Claude/r5_exotics.py --generate "
+              f"--track {track.upper()} --date {date}")
+        print(f"     then re-settle.\n")
+
     total = 0
     for race in races:
         n = settle_race(conn, race["id"])
