@@ -96,9 +96,61 @@ def score_cat7(horse):
     return detail["points"], detail
 
 
+# ── Cat-2 Connections (max 6): ROI-gated only (bet-down +1 rows deleted) ─────
+STARTS_FLOOR = 30          # sample floor on any angle used (Q2 resolution)
+TRN_WIN_MIN = 20.0         # trainer angle win% cutoff
+JKY_WIN_MIN = 18.0         # jockey context win% cutoff
+# surface-matching trainer angle labels by today's surface code (validated vocab)
+SURFACE_ANGLES = {
+    "D": {"Dirt starts", "Turf to Dirt"},
+    "T": {"Turf starts", "Dirt to Turf", "1st on grass"},
+    "A": {"Dirt starts"},          # all-weather → treat like main track for v0
+}
+
+
+def score_cat2(horse):
+    """Connections (max 6). +3 best trainer angle (Win%≥20 & $2ROI≥0 & n≥30);
+    +2 jockey context (Win%≥18 & ROI≥0 & n≥30); +1 a DISTINCT surface-matching
+    trainer angle that's positive (avoids double-counting the +3 driver).
+    Win%-without-ROI rows are intentionally NOT scored (chalk proxy)."""
+    pts, detail = 0, {}
+
+    # +3 — best qualifying trainer angle (binary; pick highest ROI for the note)
+    qual = [a for a in horse["trn_angles"]
+            if (a["starts"] or 0) >= STARTS_FLOOR
+            and a["win_pct"] is not None and a["win_pct"] >= TRN_WIN_MIN
+            and a["roi"] is not None and a["roi"] >= 0.0]
+    best = max(qual, key=lambda a: a["roi"]) if qual else None
+    if best:
+        pts += 3
+        detail["trainer"] = (f"{best['label']} {best['starts']:.0f}s "
+                             f"{best['win_pct']:.0f}% roi{best['roi']:+.2f}")
+
+    # +2 — jockey context stat (block has W/P/S counts → compute win%)
+    j = horse["jky"]
+    if (j["starts"] or 0) >= STARTS_FLOOR and j["wins"] is not None \
+            and j["roi"] is not None and j["roi"] >= 0.0:
+        jwin = 100.0 * j["wins"] / j["starts"]
+        if jwin >= JKY_WIN_MIN:
+            pts += 2
+            detail["jockey"] = f"{j['label']} {j['starts']:.0f}s {jwin:.0f}% roi{j['roi']:+.2f}"
+
+    # +1 — a DISTINCT positive surface-matching trainer angle
+    surf_labels = SURFACE_ANGLES.get((horse["today_surf"] or "").upper(), set())
+    surf_qual = [a for a in horse["trn_angles"]
+                 if a["label"] in surf_labels
+                 and (a["starts"] or 0) >= STARTS_FLOOR
+                 and a["roi"] is not None and a["roi"] >= 0.0
+                 and (best is None or a["label"] != best["label"])]
+    if surf_qual:
+        pts += 1
+        detail["surface"] = surf_qual[0]["label"]
+
+    return min(pts, 6), detail
+
+
 # ── category stubs (return 0 until implemented) ──────────────────────────────
 def score_cat1(horse, pool=None): return 0, {}          # Workouts
-def score_cat2(horse):            return 0, {}          # Connections
 def score_cat3(horse):            return 0, {}          # Pace/distance fit
 def score_cat5(horse):            return 0, {}          # Pedigree v0
 def score_cat6(horse, field):     return 0, {}          # Speed backbone (tie-break)
