@@ -219,18 +219,26 @@ the horse's most recent start — which R5's level signal does not capture.
 | Today's race type code | **f9** (e.g. `AO`) |
 | Today's classification text | **f11** (e.g. `OClm 50000n1x`) |
 | Today's purse | **f12** |
-| Today's claiming price band | **f1202** low / **f1212** high claiming price of race |
+| Today's low claiming price | **f238** (f239 = statebred flag) |
 | Past race type code (last 10) | **f1086-1095** |
 | Past classification text (per PP) | **f536** |
-| Past claiming price of horse (per PP) | **f546** |
+| Past claiming price of race (per PP, 10-slot) | **f1202-1211** low / **f1212-1221** high |
+| Past claiming price of *horse* (per PP) | **f546-555** *(alt basis — see note)* |
 | Past purse (per PP) | **f556** |
 | Past finish position (per PP, for step-up justification) | **f616** |
+
+> **⚠️ Field correction (2026-07-12):** today's claiming price is **f238**, NOT f1202 —
+> f1202-1211/f1212-1221 are the 10-slot *past-PP* race-band blocks (f1202 = most recent
+> past race). Comparing a past band to a past band would read as "always lateral." Use the
+> **race band** (today f238 / past f1202+i) as ONE consistent ordinal basis; f546-555 is the
+> horse's *entered* price and must not be mixed with the race band on the other side.
 
 ### Class-tier ladder — `class_rank(race)` (coarse → fine)
 1. **Race-type tier** from the type code (f9 today / f1086 past):
    `G1=9 · G2=8 · G3=7 · listed/black-type stakes=6 · Allowance & AO=5 ·
    Starter/Restricted=4 · Optional-claim & Claiming=3 · Maiden Spec Wt=2 · Maiden Claiming=1`
-2. **Within claiming tiers:** order by claiming price (f546 past / f1202-1212 today).
+2. **Within claiming tiers:** order by claiming price using the race band consistently —
+   today **f238**, past **f1202+i** (NOT f1202 for today; see correction above).
 3. **Within allowance/stakes:** break ties by purse (f556 past / f12 today).
 
 > ⚠️ **Validate the code→tier map on the Gate-0 backfill.** BRIS type-code letters are not
@@ -279,7 +287,7 @@ CM1_composite = Σ (cat1,2,3,5,6,7),  range −? .. 23   (Cat-4 merged into Cat-
 | Distance/pace fit | already parsed (`past_post`, `pace_*`) | scoring logic only |
 | Sire/dam pedigree | already parsed; need dam list from Harry | list + scoring |
 | Speed backbone (Cat-6) | already parsed (`best_dist`/`bris_speed`) | scoring only |
-| Class **move** (Cat-7) | ✅ DRF f9/f11/f12 today, f1086-1095/f536/f546/f556 past (NOT the par f1167 — R5 owns that) | scoring only |
+| Class **move** (Cat-7) | ✅ DRF f9/f11/f12/**f238** today, f1086-1095/f536/**f1202+i**/f556 past (NOT the par f1167 — R5 owns that) | scoring only |
 
 **No external stat file needed.** The Q2 probe found every connection signal — meet win%,
 situational trainer angles, and jockey turf/distance context — already inside the DRF row.
