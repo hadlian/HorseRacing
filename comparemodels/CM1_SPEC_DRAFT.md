@@ -178,21 +178,33 @@ we later add a full jockey×surface×meet matrix from an external BRIS stat file
 - **RED-LINE Q:** OK to merge Cat-4 into Cat-2 for v0 and revisit a dedicated surface matrix
   post-v0? And should off-track (`my`/`sy`/`sl`) get its own split when today is wet?
 
-## Category 5 — Pedigree  (max 3)  ~net-new (dam side)  ✅ parseable
+## Category 5 — Pedigree  (max 3 at full spec; **v0 ships REDUCED, max 1-2**)
 
-`sire` (fld 52), `sire_sire` (53), `dam_sire` (55) all parse today. R5's `ped_n`
-covers a sire list only; CM1 adds the **broodmare-sire / dam** side and weights it
-harder for horses with little running-line evidence.
+`sire` (f52), `sire_sire` (f53), **`dam` (f54)**, `dam_sire` (f55) all parse today.
+**Re-correlation warning (2026-07-12 review):** R5's `ped_n` already scores the *sire*
+(vs the same `classic_sires` list) and the BRIS ped ratings f1264 (dirt) / f1267 (dist).
+A sire-based Cat-5 would just be a third backbone. CM1's orthogonal pedigree content is
+the **dam side (f54/f55)** and the **unused turf/mud ped ratings f1266/f1265** (R5 parses
+but never scores them).
 
-| Condition | Points |
-|---|---:|
-| Sire on legendary list | +1 |
-| Broodmare sire (dam sire) on legendary list | +1 |
-| **Debut or ≤2 lifetime starts** AND (sire or dam-sire legendary) — pedigree-carries bonus | +1 |
-| Surface/distance switch matches breeding (e.g. turf-bred going to turf 1st time) | +1 (cap category at 3) |
+### v0 — SHIPS NOW, reduced (Harry ruling 2026-07-12: "reduced now, dam row later")
+| Condition | Points | Note |
+|---|---:|---|
+| Surface-switch matches breeding — turf today & strong **f1266** (turf ped), or wet & **f1265** (mud ped) | +1 | orthogonal — R5 ignores f1265/f1266 |
+| **Debut or ≤2 lifetime starts** with a strong surface ped rating (pedigree-carries) | +1 | pedigree matters most with no form |
+| ~~Sire on legendary list~~ | tie-break only | duplicates R5 `ped_n` — demoted, not scored |
 
-- **NEED FROM YOU:** the legendary **dam / broodmare-sire list** (we only have the
-  `classic_sires` sire list today: Into Mischief, Curlin, Tapit, Medaglia…).
+v0 **caps at 2** (often effectively 1). **Parsing:** strip trailing `*` from ped ratings
+(e.g. `115*`) — the starred form exists in live data and silently None-outs a naive `float()`.
+
+### Deferred — the "dam row" (adds back to max 3 later)
+| Condition | Points | Blocked on |
+|---|---:|---|
+| Broodmare-sire (f55) on legendary list | +1 | **Harry's dam/broodmare-sire list** |
+| Broodmare-sire positive **$2 ROI** (winsorized, ex-outlier-gated, n≥100/surface) | +1 | the parallel **BMS ROI DB** maturing |
+
+- The dam ROW turns on when the list arrives; the ROI leg turns on per-broodmare-sire as
+  the [[project_cm1]] BMS database clears its floor. Neither blocks the v0 ship.
 
 ## Category 6 — Speed backbone  (max 3)  ❌ redundant  ✅ parseable
 
@@ -234,16 +246,28 @@ the horse's most recent start — which R5's level signal does not capture.
 > horse's *entered* price and must not be mixed with the race band on the other side.
 
 ### Class-tier ladder — `class_rank(race)` (coarse → fine)
-1. **Race-type tier** from the type code (f9 today / f1086 past):
-   `G1=9 · G2=8 · G3=7 · listed/black-type stakes=6 · Allowance & AO=5 ·
-   Starter/Restricted=4 · Optional-claim & Claiming=3 · Maiden Spec Wt=2 · Maiden Claiming=1`
+1. **Race-type tier** from the type code (f9 today / f1086 past). **Validated map**
+   (derived 2026-07-12 from f9→f11 classification text across all 24 retained DRFs):
+
+   | Code | Meaning | Tier |
+   |---|---|---:|
+   | `G1` / `G2` / `G3` | Graded stakes | 9 / 8 / 7 |
+   | `N` | Listed / nongraded stakes (`…L200k`) | 6 |
+   | `A` | Allowance (`Alw …n1x`) | 5 |
+   | `AO` | Allowance optional claiming (`OClm …n1x`) | 5 → refine by claim |
+   | `R` | Restricted / statebred allowance (`Alw …s`) | 4 |
+   | `C` / `CO` | Claiming / optional claiming | 3 → refine by claim |
+   | `S` | **Maiden Special Weight** (`Md Sp Wt`) — NOT stakes | 2 |
+   | `M` | Maiden claiming (`Md 50000`) | 1 |
+   | past-only: `MO` maiden-opt-claim | | 1 |
+   | past-only: `T` trial, `HR`/`HO` (hurdle/other) | | neutral — exclude from baseline |
+
+   > ⚠️ **`S` is Maiden Special Weight, not Stakes** — the intuitive guess would invert the
+   > single most common race type (620 today / 3,664 past) and score every maiden as a top
+   > stakes. Any *new* code not in this table = HARD FAIL at Gate-0, never a silent tier-0.
 2. **Within claiming tiers:** order by claiming price using the race band consistently —
    today **f238**, past **f1202+i** (NOT f1202 for today; see correction above).
 3. **Within allowance/stakes:** break ties by purse (f556 past / f12 today).
-
-> ⚠️ **Validate the code→tier map on the Gate-0 backfill.** BRIS type-code letters are not
-> all confirmed (the Del Mar sample showed a past-PP `R` code whose tier is ambiguous).
-> Pin the full letter→tier table against a scored card before trusting the ordinal.
 
 ### Scoring (max 2) — move = today's `class_rank` − most-recent-start `class_rank`
 | Condition | Points |
