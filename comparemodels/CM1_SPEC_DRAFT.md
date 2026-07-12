@@ -205,14 +205,52 @@ at today's distance (`best_dist` / `bris_speed`).
 | 2nd | +2 |
 | 3rd | +1 |
 
-## Category 7 — Class Move  (max 2)  ❌ redundant  ✅ parseable
+## Category 7 — Class Move  (max 2)  ✅ RESOLVED (field-mapped 2026-07-12)
 
+**Design principle — score the MOVE, not the LEVEL.** R5's `class_n` is a par-anchored
+class *level* (`5.0 + (ws4 − par)/3`) and already consumes the BRIS class par
+(f1167-1176). CM1 must NOT re-read that par or it re-correlates with R5 (the backbone
+problem). Cat-7 instead scores the **direction of the class move** — today's class tier vs
+the horse's most recent start — which R5's level signal does not capture.
+
+### Fields (verified against Del Mar BC card, 2026-11-01)
+| Purpose | Field(s) |
+|---|---|
+| Today's race type code | **f9** (e.g. `AO`) |
+| Today's classification text | **f11** (e.g. `OClm 50000n1x`) |
+| Today's purse | **f12** |
+| Today's claiming price band | **f1202** low / **f1212** high claiming price of race |
+| Past race type code (last 10) | **f1086-1095** |
+| Past classification text (per PP) | **f536** |
+| Past claiming price of horse (per PP) | **f546** |
+| Past purse (per PP) | **f556** |
+| Past finish position (per PP, for step-up justification) | **f616** |
+
+### Class-tier ladder — `class_rank(race)` (coarse → fine)
+1. **Race-type tier** from the type code (f9 today / f1086 past):
+   `G1=9 · G2=8 · G3=7 · listed/black-type stakes=6 · Allowance & AO=5 ·
+   Starter/Restricted=4 · Optional-claim & Claiming=3 · Maiden Spec Wt=2 · Maiden Claiming=1`
+2. **Within claiming tiers:** order by claiming price (f546 past / f1202-1212 today).
+3. **Within allowance/stakes:** break ties by purse (f556 past / f12 today).
+
+> ⚠️ **Validate the code→tier map on the Gate-0 backfill.** BRIS type-code letters are not
+> all confirmed (the Del Mar sample showed a past-PP `R` code whose tier is ambiguous).
+> Pin the full letter→tier table against a scored card before trusting the ordinal.
+
+### Scoring (max 2) — move = today's `class_rank` − most-recent-start `class_rank`
 | Condition | Points |
 |---|---:|
-| Dropping in class vs last start (flag "ask why") | +2 |
-| Same class | +1 |
-| Stepping up in class **and** best speed ranks top-3 in race | +1 |
-| Stepping up with no speed support | 0 |
+| **Drop** (today tier < most-recent tier) — attach an **"ask why" flag** (well-placed vs declining) | +2 |
+| **Same / lateral** (equal tier) | +1 |
+| **Step up** (today tier > most-recent tier) | 0 |
+
+- Uses the **most recent start** as the baseline; optionally dampen a one-off with the
+  median tier of the last 3 starts (decide on the backfill).
+- The old "step-up **and** best speed top-3" row is **removed** — it re-used the Cat-6 speed
+  rank (internal double-count, per the 2026-07-12 review). Step-ups are simply neutral here;
+  any speed justification already lives in Cat-6.
+- Ships at **max 2** and earns no increase without backfill evidence (redundant-backbone
+  discipline).
 
 ---
 
@@ -240,7 +278,8 @@ CM1_composite = Σ (cat1,2,3,5,6,7),  range −? .. 23   (Cat-4 merged into Cat-
 | **Jockey context (turf/dist) stat** | ✅ DRF f1367-1372 (label/sts/W/P/S/ROI) | scoring only |
 | Distance/pace fit | already parsed (`past_post`, `pace_*`) | scoring logic only |
 | Sire/dam pedigree | already parsed; need dam list from Harry | list + scoring |
-| Speed / class | already parsed | scoring only |
+| Speed backbone (Cat-6) | already parsed (`best_dist`/`bris_speed`) | scoring only |
+| Class **move** (Cat-7) | ✅ DRF f9/f11/f12 today, f1086-1095/f536/f546/f556 past (NOT the par f1167 — R5 owns that) | scoring only |
 
 **No external stat file needed.** The Q2 probe found every connection signal — meet win%,
 situational trainer angles, and jockey turf/distance context — already inside the DRF row.
