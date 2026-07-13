@@ -21,7 +21,7 @@ import glob
 import sqlite3
 from pathlib import Path
 
-DB_PATH  = Path(__file__).resolve().parent.parent / "results" / "r5_results.db"
+DB_PATH  = Path(__file__).resolve().parent.parent / "Results" / "r5_results.db"
 DRF_GLOB = str(Path(__file__).resolve().parent.parent / "files 2" / "*.DRF")
 
 

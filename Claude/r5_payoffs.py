@@ -313,7 +313,7 @@ def find_chart_pdf(track, date_str):
     return None
 
 
-def reconcile_picks(conn, rid, finishers, scratches, win_payoff, name_to_pgm):
+def reconcile_picks(conn, rid, finishers, scratches, wps, name_to_pgm):
     """Back-fill picks.finish_pos/won/sp_odds straight from the chart.
 
     This is the offline counterpart to r5_tracker --fetch: when the live results
@@ -322,6 +322,15 @@ def reconcile_picks(conn, rid, finishers, scratches, win_payoff, name_to_pgm):
     even though the finish order/payoffs are already in race_finish_order. The
     Equibase chart is authoritative, so we populate the same fields --fetch
     would. Only called when result_fetched=0 (no live fetch has claimed race).
+
+    Dead heats for win: each co-winner has its own WIN payoff row (the chart
+    lists the co-winners first), so every pick whose program matches a WIN row
+    gets won=1, finish_pos=1, and its own payoff — not just the first-listed.
+
+    Coupled entries: chart pgms may carry a letter suffix (1A) while the pick
+    was logged under the base number; both runners of an entry then map to the
+    same pick row, so settlement is grouped per target and the BEST finish
+    wins — a later-finishing coupled mate must not overwrite the entry's win.
 
     Picks that are neither in the chart finish order nor a matched scratch are
     left finish_pos=NULL (not forced to a loss): they are unaccounted — a parse
@@ -336,18 +345,36 @@ def reconcile_picks(conn, rid, finishers, scratches, win_payoff, name_to_pgm):
         (rid,))
     pick_pgms = {str(r["pgm"]) for r in conn.execute(
         "SELECT pgm FROM picks WHERE race_id=?", (rid,))}
+
+    def _base(pgm):
+        return re.sub(r"[A-Z]$", "", pgm)
+
+    # WIN payoff rows keyed by program; >1 row = dead heat for win. Mutuel
+    # rows carry the betting-interest pgm (no coupled letter), so fall back to
+    # the base pgm — but only the first n_win listed finishers are official
+    # (co-)winners, which stops a later coupled mate matching its entry's row.
+    win_rows = {w["pgm"]: w["payoff"] for w in wps if w["pool"] == "WIN"}
+    n_win = max(len(win_rows), 1)
+
+    settled = {}  # target pick pgm -> (finish_pos, won, win_payoff)
     for pos, f in enumerate(finishers, 1):
         pgm = f["pgm"]
-        # coupled entries: chart may carry a letter suffix (e.g. 1A); fall back
-        # to the base program number if the exact string isn't a logged pick.
-        target = pgm if pgm in pick_pgms else re.sub(r"[A-Z]$", "", pgm)
+        target = pgm if pgm in pick_pgms else _base(pgm)
+        payoff = (win_rows.get(pgm, win_rows.get(_base(pgm)))
+                  if pos <= n_win else None)
+        won = 1 if (pos == 1 or payoff is not None) else 0
+        eff_pos = 1 if won else pos
+        cur = settled.get(target)
+        if cur is None or eff_pos < cur[0]:
+            settled[target] = (eff_pos, won, payoff)
+    for target, (pos, won, payoff) in settled.items():
         conn.execute(
             "UPDATE picks SET finish_pos=?, won=? WHERE race_id=? AND pgm=?",
-            (pos, 1 if pos == 1 else 0, rid, target))
-        if pos == 1 and win_payoff:
+            (pos, won, rid, target))
+        if won and payoff:
             conn.execute(
                 "UPDATE picks SET sp_odds=? WHERE race_id=? AND pgm=?",
-                (win_payoff, rid, target))
+                (payoff, rid, target))
     # confirmed scratches -> finish_pos=-1 (excluded from model stats)
     for name in scratches:
         pgm = name_to_pgm.get(_norm_name(name))
@@ -439,7 +466,7 @@ def ingest_race(conn, race_row, parsed):
     unaccounted = 0
     if not already_fetched:
         unaccounted = reconcile_picks(conn, rid, finishers, parsed["scratches"],
-                                      win["payoff"] if win else None, pick_pgms)
+                                      parsed["wps"], pick_pgms)
         reconciled = True
 
     warn = None

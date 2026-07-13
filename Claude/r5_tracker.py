@@ -19,6 +19,7 @@ CSV format for --csv:
 import argparse
 import csv
 import json
+import re
 import sqlite3
 import sys
 import time
@@ -29,7 +30,7 @@ import requests
 from bs4 import BeautifulSoup
 
 HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
-DB_PATH           = HORSE_RACING_ROOT / "results" / "r5_results.db"
+DB_PATH           = HORSE_RACING_ROOT / "Results" / "r5_results.db"
 
 HEADERS = {
     "User-Agent": (
@@ -450,11 +451,21 @@ def apply_result(track, date_str, race_num, finish_pgms, sp_winner=None):
     return True
 
 
+def _norm_name(s):
+    """Uppercase letters only — chart and DRF names differ in case, spacing,
+    and punctuation (mirrors r5_payoffs._norm_name)."""
+    return re.sub(r"[^A-Z]", "", s.upper())
+
+
 def finalize_card(track, date_str):
     """
     Post-result cleanup for cards logged via direct SQL.
-    Detects any picks still NULL (= late scratches not in results PDF)
-    and marks them finish_pos=-1 so they are excluded from model stats.
+    Detects any picks still NULL and resolves each against the chart ingest
+    (race_finish_order) when available: a pick the chart shows as a FINISHER
+    is backfilled (parse gap, not a scratch); a confirmed chart scratch — or
+    any NULL on a card with no chart rows — is marked finish_pos=-1 so it is
+    excluded from model stats; a pick in neither list is left NULL for
+    operator review (marking a real starter -1 would silently bias stats).
 
     IMPORTANT: Only run this after ALL finishers have been logged for every race.
     If a race shows many NULLs (>3), it likely means the card was not fully
@@ -492,30 +503,88 @@ def finalize_card(track, date_str):
         conn.close()
         return
 
-    total_late = 0
+    total_late, total_healed, total_ambiguous = 0, 0, 0
     for race in races:
         late = conn.execute(
             "SELECT pgm, horse_name FROM picks WHERE race_id=? AND finish_pos IS NULL",
             (race["id"],)
         ).fetchall()
-        if late:
-            for ls in late:
+        if not late:
+            continue
+
+        # Cross-check against the chart ingest (race_finish_order) before
+        # assuming 'late scratch': a NULL pick can also be a runner the
+        # reconcile step missed (pgm/name mismatch), and marking a real
+        # starter -1 silently drops it from model stats and ROI.
+        chart = conn.execute(
+            "SELECT horse_pgm, horse_name, finish_position, is_late_scratch"
+            " FROM race_finish_order WHERE race_id=?", (race["id"],)
+        ).fetchall()
+        finished, scratched = {}, set()
+        for row in chart:
+            for key in (str(row["horse_pgm"]), _norm_name(row["horse_name"])):
+                if row["is_late_scratch"]:
+                    scratched.add(key)
+                elif row["finish_position"] is not None:
+                    finished[key] = row["finish_position"]
+
+        for ls in late:
+            keys = [str(ls["pgm"]), _norm_name(ls["horse_name"])]
+            hit = next((k for k in keys if k in finished), None)
+            if hit is not None:
+                # chart says it RAN — heal from the finish order, don't exclude
+                pos = finished[hit]
+                conn.execute(
+                    "UPDATE picks SET finish_pos=?, won=? WHERE race_id=? AND pgm=?",
+                    (pos, 1 if pos == 1 else 0, race["id"], ls["pgm"]))
+                if pos == 1:
+                    try:
+                        wp = conn.execute(
+                            "SELECT payoff FROM race_payoffs WHERE race_id=?"
+                            " AND pool='WIN' AND combination IN (?,?)",
+                            (race["id"], str(ls["pgm"]),
+                             re.sub(r"[A-Z]$", "", str(ls["pgm"])))).fetchone()
+                        if wp:
+                            conn.execute(
+                                "UPDATE picks SET sp_odds=? WHERE race_id=? AND pgm=?",
+                                (wp["payoff"], race["id"], ls["pgm"]))
+                    except sqlite3.OperationalError:
+                        pass  # DB predates race_payoffs table
+                print(f"  🔧 R{race['race_num']}: #{ls['pgm']} {ls['horse_name']}"
+                      f" was NULL but the chart shows it finished {pos} —"
+                      f" backfilled from race_finish_order (parse gap)")
+                total_healed += 1
+            elif not chart or any(k in scratched for k in keys):
+                # confirmed chart scratch, or a card logged without chart
+                # ingest (no race_finish_order rows — legacy manual path)
                 conn.execute(
                     "UPDATE picks SET finish_pos=-1 WHERE race_id=? AND pgm=?",
-                    (race["id"], ls["pgm"])
-                )
-            names = ", ".join(f"#{ls['pgm']} {ls['horse_name']}" for ls in late)
-            print(f"  ⚠️  R{race['race_num']}: Late scratch detected → {names}")
-            total_late += len(late)
+                    (race["id"], ls["pgm"]))
+                print(f"  ⚠️  R{race['race_num']}: Late scratch → "
+                      f"#{ls['pgm']} {ls['horse_name']}")
+                total_late += 1
+            else:
+                # chart data exists but this pick is in neither the finish
+                # order nor the scratches — operator must decide, leave NULL
+                print(f"  ❌ R{race['race_num']}: #{ls['pgm']} {ls['horse_name']}"
+                      f" is in neither the chart finish order nor its scratches"
+                      f" — left NULL. Verify against the chart PDF, then either"
+                      f" set finish_pos manually or mark -1 if scratched.")
+                total_ambiguous += 1
 
     conn.commit()
     conn.close()
 
-    if total_late:
-        print(f"\n  🔧 {total_late} late scratch(es) marked finish_pos=-1 — excluded from stats")
+    if total_late or total_healed:
+        if total_late:
+            print(f"\n  🔧 {total_late} late scratch(es) marked finish_pos=-1 — excluded from stats")
+        if total_healed:
+            print(f"  🔧 {total_healed} pick(s) backfilled from the chart finish order")
         print(f"  Regenerate workbook: python3 r5_analyze.py")
-    else:
+    elif not total_ambiguous:
         print(f"\n  ✅ {track} {date_str} — no NULL finish positions found. Card is clean.")
+    if total_ambiguous:
+        print(f"\n  ❌ {total_ambiguous} pick(s) left NULL — unresolvable against chart data, needs operator review")
 
 
 def load_csv(csv_path):
