@@ -13,6 +13,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'Claude'))
 
 from comparemodels.comparemodels_engine import score_card
 from comparemodels.comparemodels_tracker import (
@@ -20,8 +21,9 @@ from comparemodels.comparemodels_tracker import (
 )
 from comparemodels.comparemodels_compare import generate_report
 from comparemodels.comparemodels_backfill import run_backfill, build_ml_map
+from r5_paths import DRF_DIR  # noqa: E402
 
-FILES_DIR = os.path.join(os.path.dirname(__file__), '..', 'files 2')
+FILES_DIR = str(DRF_DIR)
 
 
 def _require_args(args, n, usage):

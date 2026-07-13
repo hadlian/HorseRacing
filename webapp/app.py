@@ -49,6 +49,10 @@ try:
 except ImportError:
     CM_AVAILABLE = False
 
+# ── Data locations: single source of truth (Claude/r5_paths.py) ───────────────
+sys.path.insert(0, str(HERE.parent / "Claude"))
+from r5_paths import R5_DB_PATH  # noqa: E402
+
 # ── Lazy-load R5 modules (avoid circular imports) ──────────────────────────────
 import importlib.util as _ilu
 
@@ -449,7 +453,7 @@ def index():
 
 @app.route("/api/status")
 def status():
-    db_path = HERE.parent / "results" / "r5_results.db"
+    db_path = R5_DB_PATH
     return jsonify({
         "cm_available": CM_AVAILABLE,
         "db_available":  db_path.exists(),
@@ -859,7 +863,7 @@ def bris_summary():
 
 @app.route("/api/analytics")
 def analytics():
-    db_path = HERE.parent / "results" / "r5_results.db"
+    db_path = R5_DB_PATH
     if not db_path.exists():
         return jsonify({"error": "no_db"})
 

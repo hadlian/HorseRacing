@@ -30,7 +30,7 @@ import requests
 from bs4 import BeautifulSoup
 
 HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
-DB_PATH           = HORSE_RACING_ROOT / "Results" / "r5_results.db"
+from r5_paths import R5_DB_PATH as DB_PATH
 
 HEADERS = {
     "User-Agent": (

@@ -9,11 +9,13 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
+sys.path.insert(0, os.path.join(ROOT, 'Claude'))
 
 from comparemodels.drf_reader import parse_drf
+from r5_paths import DRF_DIR  # noqa: E402
 
 CM_DB = os.path.join(ROOT, 'comparemodels', 'comparemodels_results.db')
-FILES_DIR = os.path.join(ROOT, 'files 2')
+FILES_DIR = str(DRF_DIR)
 
 
 def main():

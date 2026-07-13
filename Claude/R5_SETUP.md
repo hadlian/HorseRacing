@@ -42,7 +42,7 @@ echo 'export ANTHROPIC_API_KEY=your_key_here' >> ~/.zshrc
 ### Step 1 — Download the BRIS DRF file
 1. Go to brisnet.com → Data Files → PP Data Files (single)
 2. Select track + date, download the .DRF zip
-3. Unzip and place `.DRF` file in `files 2/`
+3. Unzip and place `.DRF` file in `~/Documents/RacingData/files 2/` (shared read-only input; path set in `Claude/r5_paths.py`)
 
 ### Step 2 — Run analysis
 ```bash
@@ -184,8 +184,9 @@ HorseRacing/
 │   ├── r5_parse_results.py
 │   ├── r5_pdf.py
 │   └── R5_SETUP.md          ← this file
-├── files 2/                 ← BRIS .DRF input (not in git)
-├── results/                 ← SQLite DB, PDFs, Excel reports (not in git)
+~/Documents/RacingData/       ← shared data root (outside the project, not in git)
+├── files 2/                 ← BRIS .DRF input (read-only)
+├── Results/                 ← SQLite DB, PDFs, Excel reports (this project = sole writer)
 │   └── results_template.csv
 ├── scout/                   ← Scout JSON cache (not in git)
 └── venv/                    ← Python virtual environment (not in git)

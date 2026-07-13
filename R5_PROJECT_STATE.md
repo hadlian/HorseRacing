@@ -17,7 +17,7 @@
 ## 🏗️ Architecture (v3.10)
 
 ```
-files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1,435 fields per record)
+RacingData/files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1,435 fields per record)
          │
   r5_parser_v2.py         ← Parse + 9-component composite score
          │                   + run style / Quirin / layoff / wet bundle (3A)

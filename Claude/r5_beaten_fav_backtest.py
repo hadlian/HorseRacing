@@ -21,8 +21,8 @@ import glob
 import sqlite3
 from pathlib import Path
 
-DB_PATH  = Path(__file__).resolve().parent.parent / "Results" / "r5_results.db"
-DRF_GLOB = str(Path(__file__).resolve().parent.parent / "files 2" / "*.DRF")
+from r5_paths import DRF_DIR, R5_DB_PATH as DB_PATH
+DRF_GLOB = str(DRF_DIR / "*.DRF")
 
 
 def pf(row, idx):

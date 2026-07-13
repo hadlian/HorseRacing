@@ -34,7 +34,7 @@ from collections import defaultdict
 
 CLAUDE_DIR = Path(__file__).resolve().parent
 ROOT       = CLAUDE_DIR.parent
-R5_DB      = ROOT / "Results" / "r5_results.db"
+from r5_paths import DRF_DIR, R5_DB_PATH as R5_DB
 CM_DB      = ROOT / "comparemodels" / "comparemodels_results.db"
 
 
@@ -219,7 +219,7 @@ def process_card(track, date, drf_path):
 def resolve_drf(track, date):
     """Find the DRF for a card: files 2/<TRACK><MMDD>.DRF (YYYYMMDD → MMDD)."""
     mmdd = date[4:8]
-    for cand in (ROOT / "files 2" / f"{track.upper()}{mmdd}.DRF",
+    for cand in (DRF_DIR / f"{track.upper()}{mmdd}.DRF",
                  ROOT / "files" / f"{track.upper()}{mmdd}.DRF"):
         if cand.exists():
             return cand

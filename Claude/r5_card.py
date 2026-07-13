@@ -25,7 +25,7 @@ from pathlib import Path
 HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
 CLAUDE_DIR        = HORSE_RACING_ROOT / "Claude"
 CM_CLI            = HORSE_RACING_ROOT / "comparemodels" / "comparemodels_cli.py"
-R5_DB             = HORSE_RACING_ROOT / "Results" / "r5_results.db"
+from r5_paths import DRF_DIR, R5_DB_PATH as R5_DB
 CM_DB             = HORSE_RACING_ROOT / "comparemodels" / "comparemodels_results.db"
 
 
@@ -34,11 +34,11 @@ def _resolve_drf(arg: str) -> Path:
     if p.exists():
         return p
     # Try relative to files 2/
-    p2 = HORSE_RACING_ROOT / "files 2" / arg
+    p2 = DRF_DIR / arg
     if p2.exists():
         return p2
     # Try just the filename in files 2/
-    p3 = HORSE_RACING_ROOT / "files 2" / Path(arg).name
+    p3 = DRF_DIR / Path(arg).name
     if p3.exists():
         return p3
     return p  # Return original so error message is clear

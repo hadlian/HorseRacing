@@ -17,8 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "Claude"))
 from r5_parser_v2 import compute_comp_ex_val  # noqa: E402
-
-DB_PATH = ROOT / "Results" / "r5_results.db"
+from r5_paths import R5_DB_PATH as DB_PATH  # noqa: E402
 
 
 def main():

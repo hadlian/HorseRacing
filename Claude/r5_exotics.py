@@ -37,7 +37,7 @@ from itertools import permutations
 from pathlib import Path
 
 ROOT    = Path(__file__).resolve().parent.parent
-R5_DB   = ROOT / "Results" / "r5_results.db"
+from r5_paths import R5_DB_PATH as R5_DB
 CM_DB   = ROOT / "comparemodels" / "comparemodels_results.db"
 
 TICKET_COST_CAP = 12.0   # Harry ruling 2

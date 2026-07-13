@@ -1,0 +1,62 @@
+====================================================================
+past_race_type field audit  (BRIS fields 1086-1095)
+READ-ONLY diagnostic — no parsing/scoring, sizing only
+====================================================================
+Scan dir            : /Users/harryadalian/Documents/RacingData/files 2
+DRF files scanned   : 28
+Horse rows scanned  : 2,796
+Field slots examined: 27,960  (rows x 10)
+Non-blank occurrences: 17,362
+Blank occurrences    : 10,598  (37.9% of slots)
+Distinct values      : 15
+Top-20 coverage      : 17,362 / 17,362  = 100.0% of non-blank occurrences
+
+--------------------------------------------------------------------
+     count     pct  value
+--------------------------------------------------------------------
+      3664   21.1%  S
+      2985   17.2%  AO
+      2069   11.9%  A
+      2022   11.6%  N
+      1941   11.2%  C
+      1022    5.9%  M
+       833    4.8%  G3
+       725    4.2%  R
+       717    4.1%  G2
+       655    3.8%  G1
+       518    3.0%  CO
+       181    1.0%  MO
+        15    0.1%  HR
+        13    0.1%  T
+         2    0.0%  HO
+--------------------------------------------------------------------
+
+Per-file (rows, non-blank past_race_type values):
+  BAQ0509.DRF          rows=   85  non-blank=   514
+  BAQ0510.DRF          rows=   78  non-blank=   396
+  CDX0502.DRF          rows=  169  non-blank=  1042
+  CDX0507.DRF          rows=   88  non-blank=   484
+  CDX0514.DRF          rows=   86  non-blank=   521
+  CDX0521.DRF          rows=   78  non-blank=   467
+  CDX0524.DRF          rows=  104  non-blank=   643
+  CDX0528.DRF          rows=   82  non-blank=   442
+  CDX0529.DRF          rows=   94  non-blank=   596
+  CDX0530.DRF          rows=   99  non-blank=   662
+  CDX0531.DRF          rows=   91  non-blank=   518
+  DBY0502.DRF          rows=   24  non-blank=   119
+  DEL0513.DRF          rows=   60  non-blank=   416
+  LRL0516.DRF          rows=  139  non-blank=   983
+  SAR0603.DRF          rows=  110  non-blank=   745
+  SAR0604.DRF          rows=  118  non-blank=   705
+  SAR0605.DRF          rows=  146  non-blank=   863
+  SAR0606.DRF          rows=  148  non-blank=  1099
+  SAR0703.DRF          rows=  100  non-blank=   595
+  SAR0704.DRF          rows=  115  non-blank=   642
+  SAR0705.DRF          rows=   90  non-blank=   638
+  SAR0709.DRF          rows=   82  non-blank=   518
+  SAR0710.DRF          rows=   84  non-blank=   537
+  SAR0711.DRF          rows=  107  non-blank=   633
+  SAR0712.DRF          rows=  104  non-blank=   505
+  SAR0723.DRF          rows=   78  non-blank=   642
+  SAR0802.DRF          rows=  150  non-blank=   778
+  SAX0525.DRF          rows=   87  non-blank=   659

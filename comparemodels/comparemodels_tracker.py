@@ -6,10 +6,14 @@ Reads r5_results.db READ-ONLY.
 
 import os
 import sqlite3
+import sys
 from datetime import datetime, timezone
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'Claude'))
+from r5_paths import R5_DB_PATH  # noqa: E402
+
 CM_DB = os.path.join(os.path.dirname(__file__), 'comparemodels_results.db')
-R5_DB = os.path.join(os.path.dirname(__file__), '..', 'results', 'r5_results.db')
+R5_DB = str(R5_DB_PATH)
 
 
 def get_cm_conn():

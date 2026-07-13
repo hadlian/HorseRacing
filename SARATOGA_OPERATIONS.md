@@ -9,14 +9,25 @@
 ## Pre-Race Workflow (Race Morning)
 
 ### 1. Download the DRF
-- Place the unzipped `.DRF` file in `files 2/` (e.g. `files 2/SAR0703.DRF`)
+- Place the unzipped `.DRF` file in `~/Documents/RacingData/files 2/` (e.g. `RacingData/files 2/SAR0703.DRF`) — the shared read-only input folder
 - Naming convention: `SAR` + `MMDD` + `.DRF`
+- The CLI resolves a bare filename (e.g. `SAR0703.DRF`) against that folder via `Claude/r5_paths.py`
 
-### 2. Run R5
+### 2. Run all three models (one command)
 
-**Normal track:**
 ```bash
 source venv/bin/activate
+python3 Claude/r5_card_cli.py "files 2/SAR0703.DRF"
+```
+
+Runs R5 (`--save --track`), then CM `log`, then CM1 `--log` — all three models on the
+card in one shot. Pass-through flags: `--wet`, `--auto-scout`, `--pdf`, `--live`;
+historical cards need `--year`/`--backtest`. If run_r5 refuses (settled-card guard),
+the chain stops so the three model DBs never drift out of sync.
+The individual commands below remain for debugging one stage.
+
+**R5 only, normal track:**
+```bash
 python3 Claude/run_r5.py "files 2/SAR0703.DRF" --save --track
 ```
 
@@ -175,9 +186,21 @@ Current state: 4 wins at ≥8 (n too small to assess). The gradient is correct (
 From Equibase, download the full-card chart for the race day:
 `Results/2026/20260703SARUSA0.pdf`
 
-### 2. Ingest payoffs
+### 2. Run the full pipeline (one command)
 ```bash
-python3 Claude/r5_payoffs.py Results/2026/20260703SARUSA0.pdf
+python3 Claude/r5_results_cli.py Results/2026/20260703SARUSA0.pdf
+```
+Track/date are derived from the Equibase filename; pass `TRACK YYYYMMDD` before the
+PDF only if the filename is non-standard.
+
+This runs everything below (steps 2–6) in order: payoffs ingest + pick reconcile,
+finalize scratches, settle exotics (+ post-scratch A/B), CM results/finalize,
+paper trackers, summary, and docs (CM1 compare + analysis workbook; `--no-docs` skips).
+Idempotent — safe to re-run. The individual steps below remain for debugging one stage.
+
+### 2a. Ingest payoffs (manual fallback)
+```bash
+python3 Claude/r5_payoffs.py --track SAR --date 20260703 --pdf Results/2026/20260703SARUSA0.pdf
 ```
 
 This is idempotent — safe to re-run. Populates `race_payoffs`, `race_finish_order`. Final tote odds per starter are captured here.

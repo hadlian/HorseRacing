@@ -26,9 +26,11 @@ sys.path.insert(0, os.path.dirname(__file__))
 from cm1_reader import extract_card   # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-R5_DB = os.path.join(ROOT, "Results", "r5_results.db")          # correct case
+sys.path.insert(0, os.path.join(ROOT, "Claude"))
+from r5_paths import DRF_DIR, R5_DB_PATH  # noqa: E402
+R5_DB = str(R5_DB_PATH)
 STATS_DB = os.path.join(os.path.dirname(__file__), "cm1_stats.db")
-FILES_DIR = os.path.join(ROOT, "files 2")
+FILES_DIR = str(DRF_DIR)
 
 # "doing well" defaults (TUNABLE — pending Frank/Harry)
 TJ_FLOOR = 20          # trainer/jockey min starts before "hot" can fire

@@ -33,9 +33,11 @@ Usage: python3 scripts/reconstruct_tight_cluster.py [--dry-run]
 
 import argparse
 import sqlite3
+import sys
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent.parent / "Results" / "r5_results.db"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "Claude"))
+from r5_paths import R5_DB_PATH as DB_PATH  # noqa: E402
 
 WEIGHTS = {"fci_n": 0.22, "class_n": 0.20, "tj_n": 0.15, "best_dist_n": 0.08,
            "pp_n": 0.05, "form_n": 0.10, "ped_n": 0.07, "bias_n": 0.08,

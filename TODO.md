@@ -3,7 +3,7 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-06-12 (pre-SAR instrumentation: pace diagnostic, rank-3 paper logger, val_n paper75 line, backtest audit)
+> **Last updated:** 2026-07-12 (SAR 07/12 results ingested + settled; in-meet key numbers refreshed at n=70)
 > **Current version:** R5 v3.10 | CompareModels v1.1
 > **Deployment target:** Saratoga 2026 — opens July 3, 2026
 >
@@ -24,6 +24,12 @@
 >
 > **In-meet key numbers to watch:**
 > STANDOUT keys 0-for-10 (−100%); DEFAULT EX box −35.1%; TIGHT TRI box +384.7% (2 hits in 4 cards)
+>
+> **In-meet key numbers — updated 2026-07-12 (SAR live meet, 70 resolved races through 07/12):**
+> R5 rank-1: 13/66 = 19.7%, ROI −2.1% (settled picks; near-flat only because of longshot winners)
+> Exotics by shape (settled paper tickets): DEFAULT EX box −20.8% (32) | STANDOUT −27.8% (4) | **TIGHT −51.6% (86)**; TIGHT TRI box has collapsed to **−77.1%** (early +384.7% was the usual 2-hit mirage)
+> Paper trackers: rank3 61 settled, 10 wins, −2.1% | val_n paper75 22 bets −$5.56 | val_n paper8 36 bets +$38.50 (2 wins — single-payout caveat applies)
+> 07/12 card: R5 rank-1 0-for-8 (R3 top pick scratched); winner in R5 top-3 in 2/9; exotics −$87/$87 (0 collected). Post-scratch A/B: post-scratch −77.6% vs entries −100% (monitor only, NO method change)
 
 ---
 

@@ -15,6 +15,10 @@
 set -uo pipefail
 
 SRC="$HOME/Documents/HorseRacing"
+# Data roots — overridable via repo-root .env (same source of truth as r5_paths.py)
+[ -f "$SRC/.env" ] && set -a && . "$SRC/.env" && set +a
+DATA_ROOT="${R5_DATA_DIR:-$HOME/Documents/RacingData}"
+RESULTS_ROOT="${R5_RESULTS_DIR:-$DATA_ROOT/Results}"
 DEST="$HOME/Library/CloudStorage/GoogleDrive-hadalian@gmail.com/My Drive/Horse racing/Shared Data"
 
 DRY=""
@@ -53,12 +57,12 @@ echo "🔄 Syncing to shared Drive: $DEST"
 
 # 1) Raw DRF entry files
 run_step "DRF (files 2/)" --exclude='.DS_Store' \
-  "$SRC/files 2/" "$DEST/files 2/"
+  "$DATA_ROOT/files 2/" "$DEST/files 2/"
 
 # 2) Results (chart PDFs, aggregate xlsx, .md reports) — DB + locks excluded
 run_step "Results/" --exclude='.DS_Store' --exclude='*.db' --exclude='*.db-wal' \
   --exclude='*.db-shm' --exclude='*.textClipping' --exclude='2025/' \
-  "$SRC/Results/" "$DEST/Results/"
+  "$RESULTS_ROOT/" "$DEST/Results/"
 
 # 3) Per-card analysis .txt files (they save to repo root, not Results/) →
 #    delivered into Results/ so collaborators get them alongside the xlsx.

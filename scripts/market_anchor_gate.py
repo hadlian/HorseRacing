@@ -14,10 +14,12 @@ Pre-registered decision rule (OOS mean dLL per race, leave-one-card-out CV):
 
 No wagering implication. Offline research fit only.
 """
-import sqlite3, math, random
+import os, sys, sqlite3, math, random
 from collections import defaultdict
 
-DB = "Results/r5_results.db"
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Claude"))
+from r5_paths import R5_DB_PATH
+DB = str(R5_DB_PATH)
 random.seed(12345)
 
 # ---------- data ----------

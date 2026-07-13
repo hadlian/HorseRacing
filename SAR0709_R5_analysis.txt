@@ -1,0 +1,690 @@
+======================================================================================================================
+  🏇  R5 v3.10 — SAR  Race 1  |  20260709  |  8.0f  D  |  Purse $59,000  |  Par 89  |  SLOW PACE (1 speed)
+  R5 | top-3 cum P(win) 63% | spread(r1−r3) 0.17 TIGHT | pace profile 4E/EP vs 2P/S
+=============================================================================================================================
+
+#    Horse                            ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Q   BDn   PPn   Val   Comp  P(win)    Fair    Edge
+-----------------------------------------------------------------------------------------------------------------------------
+6    BOW DRAW (P)                    4-1             79 87 75 77   80.4  -0.3   80.1   -8.6   8.1   7.7   CLO   3   5.0   4.2   6.4   4.72     20%   4.1-1     +8%
+1    SNIDE (E)                       2-1             87 84 81 65   82.7  +5.0   87.7   -6.3   8.3   5.6   CLO   8   4.6   5.9   5.0   4.60     26%   2.9-1    -23%  [LAYOFF 45+]
+3    TOUGH STREET (E/P)              2-1             79 78 86 70   79.2  +0.5   79.7   -9.8   8.1   5.1   MID   6   7.4   5.8   5.0   4.55     18%   4.6-1    -38%
+5    STREET VIEW (E/P)               4-1             82 77 60 91   77.0  +3.0   80.0  -12.0   8.1   5.2   MID   6   5.2   4.5   5.0   4.19     13%   6.5-1    -33%  [LAYOFF 180+]
+2    ROYAL BOBBIE (S)                5-1             79 80 67 74   76.4  +2.7   79.1  -12.6   8.3   7.1   CLO   3   3.0   4.3   5.7   4.15     13%   6.9-1    -24%  [LAYOFF 45+]
+4    MALU (E/P)                      8-1             77 73 74 76   75.1  +1.3   76.4  -13.9   8.2   4.6   SPE   5   5.2   4.7   5.0   3.93     11%   8.2-1     -2%
+
+🚨  VERY TIGHT CLUSTER: original top 3 within 0.45 pts — model conviction very low.
+     #1 SNIDE comp deducted -0.40 (5.0 → 4.6).
+     → Top pick promoted to #6 BOW DRAW (comp 4.72).
+     Exact revalidation (33 fired races, 2026-06-11): post-deduction rank-1 25.9% win / −1.3% ROI vs demoted horse −43.3%.
+     → Structure: box the cluster, don't key it (see EXOTICS below).
+
+======================================================================================================================
+🏆  TOP WIN PICK:  #6 BOW DRAW  [4-1 ML]  |  Composite 4.72  |  P(win) 20%  |  fair 4.1-1  |  edge +8%
+    Trainer: ASMUSSEN STEVEN M  |  Jockey: ORTIZ JOSE L
+    BRIS Speeds (last 4): [79.0, 87.0, 75.0, 77.0]  |  WS4: 80.4  Trend: -0.3  FCI: 80.1
+    Speed Par for class: 89  →  WS4 vs Par: -8.6
+    Prime Power Rating: 120.0
+    Best BRIS @ distance: 89
+    Sire: OXBOW  |  Dist Ped: 102.0  |  Dirt Ped: 101.0
+    Pace style: CLOSER  |  Pace fit score: 4.0  |  Value score: 6.4
+    Trip note: 06-19-26 Off pace 3p; waited turn; 5wd 1/4; ran on; left lead; 2nd best
+    Min acceptable odds: 4-1
+
+💰  VALUE ALT:  #4 MALU  [8-1 ML]  |  Composite 3.93  |  P(win) 11%  fair 8.2-1
+    Trainer: RODRIGUEZ GUSTAVO  |  Jockey: SANTANA RICARDO JR
+    Angle: 8-1 ML with FCI 76.4 vs par 89.0 | Pace: SPEED | Val: 5.0
+    Prime Power: 123.3
+    Key stat: Claiming — 14.2% win rate
+    Trip: 06-14-26 Coaxed st; chased 6-4w; coaxed 7/16; 8w upper; mild bid
+
+  📋 TRAINER ANGLES — contender set (small-n context, not signals):
+    #6 BOW DRAW  (20d since last)
+        • Shipper: 2462 sts  18% win  ROI $-0.51
+        • 2nd off layoff: 808 sts  16% win  ROI $-0.37
+        • Claiming: 1797 sts  16% win  ROI $-0.58
+        • Routes: 3075 sts  16% win  ROI $-0.49
+        • Dirt starts: 6383 sts  17% win  ROI $-0.52
+    #1 SNIDE  (45d since last)  [LAYOFF 45+]
+        • Claiming: 767 sts  28% win  ROI $-0.31
+        • Routes: 1315 sts  20% win  ROI $-0.42
+        • Dirt starts: 2460 sts  22% win  ROI $-0.30
+    #3 TOUGH STREET  (25d since last)
+        • 3rd off layoff: 60 sts  18% win  ROI $0.24
+        • Btn favorite: 84 sts  19% win  ROI $-0.77
+        • Claiming: 339 sts  22% win  ROI $-0.46
+        • Routes: 435 sts  18% win  ROI $-0.29
+        • Dirt starts: 734 sts  19% win  ROI $-0.65
+
+  PRIME POWER TOP 5:
+    #1 SNIDE                  PP=130.6  Comp=4.60  Style=CLOSER
+    #3 TOUGH STREET           PP=130.0  Comp=4.55  Style=MID
+    #4 MALU                   PP=123.3  Comp=3.93  Style=SPEED
+    #5 STREET VIEW            PP=122.1  Comp=4.19  Style=MID
+    #2 ROYAL BOBBIE           PP=120.8  Comp=4.15  Style=CLOSER
+
+==================================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #6 BOW DRAW
+    EXACTA:     #6 / #1
+    TRIFECTA:   #6 / #1 / #3
+    SUPERFECTA: #6 / #1 / #3 / #5  #2  #4
+==================================================================================================================
+======================================================================================================================
+  🏇  R5 v3.10 — SAR  Race 2  |  20260709  |  5.5f  T  |  Purse $115,000  |  Par 82  |  NORMAL PACE (3 speed)
+  R5 | top-3 cum P(win) 58% | spread(r1−r3) 0.3 TIGHT | pace profile 1E/EP vs 0P/S
+=============================================================================================================================
+
+#    Horse                            ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Q   BDn   PPn   Val   Comp  P(win)    Fair    Edge
+-----------------------------------------------------------------------------------------------------------------------------
+4    CAPTAIN G                      12-1             -- -- -- --    N/A  +0.0    N/A      ?   6.4   8.7   UNK   0   4.0   4.0   8.5   4.56     18%   4.5-1   +137%  ▲OVERLAY  ◆VAL WATCH  [DEBUT]
+2    EXCESSIF                        8-1             -- -- -- --    N/A  +0.0    N/A      ?   8.4   7.1   UNK   0   4.0   4.0   7.1   4.39     17%   4.9-1    +52%  ▲OVERLAY  [DEBUT]
+6    GENERATIONAL                    2-1             73 -- -- --   73.0  +0.0   73.0   -9.0   8.1   8.0   MID   0   3.2   4.7   5.0   4.26     23%   3.4-1    -20%
+1    MAGICAL MIKEL                  15-1             -- -- -- --    N/A  +0.0    N/A      ?   8.4   5.5   UNK   0   4.0   4.0   7.8   4.18     14%   6.2-1   +121%  ▲OVERLAY  [DEBUT]
+8    PIRATE SHIP                     4-1             -- -- -- --    N/A  +0.0    N/A      ?   8.2   4.7   UNK   0   4.0   4.0   5.0   3.91     12%   7.0-1    -38%  [DEBUT]
+5    BEACH SANDALS (E)               4-1             53 77 -- --   63.3  -5.0   58.3  -18.7   8.4   7.4   SPE   4   0.3   3.2   5.0   3.21      7%  13.2-1    -68%
+7    CALL ATTENDANT                  6-1             48 -- -- --   48.0  +0.0   48.0  -34.0   5.0   6.4   SPE   6   0.0   2.4   5.0   2.70      5%  20.3-1    -67%
+3    JUST A HOLIDAY                  4-1             44 -- -- --   44.0  +0.0   44.0  -38.0   8.4   4.0   SPE   0   0.0   1.6   5.0   2.54      4%  23.3-1    -77%
+
+▲ OVERLAY = model edge ≥ +25% with P(win) ≥ 8% — vs morning line; advisory until live odds (no win bets on this flag).
+
+◆ VAL WATCH = val_n ≥ 8 tracker qualifier (flat $2, max 2/card, hard-stop guardrails per ruling).
+
+⚠️   DEBUT FLAG: #4 CAPTAIN G, #2 EXCESSIF, #1 MAGICAL MIKEL, #8 PIRATE SHIP — no BRIS speed figures, class_n=0.0. Do not bet on class score alone.
+
+🚨  VERY TIGHT CLUSTER: original top 3 within 0.27 pts — model conviction very low.
+     #6 GENERATIONAL comp deducted -0.40 (4.66 → 4.26).
+     → Top pick promoted to #4 CAPTAIN G (comp 4.56).
+     Exact revalidation (33 fired races, 2026-06-11): post-deduction rank-1 25.9% win / −1.3% ROI vs demoted horse −43.3%.
+     → Structure: box the cluster, don't key it (see EXOTICS below).
+
+======================================================================================================================
+🏆  TOP WIN PICK:  #4 CAPTAIN G  [12-1 ML]  |  Composite 4.56  |  P(win) 18%  |  fair 4.5-1  |  edge +137%  ▲OVERLAY (advisory — vs ML)
+    Trainer: CASSE MARK  |  Jockey: CASTELLANO J J
+    BRIS Speeds (last 4): [None, None, None, None]  |  WS4: None  Trend: +0.0  FCI: None
+    Sire: NASHVILLE  |  Dist Ped: None  |  Dirt Ped: 103.0
+    Pace style: UNKNOWN  |  Pace fit score: 5.0  |  Value score: 8.5
+    Min acceptable odds: 11-1
+
+💰  VALUE ALT:  #2 EXCESSIF  [8-1 ML]  |  Composite 4.39  |  P(win) 17%  fair 4.9-1
+    Trainer: MOTION H GRAHAM  |  Jockey: FRANCO MANUEL
+    Angle: 8-1 ML with FCI None vs par 82.0 | Pace: UNKNOWN | Val: 7.1
+    Key stat: 1st time str — 13.5% win rate
+
+  📋 TRAINER ANGLES — contender set (small-n context, not signals):
+    #4 CAPTAIN G  [DEBUT]
+        • 1st time str: 492 sts  13% win  ROI $-0.40  ← DEBUT MATCH
+        • Debut Turf: 190 sts  12% win  ROI $0.26  ← DEBUT MATCH
+        • Turf starts: 2202 sts  16% win  ROI $-0.26
+        • Debut MdnSpWt: 419 sts  14% win  ROI $-0.25  ← DEBUT MATCH
+        • Maiden Sp Wt: 1318 sts  16% win  ROI $-0.35
+        • 2YO: 1098 sts  17% win  ROI $-0.24
+    #2 EXCESSIF  [DEBUT]
+        • 1st time str: 156 sts  13% win  ROI $-0.44  ← DEBUT MATCH
+        • Debut Turf: 112 sts  12% win  ROI $-0.62  ← DEBUT MATCH
+        • Turf starts: 1117 sts  17% win  ROI $-0.37
+        • Debut MdnSpWt: 145 sts  13% win  ROI $-0.50  ← DEBUT MATCH
+        • Maiden Sp Wt: 428 sts  16% win  ROI $-0.32
+        • 2YO: 223 sts  17% win  ROI $-0.12
+    #6 GENERATIONAL  (21d since last)
+        • 2nd career race: 476 sts  15% win  ROI $-0.78
+        • Shipper: 2462 sts  18% win  ROI $-0.51
+        • 2nd grass race: 52 sts  31% win  ROI $0.90
+        • Turf starts: 1282 sts  14% win  ROI $-0.65
+        • Maiden Sp Wt: 2038 sts  16% win  ROI $-0.57
+        • 2YO: 1200 sts  15% win  ROI $-0.65
+
+  PRIME POWER TOP 5:
+    #6 GENERATIONAL           PP=123.4  Comp=4.26  Style=MID
+    #5 BEACH SANDALS          PP=114.4  Comp=3.21  Style=SPEED
+    #7 CALL ATTENDANT         PP=109.5  Comp=2.70  Style=SPEED
+    #3 JUST A HOLIDAY         PP=104.4  Comp=2.54  Style=SPEED
+
+==================================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #4 CAPTAIN G
+    EXACTA:     #4 / #2
+    TRIFECTA:   #4 / #2 / #6
+    SUPERFECTA: #4 / #2 / #6 / #1  #8  #5
+==================================================================================================================
+======================================================================================================================
+  🏇  R5 v3.10 — SAR  Race 3  |  20260709  |  6.5f  D  |  Purse $115,000  |  Par 90  |  NORMAL PACE (4 speed)
+  R5 | top-3 cum P(win) 81% | spread(r1−r3) 1.79 STANDOUT | pace profile 3E/EP vs 3P/S
+=============================================================================================================================
+
+#    Horse                            ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Q   BDn   PPn   Val   Comp  P(win)    Fair    Edge
+-----------------------------------------------------------------------------------------------------------------------------
+5    COLD SPELL (E)                  0-1             90 96 -- --   92.6  -3.0   89.6   +2.6   8.4   4.9   MID   5   4.9   6.6   5.0   5.79     50%   1.0-1    -30%
+7    LIL TIPSY (S)                   8-1             85 73 83 77   80.2  +3.7   83.9   -9.8   8.2   6.7   SPE   0   3.8   5.1   6.4   4.75     21%   3.9-1    +85%  ▲OVERLAY
+6    GIANT SENSE                    20-1             -- -- -- --    N/A  +0.0    N/A      ?   8.4   4.3   UNK   0   4.0   4.0   7.8   4.00     11%   8.5-1   +122%  ▲OVERLAY  [DEBUT]
+3    ROSE TO RICHES (P)              8-1             56 -- -- --   56.0  +0.0   56.0  -34.0   8.4   7.3   CLO   0   0.0   2.1   5.0   3.28      6%  16.8-1    -49%  [LAYOFF 180+]  [1stLasix]
+4    FLETCH'S ROCKETTE (P)           4-1             68 71 81 --   75.3  -5.0   70.3  -14.7   8.4   5.1   SPE   0   1.1   3.6   5.0   3.14      6%  15.8-1    -67%  [LAYOFF 90+]
+2    AMES (E)                       20-1            -10 65 67 --   65.9  -1.0   64.9  -24.1   8.4   4.7   SPE   0   0.0   0.0   5.0   2.76      4%  26.1-1    -23%  [LAYOFF 180+]  [1stLasix]
+1    COLLECTIVE BARGAIN (E)         15-1             54 56 -- --   54.9  -1.0   53.9  -35.1   8.2   3.8   SPE   1   0.0   1.9   5.0   2.61      4%  27.2-1    -43%  [LAYOFF 45+]  [BlkON]
+
+▲ OVERLAY = model edge ≥ +25% with P(win) ≥ 8% — vs morning line; advisory until live odds (no win bets on this flag).
+
+⚠️   DEBUT FLAG: #6 GIANT SENSE — no BRIS speed figures, class_n=0.0. Do not bet on class score alone.
+
+======================================================================================================================
+🏆  TOP WIN PICK:  #5 COLD SPELL  [0-1 ML]  |  Composite 5.79  |  P(win) 50%  |  fair 1.0-1  |  edge -30%
+    Trainer: WARD WESLEY A  |  Jockey: VELAZQUEZ J R
+    BRIS Speeds (last 4): [90.0, 96.0, None, None]  |  WS4: 92.6  Trend: -3.0  FCI: 89.6
+    Speed Par for class: 90  →  WS4 vs Par: +2.6
+    Prime Power Rating: 134.5
+    Sire: GUN RUNNER  |  Dist Ped: 111.0  |  Dirt Ped: 112.0
+    Pace style: MID  |  Pace fit score: 6.5  |  Value score: 5.0
+    Trip note: 06-06-26 Lost lane st; chased 4-3w; 4w upper; up; headed; ran on
+    Min acceptable odds: 1-1
+
+💰  VALUE ALT:  #7 LIL TIPSY  [8-1 ML]  |  Composite 4.75  |  P(win) 21%  fair 3.9-1
+    Trainer: RICE LINDA  |  Jockey: FRANCO MANUEL
+    Angle: 8-1 ML with FCI 83.9 vs par 90.0 | Pace: SPEED | Val: 6.4
+    Prime Power: 125.6
+    Key stat: Shipper — 16.6% win rate
+    Trip: 06-10-26 Came out start; off pace 4p; closer 5/16; no match; 2nd best
+
+  📋 TRAINER ANGLES — contender set (small-n context, not signals):
+    #5 COLD SPELL  (33d since last)
+        • Btn favorite: 85 sts  27% win  ROI $-0.76
+        • Maiden Sp Wt: 347 sts  31% win  ROI $-0.19
+        • Sprints: 945 sts  27% win  ROI $-0.24
+        • Dirt starts: 405 sts  34% win  ROI $-0.04
+    #7 LIL TIPSY  (29d since last)
+        • Shipper: 217 sts  17% win  ROI $-0.70
+        • 2nd after clm: 169 sts  30% win  ROI $-0.31
+        • 2nd strt w/trn: 40 sts  32% win  ROI $0.24
+        • MdnClm to Mdn: 25 sts  16% win  ROI $1.90
+        • Btn favorite: 321 sts  26% win  ROI $-0.28
+        • Maiden Sp Wt: 266 sts  13% win  ROI $-0.51
+    #6 GIANT SENSE  [DEBUT]
+        • 1st time str: 24 sts  21% win  ROI $1.15  ← DEBUT MATCH
+        • Debut MdnSpWt: 19 sts  26% win  ROI $1.98  ← DEBUT MATCH
+        • Maiden Sp Wt: 54 sts  17% win  ROI $0.83
+        • Sprints: 199 sts  13% win  ROI $-0.91
+        • Dirt starts: 263 sts  14% win  ROI $-0.77
+
+  PRIME POWER TOP 5:
+    #5 COLD SPELL             PP=134.5  Comp=5.79  Style=MID
+    #7 LIL TIPSY              PP=125.6  Comp=4.75  Style=SPEED
+    #4 FLETCH'S ROCKETTE      PP=116.8  Comp=3.14  Style=SPEED
+    #3 ROSE TO RICHES         PP=107.9  Comp=3.28  Style=CLOSER
+    #1 COLLECTIVE BARGAIN     PP=106.7  Comp=2.61  Style=SPEED
+
+==================================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #5 COLD SPELL
+    EXACTA:     #5 / #7
+    TRIFECTA:   #5 / #7 / #6
+    SUPERFECTA: #5 / #7 / #6 / #3  #4  #2
+==================================================================================================================
+======================================================================================================================
+  🏇  R5 v3.10 — SAR  Race 4  |  20260709  |  8.0f  D  |  Purse $42,000  |  Par 75  |  HOT PACE (5 speed)
+  R5 | top-3 cum P(win) 66% | spread(r1−r3) 0.38 TIGHT | pace profile 5E/EP vs 2P/S
+=============================================================================================================================
+
+#    Horse                            ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Q   BDn   PPn   Val   Comp  P(win)    Fair    Edge
+-----------------------------------------------------------------------------------------------------------------------------
+3    AMELIA'S ECHO (E/P)             4-1             71 76 80 73   74.5  -2.7   71.8   -0.5   8.0   4.6   SPE   6   5.2   3.6   6.4   4.99     23%   3.3-1     +5%  [LAYOFF 45+]
+2    TWIRLY (E)                      4-1             71 79 69 73   69.9  +1.7   71.6   -5.1   8.2   5.1   SPE   2   4.6   4.0   5.0   4.67     19%   4.3-1    -15%
+5    KAREY (S)                       5-1             77 70 65 66   71.4  +5.0   76.4   -3.6   8.3   3.0   CLO   2   5.4   3.3   6.4   4.61     24%   3.2-1    +42%  ▲OVERLAY  [LAYOFF 45+]
+6    DEFINING ROLE (E)               5-1             77 54 63 --   66.2  +5.0   71.2   -8.8   8.1   5.1   SPE   5   4.2   2.7   5.7   4.34     14%   6.1-1    -15%  [LAYOFF 45+]
+7    HEAVENS LEE (P)                 8-1             68 62 74 71   66.4  -1.8   64.6   -8.6   7.9   3.0   MID   3   4.8   2.5   6.4   3.92     10%   9.2-1    -12%
+1    MISS AMERICAN PIE (E/P)         6-1             53 68 66 74   61.7  -5.0   56.7  -13.3   8.2   4.7   SPE   6   1.3   2.4   5.0   3.16      5%  18.4-1    -64%  [LAYOFF 90+]  [BlkON]
+4    MARGARITA MOLLY (E)             3-1             50 57 71 64   57.7  -5.0   52.7  -17.3   8.2   5.0   SPE   5   4.2   3.1   5.0   3.08      5%  18.1-1    -79%
+
+▲ OVERLAY = model edge ≥ +25% with P(win) ≥ 8% — vs morning line; advisory until live odds (no win bets on this flag).
+
+🚨  VERY TIGHT CLUSTER: original top 3 within 0.34 pts — model conviction very low.
+     #5 KAREY comp deducted -0.40 (5.01 → 4.61).
+     → Top pick promoted to #3 AMELIA'S ECHO (comp 4.99).
+     Exact revalidation (33 fired races, 2026-06-11): post-deduction rank-1 25.9% win / −1.3% ROI vs demoted horse −43.3%.
+     → Structure: box the cluster, don't key it (see EXOTICS below).
+
+======================================================================================================================
+🏆  TOP WIN PICK:  #3 AMELIA'S ECHO  [4-1 ML]  |  Composite 4.99  |  P(win) 23%  |  fair 3.3-1  |  edge +5%
+    Trainer: KANTARMACI ILKAY  |  Jockey: FRANCO MANUEL
+    BRIS Speeds (last 4): [71.0, 76.0, 80.0, 73.0]  |  WS4: 74.5  Trend: -2.7  FCI: 71.8
+    Speed Par for class: 75  →  WS4 vs Par: -0.5
+    Prime Power Rating: 116.9
+    Best BRIS @ distance: 76
+    Sire: ECHO TOWN  |  Dist Ped: 99.0  |  Dirt Ped: 103.0
+    Pace style: SPEED  |  Pace fit score: 3.0  |  Value score: 6.4
+    Trip note: 05-24-26 Tracked outside;bid4-1/2;urged1/2;chsd4p turn;3p into lane;tired
+    Min acceptable odds: 2-1
+
+💰  VALUE ALT:  #7 HEAVENS LEE  [8-1 ML]  |  Composite 3.92  |  P(win) 10%  fair 9.2-1
+    Trainer: LEVINE BRUCE  |  Jockey: SILVERA RUBEN
+    Angle: 8-1 ML with FCI 64.6 vs par 75.0 | Pace: MID | Val: 6.4
+    Prime Power: 109.8
+    Key stat: 2nd off layoff — 7.2% win rate
+    Trip: 06-18-26 2p1st turn;settled outside at rear;urged 2-3p2nd;4p1/4;no threat
+
+  📋 TRAINER ANGLES — contender set (small-n context, not signals):
+    #3 AMELIA'S ECHO  (46d since last)  [LAYOFF 45+]
+        • 46-90daysAway: 66 sts  14% win  ROI $-0.87  ← LAYOFF MATCH
+        • 2nd after clm: 82 sts  13% win  ROI $-0.87
+        • 2nd strt w/trn: 7 sts  14% win  ROI $6.67
+        • Down 2+ classes: 24 sts  21% win  ROI $-0.25
+        • Claiming: 376 sts  16% win  ROI $-0.44
+        • Routes: 284 sts  11% win  ROI $-0.99
+    #2 TWIRLY  (19d since last)
+        • 2nd off layoff: 287 sts  17% win  ROI $-0.34
+        • Sprint to Rte: 159 sts  19% win  ROI $-0.47
+        • Claiming: 36 sts  17% win  ROI $-1.03
+        • Routes: 1280 sts  15% win  ROI $-0.54
+        • Dirt starts: 1361 sts  19% win  ROI $-0.50
+    #5 KAREY  (46d since last)  [LAYOFF 45+]
+        • 46-90daysAway: 66 sts  14% win  ROI $-0.87  ← LAYOFF MATCH
+        • 2nd after clm: 82 sts  13% win  ROI $-0.87
+        • 2nd strt w/trn: 7 sts  14% win  ROI $6.67
+        • Down 2+ classes: 24 sts  21% win  ROI $-0.25
+        • Claiming: 376 sts  16% win  ROI $-0.44
+        • Routes: 284 sts  11% win  ROI $-0.99
+
+  PRIME POWER TOP 5:
+    #2 TWIRLY                 PP=119.2  Comp=4.67  Style=SPEED
+    #3 AMELIA'S ECHO          PP=116.9  Comp=4.99  Style=SPEED
+    #5 KAREY                  PP=114.8  Comp=4.61  Style=CLOSER
+    #4 MARGARITA MOLLY        PP=113.7  Comp=3.08  Style=SPEED
+    #6 DEFINING ROLE          PP=111.3  Comp=4.34  Style=SPEED
+
+==================================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #3 AMELIA'S ECHO
+    EXACTA:     #3 / #2
+    TRIFECTA:   #3 / #2 / #5
+    SUPERFECTA: #3 / #2 / #5 / #6  #7  #1
+==================================================================================================================
+======================================================================================================================
+  🏇  R5 v3.10 — SAR  Race 5  |  20260709  |  8.0f  D  |  Purse $120,000  |  Par 88  |  SLOW PACE (1 speed)
+  R5 | top-3 cum P(win) 59% | spread(r1−r3) 0.92 DEFAULT | pace profile 4E/EP vs 3P/S
+=============================================================================================================================
+
+#    Horse                            ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Q   BDn   PPn   Val   Comp  P(win)    Fair    Edge
+-----------------------------------------------------------------------------------------------------------------------------
+3    SOARING HIGH (P)                1-1             90 90 69 --   85.3  +5.0   90.3   -2.7   8.5   5.2   MID   4   5.4   6.1   5.0   5.63     30%   2.4-1    -40%
+2    BRUNCH WITH AMY (S)             4-1             78 83 82 90   81.5  -3.5   78.0   -6.5   8.3   7.1   MID   5   4.8   5.1   5.7   4.84     15%   5.5-1    -15%
+7    FAST AND FRISKY (E/P)          10-1             81 81 82 97   82.8  -2.8   80.0   -5.2   8.2   3.0   SPE   5   6.8   5.6   6.4   4.71     13%   6.5-1    +47%  ▲OVERLAY
+4    WILL NOT BE SWAYED (S)          8-1             81 78 89 83   83.2  -1.7   81.5   -4.8   8.2   4.6   MID   4   3.6   4.7   5.7   4.61     13%   6.9-1    +14%
+6    I'M A CUTIE PIE (E/P)          15-1             79 79 78 83   79.2  -0.5   78.7   -8.8   8.3   4.3   MID   6   5.4   4.3   5.7   4.31     10%   9.0-1    +60%  ▲OVERLAY
+5    HIDDEN ROSE (E/P)               8-1             83 72 70 72   76.2  +5.0   81.2  -11.8   8.3   6.1   CLO   3   4.0   4.3   5.0   4.24     10%   9.3-1    -13%
+1    MADAM OPUS (E)                  4-1             78 73 -- --   75.9  +2.5   78.4  -12.1   8.4   6.4   MID   4   3.0   4.1   5.0   4.15      9%  10.0-1    -59%  [LAYOFF 180+]
+
+▲ OVERLAY = model edge ≥ +25% with P(win) ≥ 8% — vs morning line; advisory until live odds (no win bets on this flag).
+
+⚠️   TIGHT CLUSTER: top 3 within 0.92 pts (#3 5.63 / #2 4.84 / #7 4.71) — moderate conviction. Consider value alt over top pick.
+
+======================================================================================================================
+🏆  TOP WIN PICK:  #3 SOARING HIGH  [1-1 ML]  |  Composite 5.63  |  P(win) 30%  |  fair 2.4-1  |  edge -40%
+    Trainer: DEVAUX CHERIE  |  Jockey: ORTIZ JOSE L
+    BRIS Speeds (last 4): [90.0, 90.0, 69.0, None]  |  WS4: 85.3  Trend: +5.0  FCI: 90.3
+    Speed Par for class: 88  →  WS4 vs Par: -2.7
+    Prime Power Rating: 131.4
+    Best BRIS @ distance: 90
+    Sire: CURLIN  |  Dist Ped: 113.0  |  Dirt Ped: 113.0
+    Pace style: MID  |  Pace fit score: 6.5  |  Value score: 5.0
+    Trip note: 05-30-26 Off pace 5p; 4p turn; outkickd 1/4; 5p1/8; rallied; up place late
+    Min acceptable odds: 1-1
+
+💰  VALUE ALT:  #7 FAST AND FRISKY  [10-1 ML]  |  Composite 4.71  |  P(win) 13%  fair 6.5-1
+    Trainer: CHARLERIE GREGORY E  |  Jockey: SILVERA RUBEN
+    Angle: 10-1 ML with FCI 80.0 vs par 88.0 | Pace: SPEED | Val: 6.4
+    Prime Power: 128.4
+    Key stat: 1st after clm — 8.3% win rate
+    Trip: 06-14-26 5-4w pursuit; coaxed 7/16; tipped 6-7w upper; up last jumps
+
+  📋 TRAINER ANGLES — contender set (small-n context, not signals):
+    #3 SOARING HIGH  (40d since last)
+        • Shipper: 386 sts  19% win  ROI $-0.35
+        • 3rd off layoff: 46 sts  26% win  ROI $1.49
+        • Allowance: 336 sts  17% win  ROI $-0.41
+        • Routes: 863 sts  17% win  ROI $-0.23
+        • Dirt starts: 450 sts  20% win  ROI $-0.18
+    #2 BRUNCH WITH AMY  (12d since last)
+        • Allowance: 765 sts  20% win  ROI $-0.15
+        • Routes: 1315 sts  20% win  ROI $-0.42
+        • Dirt starts: 2460 sts  22% win  ROI $-0.30
+    #7 FAST AND FRISKY  (25d since last)
+        • 1st after clm: 12 sts  8% win  ROI $0.12
+        • Wnr last race: 8 sts  12% win  ROI $1.18
+        • Allowance: 6 sts  ? win  ROI $-2.00
+        • Routes: 16 sts  19% win  ROI $0.63
+        • Dirt starts: 53 sts  11% win  ROI $-0.41
+
+  PRIME POWER TOP 5:
+    #3 SOARING HIGH           PP=131.4  Comp=5.63  Style=MID
+    #7 FAST AND FRISKY        PP=128.4  Comp=4.71  Style=SPEED
+    #2 BRUNCH WITH AMY        PP=125.8  Comp=4.84  Style=MID
+    #4 WILL NOT BE SWAYED     PP=123.0  Comp=4.61  Style=MID
+    #6 I'M A CUTIE PIE        PP=121.1  Comp=4.31  Style=MID
+
+==================================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #3 SOARING HIGH
+    EXACTA:     #3 / #2
+    TRIFECTA:   #3 / #2 / #7
+    SUPERFECTA: #3 / #2 / #7 / #4  #6  #5
+==================================================================================================================
+======================================================================================================================
+  🏇  R5 v3.10 — SAR  Race 6  |  20260709  |  8.0f  t  |  Purse $125,000  |  Par 88  |  SLOW PACE (1 speed)
+  R5 | top-3 cum P(win) 44% | spread(r1−r3) 0.28 TIGHT | pace profile 4E/EP vs 4P/S
+=============================================================================================================================
+
+#    Horse                            ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Q   BDn   PPn   Val   Comp  P(win)    Fair    Edge
+-----------------------------------------------------------------------------------------------------------------------------
+1    QUEEN OF HAWAII                 4-1             87 -- -- --   87.0  +0.0   87.0   -1.0   8.1   4.7   CLO   0   4.8   8.1   6.4   5.61     14%   6.3-1    -25%  [LAYOFF 180+]  [1stLasix]
+8    BEING MYSELF (E/P)             15-1             85 93 85 90   87.9  -2.2   85.7   -0.1   8.5   3.5   CLO   4   4.5   7.4   9.9   5.38     12%   7.7-1    +85%  ▲OVERLAY  ◆VAL WATCH  [LAYOFF 45+]
+2    PLAY WITH FIRE (S)              3-1             85 83 92 94   86.7  -2.3   84.4   -1.3   8.3   7.3   CLO   4   6.2   8.2   5.0   5.33     19%   4.4-1    -26%  [LAYOFF 180+]
+7    OPULENT RESTRAINT (E)           4-1             75 90 98 90   85.6  -5.0   80.6   -2.4   6.8   6.0   SPE   7   7.0   7.0   5.0   5.29     13%   6.7-1    -41%
+5    BRISBANE (S)                    5-1             82 90 -- --   85.4  -4.0   81.4   -2.6   5.0   6.4   CLO   0   5.4   7.4   5.0   4.94     10%   9.1-1    -41%
+10   SAILAWAY (P)                    4-1             87 88 74 82   84.2  +2.8   87.0   -3.8   8.4   4.6   CLO   2   2.8   5.6   5.0   4.83      9%  10.1-1    -55%  [LAYOFF 45+]
+3    SCYTHIAN (P)                   10-1             82 79 84 88   82.1  -0.8   81.3   -5.9   8.5   5.1   CLO   3   5.0   7.0   5.0   4.71      8%  11.1-1     -9%  [LAYOFF 45+]
+4    STRUTSHERSTUFF (E/P)           10-1             78 86 85 86   82.6  -3.8   78.8   -5.4   8.0   4.3   MID   3   4.6   5.1   5.0   4.46      7%  13.9-1    -26%  [LAYOFF 45+]
+6    POP ART (E/P)                  15-1             83 76 76 84   79.6  +2.2   81.8   -8.4   8.5   3.5   CLO   4   4.2   6.8   5.0   4.25      6%  16.7-1     -9%  [LAYOFF 45+]
+9    ASHIKIDAH                       6-1             -- -- -- --    N/A  +0.0    N/A      ?   5.0   4.7   UNK   0   4.0   4.0   5.0   3.89      4%  26.8-1    -75%  [DEBUT]  [LAYOFF 180+]  [1stLasix]
+
+▲ OVERLAY = model edge ≥ +25% with P(win) ≥ 8% — vs morning line; advisory until live odds (no win bets on this flag).
+
+◆ VAL WATCH = val_n ≥ 8 tracker qualifier (flat $2, max 2/card, hard-stop guardrails per ruling).
+
+⚠️   DEBUT FLAG: #9 ASHIKIDAH — no BRIS speed figures, class_n=0.0. Do not bet on class score alone.
+
+🚨  VERY TIGHT CLUSTER: original top 3 within 0.35 pts — model conviction very low.
+     #2 PLAY WITH FIRE comp deducted -0.40 (5.73 → 5.33).
+     → Top pick promoted to #1 QUEEN OF HAWAII (comp 5.61).
+     Exact revalidation (33 fired races, 2026-06-11): post-deduction rank-1 25.9% win / −1.3% ROI vs demoted horse −43.3%.
+     → Structure: box the cluster, don't key it (see EXOTICS below).
+
+======================================================================================================================
+🏆  TOP WIN PICK:  #1 QUEEN OF HAWAII  [4-1 ML]  |  Composite 5.61  |  P(win) 14%  |  fair 6.3-1  |  edge -25%
+    Trainer: ANTONACCI PHILIP  |  Jockey: ORTIZ JOSE L
+    BRIS Speeds (last 4): [87.0, None, None, None]  |  WS4: 87.0  Trend: +0.0  FCI: 87.0
+    Speed Par for class: 88  →  WS4 vs Par: -1.0
+    Prime Power Rating: 143.7
+    Best BRIS Turf: 87
+    ⚡ FIRST-TIME LASIX (+0.20 comp)
+    Sire: KINGMAN  |  Dist Ped: 103.0  |  Dirt Ped: 102.0
+    Pace style: CLOSER  |  Pace fit score: 4.0  |  Value score: 6.4
+    Last race: John Deere Breeders' Cup Juvenile Fillies Turf  (20251031)
+    Trip note: 10-31-25 Off slow; trailed inside; passed tired rivals
+    Min acceptable odds: 4-1
+
+💰  VALUE ALT:  #8 BEING MYSELF  [15-1 ML]  |  Composite 5.38  |  P(win) 12%  fair 7.7-1
+    Trainer: DEVAUX CHERIE  |  Jockey: DAVIS DYLAN
+    Angle: 15-1 ML with FCI 85.7 vs par 88.0 | Pace: CLOSER | Val: 9.9
+    Prime Power: 139.2
+    Key stat: 46-90daysAway — 15.4% win rate
+    Trip: 05-24-26 4p 1st turn; stalked pace; bid 1/4; 4p into lane; steadied late
+
+  📋 TRAINER ANGLES — contender set (small-n context, not signals):
+    #1 QUEEN OF HAWAII  (251d since last)  [LAYOFF 180+]
+        • 90+ days away: 49 sts  24% win  ROI $0.14  ← LAYOFF MATCH
+        • 1st start w/trn: 8 sts  25% win  ROI $-0.85
+        • 1st time lasix: 11 sts  27% win  ROI $2.96
+        • Shipper: 60 sts  32% win  ROI $-0.17
+        • Turf starts: 134 sts  16% win  ROI $-0.59
+        • Allowance: 50 sts  12% win  ROI $-1.42
+    #8 BEING MYSELF  (46d since last)  [LAYOFF 45+]
+        • 46-90daysAway: 369 sts  15% win  ROI $-0.64  ← LAYOFF MATCH
+        • 1st on grass: 66 sts  14% win  ROI $-0.29
+        • Dirt to Turf: 71 sts  11% win  ROI $-0.55
+        • Turf starts: 658 sts  15% win  ROI $-0.52
+        • Btn favorite: 63 sts  33% win  ROI $0.80
+        • Allowance: 336 sts  17% win  ROI $-0.41
+    #2 PLAY WITH FIRE  (258d since last)  [LAYOFF 180+]
+        • 90+ days away: 588 sts  23% win  ROI $-0.27  ← LAYOFF MATCH
+        • Turf starts: 1715 sts  23% win  ROI $-0.24
+        • Allowance: 808 sts  23% win  ROI $-0.56
+        • Routes: 2489 sts  24% win  ROI $-0.29
+
+  PRIME POWER TOP 5:
+    #2 PLAY WITH FIRE         PP=144.1  Comp=5.33  Style=CLOSER
+    #1 QUEEN OF HAWAII        PP=143.7  Comp=5.61  Style=CLOSER
+    #5 BRISBANE               PP=139.5  Comp=4.94  Style=CLOSER
+    #8 BEING MYSELF           PP=139.2  Comp=5.38  Style=CLOSER
+    #3 SCYTHIAN               PP=137.3  Comp=4.71  Style=CLOSER
+
+==================================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #1 QUEEN OF HAWAII
+    EXACTA:     #1 / #8
+    TRIFECTA:   #1 / #8 / #2
+    SUPERFECTA: #1 / #8 / #2 / #7  #5  #10
+==================================================================================================================
+======================================================================================================================
+  🏇  R5 v3.10 — SAR  Race 7  |  20260709  |  6.0f  D  |  Purse $52,000  |  Par 90  |  HOT PACE (8 speed)
+  R5 | top-3 cum P(win) 40% | spread(r1−r3) 0.09 TIGHT | pace profile 9E/EP vs 0P/S
+=============================================================================================================================
+
+#    Horse                            ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Q   BDn   PPn   Val   Comp  P(win)    Fair    Edge
+-----------------------------------------------------------------------------------------------------------------------------
+5    BURNINHUNKOFLOVE (E/P)          8-1             77 83 66 96   78.5  -2.3   76.2  -11.5   8.5   4.7   SPE   5   6.4   4.9   7.1   4.04     12%   7.1-1    +11%
+1    SCREAMING UNCLE (E)            15-1             75 79 84 80   78.5  -3.0   75.5  -11.5   8.4   5.5   SPE   4   3.8   4.9   8.5   3.98     11%   8.0-1    +78%  ▲OVERLAY  ◆VAL WATCH
+2    GATSBY (E)                      4-1             65 94 94 91   82.1  -5.0   77.1   -7.9   8.1   4.6   SPE   7   8.0   5.2   5.7   3.95     17%   5.0-1     -8%
+9    RED STATE (E/P)                 1-1             76 84 85 73   79.9  -2.3   77.6  -10.1   8.4   4.6   SPE   5   4.0   5.1   5.0   3.88     12%   7.4-1    -71%
+7    STEWIE (E)                     12-1             79 79 83 70   78.9  +0.8   79.7  -11.1   8.1   3.5   SPE   4   5.4   4.3   6.4   3.87     11%   8.1-1    +43%  ▲OVERLAY
+4    WAR MASTER (E/P)                8-1             73 77 85 87   78.0  -5.0   73.0  -12.0   8.2   5.0   CLO   0   4.4   3.5   5.0   3.79     11%   8.1-1     -1%
+3    FACTUALLY CORRECT (E)           6-1             69 87 89 88   80.3  -5.0   75.3   -9.7   7.9   3.0   SPE   7   7.0   5.2   5.0   3.78     11%   8.1-1    -23%
+6    BIG HAT WILLIE (E/P)            8-1             74 80 67 93   76.3  -3.0   73.3  -13.7   8.2   4.3   SPE   5   6.0   5.4   5.0   3.57      9%   9.8-1    -17%
+8    TIMAEUS (E/P)                  12-1             65 69 92 81   73.2  -5.0   68.2  -16.8   8.4   3.0   SPE   4   5.4   4.3   5.0   2.97      6%  16.6-1    -26%
+
+▲ OVERLAY = model edge ≥ +25% with P(win) ≥ 8% — vs morning line; advisory until live odds (no win bets on this flag).
+
+◆ VAL WATCH = val_n ≥ 8 tracker qualifier (flat $2, max 2/card, hard-stop guardrails per ruling).
+
+🚨  VERY TIGHT CLUSTER: original top 3 within 0.37 pts — model conviction very low.
+     #2 GATSBY comp deducted -0.40 (4.35 → 3.95).
+     → Top pick promoted to #5 BURNINHUNKOFLOVE (comp 4.04).
+     Exact revalidation (33 fired races, 2026-06-11): post-deduction rank-1 25.9% win / −1.3% ROI vs demoted horse −43.3%.
+     → Structure: box the cluster, don't key it (see EXOTICS below).
+
+======================================================================================================================
+🏆  TOP WIN PICK:  #5 BURNINHUNKOFLOVE  [8-1 ML]  |  Composite 4.04  |  P(win) 12%  |  fair 7.1-1  |  edge +11%
+    Trainer: POTTS WAYNE  |  Jockey: ORTIZ JOSE L
+    BRIS Speeds (last 4): [77.0, 83.0, 66.0, 96.0]  |  WS4: 78.5  Trend: -2.3  FCI: 76.2
+    Speed Par for class: 90  →  WS4 vs Par: -11.5
+    Prime Power Rating: 124.1
+    Best BRIS @ distance: 97
+    Sire: MUNNINGS  |  Dist Ped: 113.0  |  Dirt Ped: 110.0
+    Pace style: SPEED  |  Pace fit score: 3.0  |  Value score: 7.1
+    Trip note: 06-20-26 Dropped back;urged outside;5-4path turn;lacked needed kick
+    Min acceptable odds: 7-1
+
+💰  VALUE ALT:  #1 SCREAMING UNCLE  [15-1 ML]  |  Composite 3.98  |  P(win) 11%  fair 8.0-1
+    Trainer: CHARLERIE GREGORY E  |  Jockey: GUTIERREZ REYLU
+    Angle: 15-1 ML with FCI 75.5 vs par 90.0 | Pace: SPEED | Val: 8.5
+    Prime Power: 124.1
+    Key stat: Claiming — 11.6% win rate
+    Trip: 06-12-26 Coaxed st; cut pressured pace 2p; coaxed 5/16; 2w 1/4p; weakened
+
+  📋 TRAINER ANGLES — contender set (small-n context, not signals):
+    #5 BURNINHUNKOFLOVE  (19d since last)
+        • 1st after clm: 201 sts  12% win  ROI $-0.48
+        • Claiming: 620 sts  12% win  ROI $-0.71
+        • Sprints: 562 sts  12% win  ROI $-0.71
+        • Dirt starts: 943 sts  12% win  ROI $-0.69
+    #1 SCREAMING UNCLE  (27d since last)
+        • Claiming: 43 sts  12% win  ROI $-0.63
+        • Sprints: 51 sts  6% win  ROI $-1.17
+        • Dirt starts: 53 sts  11% win  ROI $-0.41
+    #2 GATSBY  (32d since last)
+        • 2nd off layoff: 40 sts  12% win  ROI $0.17
+        • Claiming: 376 sts  16% win  ROI $-0.44
+        • Sprints: 391 sts  14% win  ROI $0.00
+        • Dirt starts: 632 sts  13% win  ROI $-0.42
+
+  PRIME POWER TOP 5:
+    #6 BIG HAT WILLIE         PP=127.6  Comp=3.57  Style=SPEED
+    #3 FACTUALLY CORRECT      PP=126.3  Comp=3.78  Style=SPEED
+    #2 GATSBY                 PP=125.9  Comp=3.95  Style=SPEED
+    #9 RED STATE              PP=125.8  Comp=3.88  Style=SPEED
+    #5 BURNINHUNKOFLOVE       PP=124.1  Comp=4.04  Style=SPEED
+
+==================================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #5 BURNINHUNKOFLOVE
+    EXACTA:     #5 / #1
+    TRIFECTA:   #5 / #1 / #2
+    SUPERFECTA: #5 / #1 / #2 / #9  #7  #4
+==================================================================================================================
+======================================================================================================================
+  🏇  R5 v3.10 — SAR  Race 8  |  20260709  |  5.5f  T  |  Purse $78,000  |  Par 88  |  HOT PACE (12 speed)
+  R5 | top-3 cum P(win) 31% | spread(r1−r3) 0.6 DEFAULT | pace profile 10E/EP vs 5P/S
+=============================================================================================================================
+
+#    Horse                            ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Q   BDn   PPn   Val   Comp  P(win)    Fair    Edge
+-----------------------------------------------------------------------------------------------------------------------------
+5    KID BILLY (E)                  15-1             89 84 93 86   88.0  +0.7   88.7   +0.0   8.3   3.0   SPE   8   5.1   5.3  10.0   5.34     13%   7.0-1   +100%  ▲OVERLAY  ◆VAL WATCH  [LAYOFF 45+]
+13   GOLDEN SYMPHONY (E/P)           4-1             84 87 79 58   81.3  +4.7   86.0   -6.7   8.5   6.7   SPE   5   2.4   6.7   7.8   4.94     10%   9.1-1    -45%
+3    RUSSI (P)                       6-1             68 85 81 75   82.1  +1.8   83.9   -5.9   8.1   3.8   MID   0   5.2   4.4   6.4   4.74      9%  10.2-1    -37%
+2    BRIDLE A BUTTERFLY (S)          4-1             80 81 88 71   81.0  +0.0   81.0   -7.0   8.3   5.0   MID   0   5.4   5.6   5.0   4.64      9%  10.4-1    -52%
+8    COUNTER MOVE (E/P)              4-1             82 85 73 75   83.3  -1.5   81.8   -4.7   8.0   4.7   SPE   7   4.4   6.2   5.0   4.59      8%  10.9-1    -62%
+7    JOKER ON FIRE (E/P)             4-1             84 82 86 66   83.8  +0.0   83.8   -4.2   8.5   3.5   SPE   5   4.6   6.2   5.0   4.58      8%  11.0-1    -58%
+15   MOMENTUM FILES (E)              2-1             89 75 85 76   82.7  +5.0   87.7   -5.3   8.4   3.0   SPE   7   2.6   5.5   5.0   4.46      8%  12.2-1    -74%
+10   GLOBAL PROSPERITY (E/P)        10-1             81 79 78 79   79.6  +1.2   80.8   -8.4   8.1   5.5   SPE   1   4.6   3.6   7.1   4.38      7%  14.3-1    -28%  [LAYOFF 90+]
+11   AFTER TAXES (P)                 8-1             80 76 82 84   79.6  -0.3   79.3   -8.4   8.1   6.0   SPE   3   4.2   5.8   5.0   4.36      7%  13.3-1    -37%
+12   FARM TEAM (S)                   8-1             79 84 82 80   81.2  -1.5   79.7   -6.8   8.5   3.0   CLO   0   2.4   5.0   5.0   4.12      6%  16.5-1    -48%
+9    PEYTON (E/P)                   15-1             79 72 -- --   76.0  +3.5   79.5  -12.0   8.2   5.1   SPE   6   3.2   4.9   7.8   4.06      5%  19.5-1    -22%  [LAYOFF 45+]
+6    LAUNCH CONTROL (E/P)           10-1             70 79 81 74   75.3  -4.0   71.3  -12.7   8.2   4.6   SPE   7   5.2   4.7   5.0   3.58      4%  25.8-1    -59%  [LAYOFF 45+]
+4    ROAR OF THE CROWD (P)          30-1             72 74 73 52   72.5  +0.0   72.5  -15.5   8.0   5.5   SPE   3   3.0   3.5   6.4   3.44      3%  31.0-1     -3%
+1    AMBASSADOR BLUE (E/P)          10-1             78 70 50 79   73.9  -4.5   69.4  -14.1   8.4   5.5   SPE   0   3.2   3.5   5.0   3.33      3%  31.8-1    -66%  [LAYOFF 45+]
+14   MATH TUTOR (E)                  4-1             91 77 72 72   59.9  -5.0   54.9  -28.1   8.1   3.0   SPE   7   1.6   4.2   5.0   2.47      2%  65.3-1    -92%  [LAYOFF 90+]
+
+▲ OVERLAY = model edge ≥ +25% with P(win) ≥ 8% — vs morning line; advisory until live odds (no win bets on this flag).
+
+◆ VAL WATCH = val_n ≥ 8 tracker qualifier (flat $2, max 2/card, hard-stop guardrails per ruling).
+
+⚠️   TIGHT CLUSTER: top 3 within 0.6 pts (#5 5.34 / #13 4.94 / #3 4.74) — moderate conviction. Consider value alt over top pick.
+
+======================================================================================================================
+🏆  TOP WIN PICK:  #5 KID BILLY  [15-1 ML]  |  Composite 5.34  |  P(win) 13%  |  fair 7.0-1  |  edge +100%  ▲OVERLAY (advisory — vs ML)
+    Trainer: RODRIGUEZ RUDY R  |  Jockey: SILVERA RUBEN
+    BRIS Speeds (last 4): [89.0, 84.0, 93.0, 86.0]  |  WS4: 88.0  Trend: +0.7  FCI: 88.7
+    Speed Par for class: 88  →  WS4 vs Par: +0.0
+    Prime Power Rating: 126.7
+    Sire: FLATTER  |  Dist Ped: 108.0  |  Dirt Ped: 106.0
+    Pace style: SPEED  |  Pace fit score: 3.0  |  Value score: 10.0
+    Trip note: 04-17-26 Hustled;pace ins foe;urged ins-2p trn;drop bck1/4;kept on;willing
+    Min acceptable odds: 14-1
+
+💰  VALUE ALT:  #3 RUSSI  [6-1 ML]  |  Composite 4.74  |  P(win) 9%  fair 10.2-1
+    Trainer: BOND HAROLD JAMES  |  Jockey: ZAYAS EDGARD J
+    Angle: 6-1 ML with FCI 83.9 vs par 88.0 | Pace: MID | Val: 6.4
+    Prime Power: 121.4
+    Key stat: Dirt to Turf — 8.0% win rate
+    Trip: 06-05-26 Stumbled st; chased 4-2w; coaxed 3/8; 4w upper; tired
+
+  📋 TRAINER ANGLES — contender set (small-n context, not signals):
+    #5 KID BILLY  (83d since last)  [LAYOFF 45+]
+        • 46-90daysAway: 311 sts  13% win  ROI $-0.44  ← LAYOFF MATCH
+        • 1st on grass: 63 sts  6% win  ROI $0.19
+        • Dirt to Turf: 148 sts  6% win  ROI $-0.61
+        • Turf starts: 371 sts  7% win  ROI $-0.83
+        • Sprints: 1071 sts  12% win  ROI $-0.65
+    #13 GOLDEN SYMPHONY  (13d since last)
+        • Dirt to Turf: 107 sts  7% win  ROI $-0.84
+        • Turf starts: 320 sts  10% win  ROI $-0.84
+        • Sprints: 1528 sts  23% win  ROI $-0.29
+    #3 RUSSI  (34d since last)
+        • Dirt to Turf: 25 sts  8% win  ROI $-0.13
+        • Turf starts: 137 sts  6% win  ROI $-0.55
+        • Sprints: 220 sts  8% win  ROI $-1.32
+
+  PRIME POWER TOP 5:
+    #13 GOLDEN SYMPHONY        PP=135.1  Comp=4.94  Style=SPEED
+    #8 COUNTER MOVE           PP=132.4  Comp=4.59  Style=SPEED
+    #7 JOKER ON FIRE          PP=132.2  Comp=4.58  Style=SPEED
+    #11 AFTER TAXES            PP=129.9  Comp=4.36  Style=SPEED
+    #2 BRIDLE A BUTTERFLY     PP=128.7  Comp=4.64  Style=MID
+
+==================================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #5 KID BILLY
+    EXACTA:     #5 / #13
+    TRIFECTA:   #5 / #13 / #3
+    SUPERFECTA: #5 / #13 / #3 / #2  #8  #7
+==================================================================================================================
+======================================================================================================================
+  🏇  R5 v3.10 — SAR  Race 9  |  20260709  |  8.5f  t  |  Purse $115,000  |  Par 88  |  NORMAL PACE (2 speed)
+  R5 | top-3 cum P(win) 37% | spread(r1−r3) 0.2 TIGHT | pace profile 1E/EP vs 9P/S
+=============================================================================================================================
+
+#    Horse                            ML                 Spd 1-4    WS4     T    FCI   vPar   Ped    TJ   Pce   Q   BDn   PPn   Val   Comp  P(win)    Fair    Edge
+-----------------------------------------------------------------------------------------------------------------------------
+8    FELINE CURIOUS (P)             12-1             87 71 68 --   80.1  +5.0   85.1   -7.9   8.2   4.4   CLO   4   4.8   5.0  10.0   4.96     11%   8.2-1    +41%  ▲OVERLAY  ◆VAL WATCH
+5    COORDINATOR (P)                 2-1             80 81 -- --   80.4  -0.5   79.9   -7.6   8.1   7.3   SPE   2   3.6   7.0   5.0   4.81     12%   7.5-1    -65%  [LAYOFF 45+]
+10   C J STAR (E/P)                  4-1             81 82 76 --   80.2  +1.0   81.2   -7.8   8.6   8.7   MID   5   3.8   6.3   7.1   4.76     14%   6.0-1    -21%
+9    OKEFENOKEE (S)                  8-1             83 70 -- --   77.4  +5.0   82.4  -10.6   8.4   5.3   MID   4   4.0   4.3   6.4   4.44      8%  11.3-1    -27%
+1    PAY THE PIPER (S)               8-1             -- 79 -- --   79.0  +0.0   79.0   -9.0   8.2   6.4   MID   0   3.2   4.2   5.7   4.43      8%  10.9-1    -24%  [LAYOFF 90+]
+3    LUZ DE GUIA (P)                30-1             84 77 77 78   79.9  +3.3   83.2   -8.1   8.4   3.0   CLO   3   4.0   3.9   9.2   4.41      7%  13.0-1   +122%  ◆VAL WATCH
+7    BULL SHOALS (P)                10-1             83 79 81 --   81.2  +1.5   82.7   -6.8   8.1   3.0   MID   2   4.0   4.7   6.4   4.35      8%  12.0-1    -16%
+4    DEMOCRACY DEFENDER (S)          8-1             79 78 73 81   77.7  +0.8   78.5  -10.3   8.4   4.7   MID   1   3.6   5.4   5.0   4.14      7%  13.6-1    -38%  [LAYOFF 45+]
+6    POINT GUARD                    15-1             -- -- -- --    N/A  +0.0    N/A      ?   8.4   5.1   UNK   0   4.0   4.0   7.1   4.09      6%  15.7-1     -4%  [DEBUT]
+12   SORRENTINO                      4-1             79 79 -- --   79.0  +0.0   79.0   -9.0   8.5   3.0   SPE   4   3.2   4.1   5.0   3.94      5%  17.7-1    -76%  [BlkON]
+2    IRON PALACE                    12-1             -- -- -- --    N/A  +0.0    N/A      ?   8.1   4.3   UNK   0   4.0   4.0   5.0   3.84      5%  17.7-1    -30%  [DEBUT]
+11   OLLIE LUKE OUT (P)             10-1             74 76 -- --   74.9  -1.0   73.9  -13.1   8.3   4.7   CLO   2   2.6   4.4   5.0   3.76      4%  22.5-1    -53%  [LAYOFF 45+]  [1stLasix]
+13   ASKED AND ANSWERED (S)          3-1             87 74 75 76   74.4  -0.5   73.9  -13.6   8.6   4.3   CLO   3   2.4   4.5   5.0   3.49      4%  23.8-1    -84%
+
+▲ OVERLAY = model edge ≥ +25% with P(win) ≥ 8% — vs morning line; advisory until live odds (no win bets on this flag).
+
+◆ VAL WATCH = val_n ≥ 8 tracker qualifier (flat $2, max 2/card, hard-stop guardrails per ruling).
+
+⚠️   DEBUT FLAG: #6 POINT GUARD, #2 IRON PALACE — no BRIS speed figures, class_n=0.0. Do not bet on class score alone.
+
+🚨  VERY TIGHT CLUSTER: original top 3 within 0.35 pts — model conviction very low.
+     #10 C J STAR comp deducted -0.40 (5.16 → 4.76).
+     → Top pick promoted to #8 FELINE CURIOUS (comp 4.96).
+     Exact revalidation (33 fired races, 2026-06-11): post-deduction rank-1 25.9% win / −1.3% ROI vs demoted horse −43.3%.
+     → Structure: box the cluster, don't key it (see EXOTICS below).
+
+======================================================================================================================
+🏆  TOP WIN PICK:  #8 FELINE CURIOUS  [12-1 ML]  |  Composite 4.96  |  P(win) 11%  |  fair 8.2-1  |  edge +41%  ▲OVERLAY (advisory — vs ML)
+    Trainer: DANNER KELSEY  |  Jockey: VELAZQUEZ J R
+    BRIS Speeds (last 4): [87.0, 71.0, 68.0, None]  |  WS4: 80.1  Trend: +5.0  FCI: 85.1
+    Speed Par for class: 88  →  WS4 vs Par: -7.9
+    Prime Power Rating: 124.8
+    Best BRIS Turf: 87
+    Sire: KITTEN'S JOY  |  Dist Ped: 104.0  |  Dirt Ped: 103.0
+    Pace style: CLOSER  |  Pace fit score: 6.5  |  Value score: 10.0
+    Trip note: 06-06-26 Shifted in; tracked inside; moved out 4w; led upper; outfinished
+    Min acceptable odds: 11-1
+
+💰  VALUE ALT:  #9 OKEFENOKEE  [8-1 ML]  |  Composite 4.44  |  P(win) 8%  fair 11.3-1
+    Trainer: MORLEY THOMAS  |  Jockey: DAVIS DYLAN
+    Angle: 8-1 ML with FCI 82.4 vs par 88.0 | Pace: MID | Val: 6.4
+    Prime Power: 121.0
+    Key stat: 2nd grass race — 5.9% win rate
+    Trip: 06-05-26 Awkward st; chased ins; coaxed 5/16; 2w 1/4p; closed well
+
+  📋 TRAINER ANGLES — contender set (small-n context, not signals):
+    #8 FELINE CURIOUS  (33d since last)
+        • Shipper: 269 sts  18% win  ROI $0.28
+        • Turf starts: 447 sts  13% win  ROI $0.59
+        • Maiden Sp Wt: 349 sts  11% win  ROI $0.52
+        • Routes: 572 sts  13% win  ROI $-0.01
+    #5 COORDINATOR  (60d since last)  [LAYOFF 45+]
+        • 46-90daysAway: 857 sts  23% win  ROI $-0.34  ← LAYOFF MATCH
+        • Turf starts: 1715 sts  23% win  ROI $-0.24
+        • Btn favorite: 256 sts  28% win  ROI $-0.06
+        • Maiden Sp Wt: 1193 sts  24% win  ROI $-0.34
+        • Routes: 2489 sts  24% win  ROI $-0.29
+    #10 C J STAR  (28d since last)
+        • Turf starts: 2202 sts  16% win  ROI $-0.26
+        • Btn favorite: 384 sts  25% win  ROI $0.05
+        • Maiden Sp Wt: 1318 sts  16% win  ROI $-0.35
+        • Routes: 2442 sts  16% win  ROI $-0.26
+
+  PRIME POWER TOP 5:
+    #5 COORDINATOR            PP=137.1  Comp=4.81  Style=SPEED
+    #10 C J STAR               PP=133.0  Comp=4.76  Style=MID
+    #4 DEMOCRACY DEFENDER     PP=127.5  Comp=4.14  Style=MID
+    #8 FELINE CURIOUS         PP=124.8  Comp=4.96  Style=CLOSER
+    #7 BULL SHOALS            PP=123.4  Comp=4.35  Style=MID
+
+==================================================================================================================
+🎟️   EXOTICS STRUCTURE:
+    WIN:        #8 FELINE CURIOUS
+    EXACTA:     #8 / #5
+    TRIFECTA:   #8 / #5 / #10
+    SUPERFECTA: #8 / #5 / #10 / #9  #1  #3
+==================================================================================================================

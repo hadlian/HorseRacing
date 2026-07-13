@@ -19,9 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "Claude"))
 from r5_parser_v2 import parse_drf  # noqa: E402
-
-DB_PATH  = ROOT / "Results" / "r5_results.db"
-DRF_DIRS = [ROOT / "files 2", ROOT / "TXT_Files", ROOT / "database"]
+from r5_paths import R5_DB_PATH as DB_PATH, DRF_DIRS  # noqa: E402
 
 COLS = ("days_since_last", "bris_run_style", "quirin_pts",
         "wet_starts", "wet_wins", "wet_off_speed", "trnr_stats")

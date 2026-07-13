@@ -33,8 +33,7 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT      = Path(__file__).resolve().parent.parent
-DB_PATH   = ROOT / "Results" / "r5_results.db"
-BETA_PATH = ROOT / "Results" / "logit_beta.json"
+from r5_paths import R5_DB_PATH as DB_PATH, BETA_PATH, RESULTS_DIR
 
 OVERLAY_EDGE_MIN = 0.25
 OVERLAY_P_MIN    = 0.08
@@ -279,7 +278,7 @@ def calibration_report(db_path=DB_PATH):
             lines.append(f"- Rank-{rank}: n={len(rr)}, predicted "
                          f"{mp_*100:.1f}%, observed {ow_*100:.1f}%")
 
-    out = ROOT / "Results" / f"CALIBRATION_REPORT_{datetime.now():%Y%m%d}.md"
+    out = RESULTS_DIR / f"CALIBRATION_REPORT_{datetime.now():%Y%m%d}.md"
     out.write_text("\n".join(lines) + "\n")
     conn.close()
     return out, lines

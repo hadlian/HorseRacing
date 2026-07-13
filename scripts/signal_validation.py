@@ -8,9 +8,12 @@ ROI% = sum(profit) / (2 * bets) * 100. Picks with finish NULL or -1 are excluded
 
 import os
 import sqlite3
+import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-R5_DB = os.path.join(ROOT, 'results', 'r5_results.db')
+sys.path.insert(0, os.path.join(ROOT, 'Claude'))
+from r5_paths import R5_DB_PATH  # noqa: E402
+R5_DB = str(R5_DB_PATH)
 CM_DB = os.path.join(ROOT, 'comparemodels', 'comparemodels_results.db')
 
 ROI_EXPR = ("SUM(CASE WHEN {w}=1 AND {sp} IS NOT NULL THEN {sp}-2 "

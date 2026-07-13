@@ -27,8 +27,7 @@ except ImportError:
     sys.exit(1)
 
 HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
-DB_PATH           = HORSE_RACING_ROOT / "Results" / "r5_results.db"
-OUT_DIR           = HORSE_RACING_ROOT / "Results"
+from r5_paths import R5_DB_PATH as DB_PATH, RESULTS_DIR as OUT_DIR
 
 # ── Colour palette ────────────────────────────────────────────────────────────
 C_GOLD    = "C9A84C"

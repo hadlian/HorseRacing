@@ -29,8 +29,8 @@ import sys
 from pathlib import Path
 
 ROOT    = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "Results" / "r5_results.db"
-DRF_DIRS = [ROOT / "files 2", ROOT / "TXT_Files", ROOT / "database"]
+sys.path.insert(0, str(ROOT / "Claude"))
+from r5_paths import R5_DB_PATH as DB_PATH, DRF_DIRS  # noqa: E402
 TRACK_MAP = {"CD": "CDX", "DBY": "CDX", "AQU": "BAQ", "SA": "SAX"}
 
 # replicated from r5_parser_v2.parse_drf (research copy — do not import live)

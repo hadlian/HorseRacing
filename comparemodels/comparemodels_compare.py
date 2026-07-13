@@ -14,8 +14,11 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'Claude'))
+from r5_paths import R5_DB_PATH  # noqa: E402
+
 CM_DB = os.path.join(os.path.dirname(__file__), 'comparemodels_results.db')
-R5_DB = os.path.join(os.path.dirname(__file__), '..', 'results', 'r5_results.db')
+R5_DB = str(R5_DB_PATH)
 REPORTS_DIR = os.path.join(os.path.dirname(__file__), 'reports')
 RECALC = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'recalc.py')
 

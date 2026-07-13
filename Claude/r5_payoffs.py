@@ -36,9 +36,7 @@ import tempfile
 from pathlib import Path
 
 HORSE_RACING_ROOT = Path(__file__).resolve().parent.parent
-DB_PATH           = HORSE_RACING_ROOT / "Results" / "r5_results.db"
-CHART_DIRS        = [HORSE_RACING_ROOT / "Results" / "2026",
-                     HORSE_RACING_ROOT / "Results"]
+from r5_paths import R5_DB_PATH as DB_PATH, CHART_DIRS
 
 # Track code in our DB -> Equibase code used in chart PDF filenames
 TRACK_TO_EQB = {

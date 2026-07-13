@@ -22,9 +22,11 @@ Usage: python3 scripts/overlay_retrotest.py
 """
 
 import sqlite3
+import sys
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent.parent / "Results" / "r5_results.db"
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "Claude"))
+from r5_paths import R5_DB_PATH as DB_PATH  # noqa: E402
 
 P_MIN = 0.08
 THRESHOLDS = (1.10, 1.25, 1.40, 1.60)

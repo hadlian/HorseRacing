@@ -19,6 +19,10 @@ results/*.db
 results/*.db-shm
 results/*.db-wal
 results/*.xlsx
+# Case-sensitive belt-and-suspenders (macOS core.ignorecase hides this locally)
+Results/*.db
+Results/*.db-shm
+Results/*.db-wal
 comparemodels/*.db
 scout/*.json
 scout/*.txt
@@ -29,6 +33,14 @@ Claude/*_R5_analysis.txt
 # DRF data files and input directories (binary, large, track-specific)
 files 2/
 files/
+# Bare rule: catch stray DRFs anywhere (e.g. Results/2026/*.DRF)
+*.DRF
+
+# Scraped web junk (Dennis picks source pages)
+dennis/Saratoga/dynamic_files/
+
+# Local data-path overrides (see .env.example / Claude/r5_paths.py)
+.env
 
 # Binary / document formats — not tracked
 *.xlsm

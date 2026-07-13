@@ -28,7 +28,7 @@ All original algorithms, scoring formulas, pace analysis methods, and handicappi
 ## Architecture
 
 ```
-files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1,435 fields per record)
+RacingData/files 2/TRACK_MMDD.DRF   ← BRIS DRF input (1,435 fields per record)
          │
   r5_parser_v2.py         ← Parse + 9-component composite + display fields
          │
@@ -271,7 +271,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 # macOS: brew install poppler
 ```
 
-Place BRIS DRF files in `files 2/` (unzipped `.DRF`). Chart PDFs go in `Results/2026/`.
+Place BRIS DRF files in `~/Documents/RacingData/files 2/` (unzipped `.DRF`). Chart PDFs go in `~/Documents/RacingData/Results/2026/`. Both roots are configured in `Claude/r5_paths.py` (override via repo-root `.env` — see `.env.example`).
 
 ### Web UI
 

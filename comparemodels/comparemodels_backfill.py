@@ -11,12 +11,14 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timezone
 
-R5_DB = os.path.join(os.path.dirname(__file__), '..', 'results', 'r5_results.db')
-FILES_DIR = os.path.join(os.path.dirname(__file__), '..', 'files 2')
 CM_CSV_DIR = os.path.join(os.path.dirname(__file__), 'csv')
 
 sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'Claude'))
+from r5_paths import DRF_DIR, R5_DB_PATH  # noqa: E402
+R5_DB = str(R5_DB_PATH)
+FILES_DIR = str(DRF_DIR)
 
 from comparemodels.drf_to_csv import convert_drf_to_csv, parse_ml
 from comparemodels.comparemodels_engine import score_card
