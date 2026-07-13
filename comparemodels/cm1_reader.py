@@ -160,6 +160,7 @@ def extract_horse(row):
         "name":  _s(row, F_NAME),  "sex": _s(row, F_SEX),
         "ml_odds": _num(row, F_ML), "ae": _s(row, F_AE),
         "program_post": _s(row, F_PROG_POST),
+        "trainer": _s(row, 28), "jockey": _s(row, 33),   # today's connections
         # today's race
         "today_type": _s(row, F_TODAY_TYPE),
         "today_class": _s(row, F_TODAY_CLASS),

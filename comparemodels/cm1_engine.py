@@ -19,10 +19,29 @@ Usage:
     python3 comparemodels/cm1_engine.py --race 4 "files 2/SAR0712.DRF"
 """
 
+import os
+import sqlite3
 import sys
 
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from cm1_reader import extract_card   # noqa: E402
+import cm1_stats_db as stats          # noqa: E402
+
+_STATS_CONN, _STATS_OK = None, None
+
+
+def _stats():
+    """Lazy read-only handle to cm1_stats.db; None if not seeded yet (flags → False)."""
+    global _STATS_CONN, _STATS_OK
+    if _STATS_OK is None:
+        p = os.path.join(os.path.dirname(__file__), "cm1_stats.db")
+        try:
+            _STATS_CONN = sqlite3.connect(f"file:{p}?mode=ro", uri=True)
+            _STATS_CONN.execute("SELECT 1 FROM perf_event LIMIT 1")
+            _STATS_OK = True
+        except Exception:
+            _STATS_OK = False
+    return _STATS_CONN if _STATS_OK else None
 
 # ── Cat-7 validated race-type → class tier (derived from f9→f11 across 24 DRFs) ──
 CLASS_TIER = {
@@ -144,11 +163,61 @@ def flag_speed(h, field):
     return h["pgm"] in {x["pgm"] for x in ranked[:3]}
 
 
-# ── deferred flags — score 0 until their infra lands ─────────────────────────
-def flag_pace_fit(h, field):    return False   # ⏳ wire cm1_pace_fit classifier
-def flag_jockey_hot(h, field):  return False   # ⏳ jockey results table
-def flag_trainer_hot(h, field): return False   # ⏳ trainer results table
-def flag_breeding(h, field):    return False   # ⏳ legendary sire/dam lists
+# pace-fit thresholds (cm1_pace_fit resolution, validated on 8-card scan)
+LED_MAX, FADE_POS, BACK_MIN, CLOSE_POS, DIST_GAP_F = 2, 4, 5, 5, 1.5
+
+
+def _surf_class(s):
+    s = (s or "").strip().upper()
+    if s.startswith("D"):
+        return "D"
+    if s.startswith("T"):
+        return "T"
+    if s.startswith("A"):
+        return "A"
+    return s
+
+
+def flag_pace_fit(h, field):
+    """Frank's cut-back angle: faded from speed in a race ≥1.5F LONGER than today
+    (same surface) → suited dropping back. Plus the stretch-out mirror (closed in a
+    race ≥1.5F shorter). Recent 6 lines."""
+    tf = (h["today_dist_y"] or 0) / 220.0
+    tsurf = _surf_class(h["today_surf"])
+    for p in h["pp"][:6]:
+        if _surf_class(p["surface"]) != tsurf:
+            continue
+        fin = p["finish_pos"]
+        pf = (p["dist_y"] or 0) / 220.0
+        if fin is None or not tf or not pf:
+            continue
+        early = [x for x in (p["call1_pos"], p["call2_pos"]) if x]
+        if early:
+            be = min(early)
+            if be <= LED_MAX and (fin - be) >= FADE_POS and (pf - tf) >= DIST_GAP_F:
+                return True                       # faded in a longer race → cut-back fit
+        soc = p["start_pos"] or p["call1_pos"]
+        if soc and soc >= BACK_MIN and (soc - fin) >= CLOSE_POS and (tf - pf) >= DIST_GAP_F:
+            return True                           # closed in a shorter race → stretch-out fit
+    return False
+
+
+# ── table-backed flags (point-in-time by card date; False if DB not seeded) ──
+def flag_jockey_hot(h, field):
+    c = _stats()
+    return bool(c) and stats.is_hot_tj(c, "jockey", h["jockey"], h["date"])
+
+
+def flag_trainer_hot(h, field):
+    c = _stats()
+    return bool(c) and stats.is_hot_tj(c, "trainer", h["trainer"], h["date"])
+
+
+def flag_breeding(h, field):
+    # INTERIM: broodmare-sire positive ROI (ex-outlier) as a data-derived stand-in
+    # for Frank's "legendary" list until that list is supplied. Thin until BMS table matures.
+    c = _stats()
+    return bool(c) and stats.is_bms_positive(c, h["dam_sire"], h["date"])
 
 
 FLAGS = [
@@ -162,7 +231,9 @@ FLAGS = [
     ("trainer_surf", flag_trainer_surf),
     ("breeding",     flag_breeding),
 ]
-LIVE_FLAGS = {"workout", "class_drop", "jockey_surf", "speed", "trainer_surf"}
+# all nine now compute; speed + breeding are interim proxies (see notes)
+LIVE_FLAGS = {"workout", "pace_fit", "class_drop", "jockey_hot", "jockey_surf",
+              "speed", "trainer_hot", "trainer_surf", "breeding"}
 
 
 def score_horse(h, field):
