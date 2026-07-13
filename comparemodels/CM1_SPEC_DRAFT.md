@@ -286,17 +286,37 @@ the horse's most recent start — which R5's level signal does not capture.
 
 ---
 
-## Composite & tie-breaks
+## Scoring — v0 = EQUAL-WEIGHT FLAG COUNT (Harry ruling 2026-07-12)
+
+**CM1 is the author's (Frank's) model — a human checklist, not a weighted scorer.** His
+note assigns NO points and NO category weights (only the workout *clock* is quantitative,
+and that's a fire/no-fire test). Inventing weights would stop it being *his* model, so v0
+scores each of his nine signals as a **binary flag** and ranks by **how many fire** — every
+flag counts as 1 (equal weight = the honest "we don't presume" default). The display shows
+*which* flags fired, which is how Frank actually reads a race.
 
 ```
-CM1_composite = Σ (cat1,2,3,5,6,7),  range −? .. 23   (Cat-4 merged into Cat-2)
+CM1_score = count of fired flags (0..9)     # rank descending; ties broken by best speed
 ```
 
-- Rank horses descending by composite.
-- **Tie-break order:** (1) Workout Sharpness, (2) Distance-Fit, (3) Speed backbone.
-- **Dominant flag:** composite gap of ≥4 between rank-1 and rank-2.
-- **Divergence flag (the CM-style workflow output):** when CM1 top pick ≠ R5 top pick
-  ≠ CM top pick, surface all three for exotic construction.
+### The nine flags (one per line of Frank's note)
+| # | Flag | Fires when | Source | v0 status |
+|---|---|---|---|---|
+| 1 | `workout` | any work meets his clock (3F<36 / 4F<48 / 5F<60) | f102-185 | ✅ LIVE |
+| 2 | `pace_fit` | faded-from-speed with a cut-back today (or stretch-out mirror) | PP lines / `cm1_pace_fit` | ⏳ classifier exists |
+| 3 | `class_drop` | today's class tier < most-recent tier (incl. claim drop) | Cat-7 map | ✅ LIVE |
+| 4 | `jockey_hot` | jockey's meet record over threshold | **jockey results table** | ⏳ table |
+| 5 | `jockey_surf` | jockey turf/dist context stat strong (Win%≥18 & ROI≥0 & n≥30) | f1367-1372 | ✅ LIVE |
+| 6 | `speed` | best speed figure ranks top-3 in the field (interim) | f1179/f1181 | ✅ LIVE (interim) |
+| 7 | `trainer_hot` | trainer's meet record over threshold | **trainer results table** | ⏳ table |
+| 8 | `trainer_surf` | surface-matching trainer angle positive (Win%≥20 & ROI≥0 & n≥30) | f1337-1366 | ✅ LIVE |
+| 9 | `breeding` | sire OR dam on legendary list | **legendary lists** | ⏳ lists |
+
+- **Weighting stays a later, optional choice** — if Frank/you weight flags, or results show
+  some flags predict better, that's a deliberate v2 upgrade, not a v0 blocker.
+- **Deferred flags** (`jockey_hot`, `trainer_hot`, `breeding`, and `pace_fit` until wired)
+  score 0 until their table/list/classifier lands — CM1 runs on the LIVE flags meanwhile.
+- **Divergence flag (compare output):** when CM1 top pick ≠ R5 ≠ CM, surface all three.
 
 ---
 
