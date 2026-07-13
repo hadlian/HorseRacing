@@ -95,6 +95,12 @@ def _denom_value(text):
     return None
 
 
+def _norm_name(s):
+    """Uppercase letters only, for chart-vs-DRF horse-name matching (the two
+    sources differ in case, spacing, and punctuation)."""
+    return re.sub(r"[^A-Z]", "", s.upper())
+
+
 # ── CHART TEXT PARSING ────────────────────────────────────────────────────────
 
 def extract_pdf_text(pdf_path):
@@ -191,20 +197,27 @@ def parse_mutuels(block):
 
 
 def parse_scratches(block):
-    """Scratched- section: names only, possibly wrapping one line. Stops at
-    any line carrying payoff/pool text (the multi-race exotics block follows
-    immediately in some charts)."""
+    """Scratched- section: comma-separated names, each optionally trailed by a
+    last-raced parenthetical like (11Jun26«Del¬) whose superscripts extract as
+    non-ASCII glyphs; the list may wrap one line, splitting a name or its
+    parenthetical across the break. Stops at any line carrying payoff/pool text
+    (the multi-race exotics block follows immediately in some charts)."""
     m = re.search(r"Scratched-\s*([^\n]*(?:\n[^\n]*)?)", block)
     if not m:
         return []
-    names = []
+    kept = []
     for raw_line in m.group(1).splitlines():
         if re.search(r"\$|Paid|Pool|Trainers-|Owners-|Breeders-", raw_line):
             break
-        for part in raw_line.split(";"):
-            name = re.sub(r"\([^)]*\)", "", part).strip().rstrip(".").strip()
-            if name and re.fullmatch(r"[A-Za-z][A-Za-z'.\- ]{1,30}", name):
-                names.append(name)
+        kept.append(raw_line)
+    joined = " ".join(kept)                       # re-join a wrapped name/paren
+    joined = re.sub(r"\([^)]*\)", "", joined)     # drop last-raced parentheticals
+    joined = re.sub(r"[^\x20-\x7E]", "", joined)  # stray superscript glyphs
+    names = []
+    for part in re.split(r"[;,]", joined):
+        name = re.sub(r"\s+", " ", part).strip().rstrip(".").strip()
+        if name and re.fullmatch(r"[A-Za-z][A-Za-z'.\- ]{1,30}", name):
+            names.append(name)
     return names
 
 
@@ -337,7 +350,7 @@ def reconcile_picks(conn, rid, finishers, scratches, win_payoff, name_to_pgm):
                 (win_payoff, rid, target))
     # confirmed scratches -> finish_pos=-1 (excluded from model stats)
     for name in scratches:
-        pgm = name_to_pgm.get(name.upper())
+        pgm = name_to_pgm.get(_norm_name(name))
         if pgm:
             conn.execute(
                 "UPDATE picks SET finish_pos=-1 WHERE race_id=? AND pgm=?",
@@ -357,8 +370,9 @@ def ingest_race(conn, race_row, parsed):
     conn.execute("DELETE FROM race_payoffs WHERE race_id=?", (rid,))
     conn.execute("DELETE FROM race_finish_order WHERE race_id=?", (rid,))
 
-    # name -> pgm map from picks, for scratch rows (charts list names only)
-    pick_pgms = {r["horse_name"].upper(): r["pgm"] for r in conn.execute(
+    # normalized name -> pgm map from picks, for scratch rows (charts list
+    # names only)
+    pick_pgms = {_norm_name(r["horse_name"]): r["pgm"] for r in conn.execute(
         "SELECT horse_name, pgm FROM picks WHERE race_id=?", (rid,))}
 
     finishers = parsed["finishers"]
@@ -377,7 +391,7 @@ def ingest_race(conn, race_row, parsed):
               base if f["pgm"] != base else None))
 
     for i, name in enumerate(parsed["scratches"], 1):
-        pgm = pick_pgms.get(name.upper(), f"SCR{i}")
+        pgm = pick_pgms.get(_norm_name(name), f"SCR{i}")
         try:
             conn.execute("""
                 INSERT INTO race_finish_order
