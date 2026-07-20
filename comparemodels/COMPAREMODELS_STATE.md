@@ -318,3 +318,38 @@ Isolation rules:
   of R5's rank-3 (+17.4%): each model's near-miss slot is where the market misprices.
   Contender set: CM ranks 1–2 ∪ R5 ranks 1–3, pending the Issue 15 payoff-capture backtest.
 - Do NOT use CM as a standalone betting model; do NOT resume any confidence-filter use.
+
+---
+
+## CM1 pre-race wiring (2026-07-19)
+
+CM1 (Frank's 9-flag model, `cm1_tracker.py` / `cm1_results.db`) is logged pre-race by **both** entry points:
+
+- **CLI**: `Claude/r5_card_cli.py` (step 3 of R5 → CM → CM1) — wired since 2026-07-12.
+- **Webapp**: `webapp/app.py` card-run, whenever "log picks" is on — wired 2026-07-19.
+  Before this date the webapp logged only R5 + CM; webapp-run cards SAR 0716/0717/0718
+  were missing CM1 and were back-logged from their DRFs (0716 same-day pre-post; 0717 and
+  0718 post-result with Harry's authorization — flags are deterministic from DRF data,
+  but those two rows were not logged before post time).
+- CM1 has **no results/settle step** — `cm1_compare.py` reads winners from r5_results.db
+  (read-only) at report time.
+- `log_card` guard: refuses to overwrite an already-logged card unless forced; the webapp
+  call is non-fatal (errors surface in the run's error list, never block R5/CM).
+- Also fixed 2026-07-19: the webapp's CM import guard previously bundled
+  `bris_summary_docx` (needs python-docx), so a machine without python-docx silently
+  disabled ALL CM logging. Guards are now split (`CM_AVAILABLE` / `CM1_AVAILABLE` /
+  `BRIS_DOCX_AVAILABLE`); python-docx installed in webapp/venv on the Mac.
+
+---
+
+## n≥100 gate rulings (2026-07-19, Harry)
+
+- **CM: KEEP** — at n=111 live SAR races, CM ranks 1–2 add +9.0pp capture over R5 top-3
+  alone (47.7% → 56.8%; 10 CM-only winners across 8 cards) vs the +3pp retention
+  threshold. Contender-set legs unchanged.
+- **CM1: LOCKED as v0** — equal-weight 9-flag count, best-speed tiebreak. Permanent
+  third model in contender-set + compare-report role ONLY (no betting role). Flag
+  definitions frozen; Frank's pending red-lines (legendary sire/dam list, doing-well
+  cutoffs, speed method) land as v0.1, never silently. Meet contribution +3.6pp on top
+  of R5∪CM (60.4% three-model capture). Promotion beyond report role requires clean
+  pre-post provenance from 07/16 onward.

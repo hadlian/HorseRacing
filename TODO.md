@@ -3,7 +3,7 @@
 > This file is the authoritative task list for the R5 project.
 > It is updated after each work session and is the sync point for all collaborators.
 >
-> **Last updated:** 2026-07-12 (SAR 07/12 results ingested + settled; in-meet key numbers refreshed at n=70)
+> **Last updated:** 2026-07-19 (n≥100 gate rulings: CM KEEP +9.0pp, CM1 locked v0, TIGHT EX key retired; CM1 wired into webapp pre-race logging — webapp cards 0716–0718 were missing CM1, now back-logged; webapp CM import guard split so missing python-docx can't disable CM logging; SAR results settled through 07/18)
 > **Current version:** R5 v3.10 | CompareModels v1.1
 > **Deployment target:** Saratoga 2026 — opens July 3, 2026
 >
@@ -33,6 +33,34 @@
 
 ---
 
+## 🔧 2026-07-19 — WIN-PAYOFF PARSER BUG + FULL DATA REPAIR (supersedes all performance numbers below)
+
+**Bug (Harry's find):** `r5_payoffs.py` WPS_RE rejected parentheses in horse names, so foreign-bred **winners** — "(IRE)/(GB)/(FR)" — dropped their Win/Place/Show line; every following pool shifted up one (PLACE→WIN), storing the runner-up's price as the WIN payoff. 13 races hit (Harry's 11 + SAR 0605 R11, 0606 R5 found in the full audit). Two more parser gaps fixed in the same pass: dead-heat co-winner rows (the `”` glyph blocked both the finish-table and mutuel parsers — SAR 0705 R6 now carries both WIN rows, $3.66 + $8.40) and pool assignment for co-winner lines. Separately, CDX 0502 R1's finish table was missing actual winner #11 Powershift entirely (payoffs/picks were right; table rebuilt from the SH5 combination).
+
+**Blast radius + repair:** the buggy WIN rows had flowed into `picks.won/sp_odds` via reconcile — several races credited the **second-place horse as winner**. Full-DB repair synced all 2,546 chart-matched picks to official finish order (676 corrected), dead-heat aware; all trackers reset + re-settled from production settle logic. Verification: every official winner now has a matching WIN row and populated sp_odds; zero false `won` flags (3 checks, whole DB).
+
+**💥 PURE MADNESS never won.** The $57.20 that anchored rank-3's "+17.4% only-positive-slot" story belonged to THE OLD NINE (IRE), who beat Pure Madness (2nd, "lacked the needed final kick" — chart verbatim) at 27-1 in SAX 0525 R1. The legendary payout was a results-entry error. Similarly OBLITERATION (20250802 R3 backtest) ran 2nd, not 1st.
+
+**Corrected canonical numbers (246 live resolved races, 2026-07-19):**
+- Rank-1: **23.6% win, ROI −10.3%** (better than the old −18.5% — the bug had been *understating* winner payoffs, e.g. Kensington Lane $48.66 stored as $5.04)
+- Rank-3: 21.8% win, **+5.3%** on 234 — but ex-Professor-Plum ($38.44) ≈ −2.5%: the single-payout pattern persists, **retirement stands**
+- rank3_tracker (meet): 102 settled, 18 wins, −7.9%
+- Backtest caveat: 2025 SAR0712 R9 pick/chart name mismatch (Classic Creation vs Gilded Craken, same pgm) — backtest card alignment is suspect; excluded from analytics as always.
+
+---
+
+## 📋 2026-07-19 — n≥100 GATE RULINGS (Harry)
+
+At n=111 resolved live SAR races, three rulings recorded:
+
+1. **CM: KEEP** — contender-set capture add measured at **+9.0pp** (10 CM-only winners across 8 cards) vs the +3pp retention threshold. No change to CM legs.
+2. **CM1: LOCKED as v0** (equal-weight 9-flag count, best-speed tiebreak) — permanent third model, **contender-set + compare report role ONLY**. Flag definitions frozen: Frank's pending red-lines (legendary sire/dam list, doing-well cutoffs, speed method) land as a **v0.1 version bump**, never a silent edit. No betting role. Any future promotion requires clean pre-post provenance from 07/16 onward (07/03–07/12 backfilled; 07/17–07/19 logged post-result, deterministic from DRF). Meet contribution: +3.6pp on top of R5∪CM (4 CM1-only winners).
+3. **TIGHT EX key: RETIRED** — −79.2% ROI on 24 tickets, and structurally unsound (keying inside a tight cluster concentrates stake on the lowest-priced combos). Removed from `select_structure()` in `r5_exotics.py` (results-pipeline side, outside the v3.10 freeze); settlement selftest passes; all other shapes continue as paper data collection. Do not restore without a ruling.
+
+Not acted on: class/FCI stays ON ICE per the 07-06 NO-GO (n≈300 confirmatory re-run is ~3–4 cards away at 260 total resolved races); val_n paper75 re-decision waits for n≥120 bets (at 36); rank-3's 5-win card on 07/19 gets zero decision weight (retired slot, variance).
+
+---
+
 ## 🚨 2026-07-06 — MARKET-ANCHORED GATE: NO-GO (supersedes several items below)
 
 Ran the falsification gate (`scripts/market_anchor_gate.py`, Fable round-2 spec): does `comp_ex_val` add win info orthogonal to the CLOSING market? **n=120, OOS mean ΔLL = −0.0164/race (90% CI [−0.023,−0.010], excludes 0 negative); β=+0.031 (LR 0.06, NS); SAR fold −0.072.** α=0.973 confirms the market anchor is calibrated and the test had power. **Verdict: NO-GO** — the fundamental score carries no conditional signal over the market and slightly hurts OOS. Pre-registered rule: one confirmatory re-run at n≈300, else ABANDON the market-anchored win-overlay program.
@@ -47,11 +75,10 @@ Ran the falsification gate (`scripts/market_anchor_gate.py`, Fable round-2 spec)
 
 ## 🟢 IN-MEET CHECKPOINTS — Saratoga 2026 (all start July 3)
 
-### ⏳ SAR n≥40 payoff races — Structure menu ROI review
-- **Decision:** Which shapes stay in the menu; what gets gated or removed
-- **Watches:** DEFAULT EX box (−35.1% on 4 SAR cards — is this track-specific or structural?); STANDOUT keys (0-for-10 — thin contender set when spread is wide?)
-- **Script:** Paper tickets are logging automatically from day 1 via `r5_exotics.py` (paper mode default)
-- **No changes before this gate.**
+### ✅ SAR n≥40 payoff races — Structure menu ROI review `RESOLVED 2026-07-19 (see gate rulings above)`
+- **Ruling:** TIGHT EX key RETIRED (−79.2% on 24; structurally unsound). All other shapes stay as paper data collection.
+- **Meet numbers at ruling (n=111):** DEFAULT EX box −13.6% (49) | TIGHT EX box −27.3% (57) | TIGHT TRI box −52.1% (57) | STANDOUT keys −27.8%/−50% (n=8, too thin to rule on)
+- **Early watches resolved:** DEFAULT EX box recovered from −35.1% to −13.6% (was small-sample noise); TIGHT TRI's early +384.7% fully collapsed (the standard 2-hit mirage).
 
 ### 🔵 SAR n≥60 races — SAR β refit + tj_n fallback rerun `GATE REACHED 2026-07-06 (n=63)`
 - **β refit:** Fit a SAR-only conditional logit and compare to global β=0.7674. If SAR β diverges materially, flag for Harry ruling on whether to use track-specific β.
@@ -59,10 +86,8 @@ Ran the falsification gate (`scripts/market_anchor_gate.py`, Fable round-2 spec)
 - **Note:** 3B research found SAR win rate unchanged (9.4% either way) on existing data — drag has other causes. This is the right test set.
 - **✅ Pre-registered model-vs-market test RUN (n=63): CONFIRMED.** Mean model-rank of winner 4.40 vs market-rank 3.13 (Δ +1.27); model under-ranks winner in 65% of races; winner in MODEL top-3 = 41% vs MARKET top-3 = 67%. This is the mechanism behind the SAR drag. **β-refit constraint:** close the winner-rank gap WITHOUT killing the value-divergence edge (rank-3 +17.4% overlay came from diverging FROM the market, not matching it). Requires Harry ruling + version bump before any weight change — NOT a race-day fix.
 
-### ⏳ SAR n≥100 races — CM merge-or-keep decision
-- **Decision:** Is CM still earning its place in the contender set (+7.5pp capture)?
-- **If CM capture degrades below +3pp:** propose removing CM legs (reduces set size, simplifies exotics)
-- **If CM capture holds:** keep as is
+### ✅ SAR n≥100 races — CM merge-or-keep decision `GATE REACHED 2026-07-19 (n=111) — RULING: KEEP`
+- **Measured at n=111:** R5 top-3 alone 53/111 = 47.7%; CM ranks 1–2 add **10 winners → +9.0pp** (56.8% combined) — 3× the +3pp retention threshold, adds spread across 8 cards. CM keeps its contender-set legs unchanged. (CM1 adds a further +3.6pp → 60.4% three-model capture.)
 
 ### ⏳ SAR n≥100 races — v3.11 class/FCI over-ranking investigation `QUEUED 2026-07-06 (Option-2 diagnosis at n=63)`
 - **Finding (n=63/41):** model systematically under-ranks SAR winners vs market (top-3 41% vs 67%). Attribution: **Class vs Par (37%) + FCI/speed (27%) = 64% of the mis-ranking** — model's losing picks beat actual winners by +2.13 class / +1.43 FCI on avg. Model over-trusts paper class + speed-figure superiority at SAR.

@@ -28,6 +28,8 @@ python3 Claude/r5_card_cli.py "files 2/SAR0713.DRF"          # add --wet / --aut
 ```
 `--save` txt is the default deliverable; `--pdf` only on request. Historical/backtest DRFs REQUIRE `--year`/`--backtest` or they create live phantom cards under wrong dates. `run_r5` hard-refuses re-runs on settled cards and the wrapper stops the whole chain when it does (`--force` overrides — don't, without checking why).
 
+The **webapp** card-run logs the same three models when "log picks" is on (CM1 wired in 2026-07-19; webapp cards before that are missing CM1 unless back-logged). To verify a card is fully pre-raced, all three should have rows for the date: R5 `picks` (r5_results.db), CM `picks` (comparemodels_results.db), `cm1_picks` (cm1_results.db).
+
 **Post-race** (one command; PDF chart from Equibase into `Results/2026/`; track/date derived from the filename):
 ```bash
 python3 Claude/r5_results_cli.py Results/2026/20260712SARUSA0.pdf

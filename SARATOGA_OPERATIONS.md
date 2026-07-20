@@ -26,6 +26,18 @@ historical cards need `--year`/`--backtest`. If run_r5 refuses (settled-card gua
 the chain stops so the three model DBs never drift out of sync.
 The individual commands below remain for debugging one stage.
 
+**Webapp path:** the web frontend's card-run logs the same three models when
+"log picks" is enabled (CM1 wired into `webapp/app.py` on 2026-07-19 — webapp
+cards run before then are missing CM1 and need a back-log:
+`python3 comparemodels/cm1_tracker.py --log "files 2/SARMMDD.DRF"`).
+
+**Pre-race completeness check** (all three should return rows for the date):
+```bash
+sqlite3 ~/Documents/RacingData/Results/r5_results.db "SELECT COUNT(*) FROM picks p JOIN races r ON p.race_id=r.id WHERE r.date='YYYYMMDD'"
+sqlite3 comparemodels/comparemodels_results.db "SELECT COUNT(*) FROM picks WHERE race_date='YYYYMMDD'"
+sqlite3 comparemodels/cm1_results.db "SELECT COUNT(*) FROM cm1_picks WHERE date='YYYYMMDD'"
+```
+
 **R5 only, normal track:**
 ```bash
 python3 Claude/run_r5.py "files 2/SAR0703.DRF" --save --track
@@ -290,6 +302,7 @@ All checkpoints are data-driven — no changes before the gate, no exceptions.
 | Settlement self-test fails | DO NOT settle. Report to Harry. Check if CDX 0529 payoffs were corrupted in DB. |
 | Coupled entry in exotics | First Saratoga occurrence — verify pgm normalization (base_pgm strips letter suffix) |
 | DQ in results | Flag `is_dq=1` in race_finish_order; DQ horse goes to last, payoffs from official chart |
+| Winner's payoff looks like chalk when the horse wasn't / "WIN payoff mismatch" warning | Read the chart PDF verbatim before trusting DB numbers. Chart-format quirks (foreign-bred "(IRE)" suffixes, dead-heat `”` glyphs) once shifted W/P/S pools onto the wrong horses (fixed 2026-07-19 + full DB repair). After ANY parser change, run the 3-check audit: every official winner has a WIN row, its pick has sp_odds, no false `won` flags. Payoffs re-ingest is idempotent per race (`--race N`). |
 | Chart PDF missing races | 5 races in current DB have no chart data. These are unresolvable — mark manually. |
 
 ---
