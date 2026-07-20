@@ -143,9 +143,9 @@ def select_structure(cset, spread_r1_r3, spread_r1_r2, rank3_ml_odds,
         if cset["flag"] != "EX_ONLY":
             tickets.append(make_ticket("TRI_BOX", f"BOX:{r1},{r2},{r3}",
                                        TRI_DENOM, shape, cset))
-        if rank3_ml_odds is not None and rank3_ml_odds >= 6.0:
-            tickets.append(make_ticket("EX_KEY", f"KEY:{r3}/{r1},{r2}",
-                                       EX_DENOM, shape, cset))
+        # TIGHT EX key (r3-keyed) RETIRED by Harry ruling 2026-07-19:
+        # -79.2% on 24 tickets; keying inside a tight cluster concentrates
+        # stake on the lowest-priced combos. Do not restore without a ruling.
     elif spread_r1_r2 is not None and spread_r1_r2 >= 1.0:
         shape = "STANDOUT"
         tickets.append(make_ticket("EX_KEY", f"KEY:{r1}/{','.join(under_all)}",
@@ -179,11 +179,6 @@ def select_structure(cset, spread_r1_r3, spread_r1_r2, rank3_ml_odds,
             continue
         if tri:
             tickets.remove(tri)
-            continue
-        r3key = next((t for t in tickets if t["ticket_type"] == "EX_KEY"
-                      and t["combination"].startswith(f"KEY:{r3}/")), None)
-        if r3key:
-            tickets.remove(r3key)
             continue
         break  # only the primary EX remains — never dropped
 
