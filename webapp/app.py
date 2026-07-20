@@ -44,10 +44,25 @@ try:
         pull_results     as _cm_pull_results,
         finalize         as _cm_finalize,
     )
-    from comparemodels.bris_summary_docx import generate_bris_summary as _bris_summary
     CM_AVAILABLE = True
 except ImportError:
     CM_AVAILABLE = False
+
+# ── BRIS summary docx (optional — needs python-docx; separate guard so a
+#    missing docx dependency never disables CM scoring/logging) ───────────────
+try:
+    from comparemodels.bris_summary_docx import generate_bris_summary as _bris_summary
+    BRIS_DOCX_AVAILABLE = True
+except ImportError:
+    BRIS_DOCX_AVAILABLE = False
+
+# ── CM1 (optional — separate guard so a CM1 failure never blocks CM) ──────────
+try:
+    sys.path.insert(0, str(HERE.parent))
+    from comparemodels.cm1_tracker import log_card as _cm1_log_card
+    CM1_AVAILABLE = True
+except ImportError:
+    CM1_AVAILABLE = False
 
 # ── Data locations: single source of truth (Claude/r5_paths.py) ───────────────
 sys.path.insert(0, str(HERE.parent / "Claude"))
@@ -543,6 +558,16 @@ def analyze():
                     except Exception as cm_exc:
                         errors.append(f"{drf.name} (CM): {cm_exc}")
 
+                # Log CM1 picks (third model) whenever picks are logged to DB.
+                # Independent of the CM toggle; flags are deterministic from the DRF.
+                if log_to_db and CM1_AVAILABLE:
+                    try:
+                        _cm1_log_card(str(drf),
+                                      year=year_override,
+                                      is_backtest=bool(year_override))
+                    except Exception as cm1_exc:
+                        errors.append(f"{drf.name} (CM1 log): {cm1_exc}")
+
                 all_text += text + "\n"
                 all_races.extend(drf_races)
                 if pdf_path:
@@ -638,6 +663,16 @@ def log_results():
         p = Path(pdf_path_str)
         if not p.exists():
             p = HERE.parent / pdf_path_str          # try relative to HorseRacing root
+        if not p.exists():
+            # Charts live under RacingData (r5_paths.CHART_DIRS) since 2026-07 —
+            # resolve by basename so stale absolute paths still find the chart.
+            try:
+                _r5_paths = _load_claude("r5_paths")
+                _cand = _r5_paths.find_chart_pdf_by_name(Path(pdf_path_str).name)
+                if _cand:
+                    p = _cand
+            except Exception:
+                pass
         if not p.exists() and len(track) == 3:
             # BRIS sometimes uses 2-char track code in filename (e.g. SA not SAX)
             p2 = Path(str(p).replace(track, track[:2], 1))
@@ -801,8 +836,8 @@ def generate_report():
 @app.route("/api/bris-summary", methods=["POST"])
 def bris_summary():
     """Generate a BRIS Summary Handicap Report .docx (Dennis format) from uploaded DRF(s)."""
-    if not CM_AVAILABLE:
-        return jsonify({"error": "CompareModels not available"}), 500
+    if not (CM_AVAILABLE and BRIS_DOCX_AVAILABLE):
+        return jsonify({"error": "CompareModels/python-docx not available"}), 500
 
     files_up = request.files.getlist("files")
     if not files_up or all(f.filename == "" for f in files_up):
