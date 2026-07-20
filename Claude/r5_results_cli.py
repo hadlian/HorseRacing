@@ -143,12 +143,38 @@ def main():
         subprocess.run([sys.executable, str(CLAUDE_DIR / "r5_analyze.py")],
                        cwd=str(HORSE_RACING_ROOT))
 
+    # ── Market-anchor gate watch ──────────────────────────────────────────────
+    # Pre-registered rule: ONE confirmatory re-run at n≈300 gate-joined races,
+    # else ABANDON the win-overlay program. Flag when due — do NOT auto-run
+    # (repeated peeks at a pre-registered test inflate false positives).
+    _gate_watch()
+
     print(f"\n{'='*64}")
     print(f"  ✅ Pipeline complete — {track} {date_str}")
     if not run_docs:
         print(f"  Docs skipped: python3 comparemodels/cm1_compare.py {track} --from {date_str}")
         print(f"                python3 Claude/r5_analyze.py")
     print(f"{'='*64}\n")
+
+
+def _gate_watch(threshold: int = 295):
+    """Report market-anchor gate-eligible race count; banner when it's due."""
+    try:
+        gate = _load("market_anchor_gate",
+                     HORSE_RACING_ROOT / "scripts" / "market_anchor_gate.py")
+        n = len(gate.load_races())
+    except Exception as exc:
+        print(f"\n  (gate-watch skipped: {exc})")
+        return
+    if n >= threshold:
+        print(f"\n{'='*64}")
+        print(f"  🚦 MARKET-ANCHOR GATE DUE — {n} gate-joined races (target n≈300)")
+        print(f"     Pre-registered confirmatory re-run. Run ONCE, record verdict:")
+        print(f"     python3 scripts/market_anchor_gate.py")
+        print(f"{'='*64}")
+    else:
+        print(f"\n  📈 market-anchor gate: {n}/~300 joined races "
+              f"({300 - n} to the pre-registered re-run)")
 
 
 def _print_summary(track: str, date_str: str):
