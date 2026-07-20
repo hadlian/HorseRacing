@@ -19,6 +19,11 @@ CM_DB = os.path.join(ROOT, 'comparemodels', 'comparemodels_results.db')
 ROI_EXPR = ("SUM(CASE WHEN {w}=1 AND {sp} IS NOT NULL THEN {sp}-2 "
             "WHEN {w}=1 THEN 0 ELSE -2 END)/(2.0*COUNT(*))*100")
 
+# Canonical analytic denominator (TODO.md): result_fetched=1 AND is_backtest=0.
+# Excludes both backtest cards (2025 SAR, etc.) and clobbered cards left with
+# result_fetched=0 but stale finish data (SAR 0605/0606 re-run victims).
+LIVE_R5 = "race_id IN (SELECT id FROM races WHERE is_backtest=0 AND result_fetched=1)"
+
 
 def row(cur, label, sql, params=()):
     n, wins, roi = cur.execute(sql, params).fetchone()
@@ -35,7 +40,7 @@ def main():
     rc = r5.cursor()
     roi_r5 = ROI_EXPR.format(w='won', sp='sp_odds')
     base = ("FROM picks WHERE model_rank=1 AND finish_pos IS NOT NULL "
-            "AND finish_pos != -1")
+            f"AND finish_pos != -1 AND {LIVE_R5}")
 
     print(f"{'signal':<46}| bets | wins |  win% |   roi%")
     print('-' * 78)
@@ -68,7 +73,8 @@ def main():
     # all-horse tier fire rates (any rank)
     for t in ('HIGH', 'SOLID'):
         n = rc.execute(
-            "SELECT COUNT(*) FROM picks WHERE tier=? AND finish_pos IS NOT NULL AND finish_pos!=-1",
+            "SELECT COUNT(*) FROM picks WHERE tier=? AND finish_pos IS NOT NULL "
+            f"AND finish_pos!=-1 AND {LIVE_R5}",
             (t,)).fetchone()[0]
         print(f"{'  (' + t + ' fires, any rank)':<46}|{n:>5} |      |       |")
 
@@ -77,11 +83,11 @@ def main():
         row(rc, f'val_n >= {thr}, rank <= 5',
             f"SELECT COUNT(*), SUM(won), {roi_r5} FROM picks "
             f"WHERE val_n >= {thr} AND model_rank <= 5 "
-            "AND finish_pos IS NOT NULL AND finish_pos != -1")
+            f"AND finish_pos IS NOT NULL AND finish_pos != -1 AND {LIVE_R5}")
         row(rc, f'val_n >= {thr}, all ranks',
             f"SELECT COUNT(*), SUM(won), {roi_r5} FROM picks "
             f"WHERE val_n >= {thr} "
-            "AND finish_pos IS NOT NULL AND finish_pos != -1")
+            f"AND finish_pos IS NOT NULL AND finish_pos != -1 AND {LIVE_R5}")
 
     # tight-cluster approximation: top1-top3 spread bands (post-deduction comp)
     band = ("""(SELECT p1.comp - p3.comp FROM picks p1, picks p3
@@ -91,18 +97,19 @@ def main():
         row(rc, f'cluster<=0.5 (approx): bet rank {rk}',
             f"SELECT COUNT(*), SUM(won), {roi_r5} FROM picks "
             f"WHERE model_rank={rk} AND finish_pos IS NOT NULL AND finish_pos != -1 "
-            f"AND {band} <= 0.5")
+            f"AND {LIVE_R5} AND {band} <= 0.5")
         row(rc, f'cluster 0.5-1.5 (approx): bet rank {rk}',
             f"SELECT COUNT(*), SUM(won), {roi_r5} FROM picks "
             f"WHERE model_rank={rk} AND finish_pos IS NOT NULL AND finish_pos != -1 "
-            f"AND {band} > 0.5 AND {band} <= 1.5")
+            f"AND {LIVE_R5} AND {band} > 0.5 AND {band} <= 1.5")
 
     # rank-win distribution R5
     print('\nR5 winners by rank (rank | bets | wins | win% | roi%)')
     for r in range(1, 9):
         row(rc, f'  R5 rank {r}',
             f"SELECT COUNT(*), SUM(won), {roi_r5} FROM picks "
-            f"WHERE model_rank={r} AND finish_pos IS NOT NULL AND finish_pos != -1")
+            f"WHERE model_rank={r} AND finish_pos IS NOT NULL AND finish_pos != -1 "
+            f"AND {LIVE_R5}")
     r5.close()
 
     # ── CM side + head-to-head ───────────────────────────────────────────
@@ -121,7 +128,7 @@ def main():
     JOIN results cmres ON cmres.track=cm.track AND cmres.race_date=cm.race_date
       AND cmres.race=cm.race AND cmres.horse_pgm=cm.horse_pgm
     JOIN r5.races r ON r.track=cm.track AND r.date=cm.race_date
-      AND CAST(r.race_num AS INT)=cm.race AND r.result_fetched=1
+      AND CAST(r.race_num AS INT)=cm.race AND r.result_fetched=1 AND r.is_backtest=0
     JOIN r5.picks r5p ON r5p.race_id=r.id AND r5p.model_rank=1
     LEFT JOIN r5.picks wsp ON wsp.race_id=r.id AND wsp.won=1
     WHERE cm.cm_rank=1 AND cmres.finish_position IS NOT NULL
