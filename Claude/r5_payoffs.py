@@ -82,7 +82,7 @@ CARRYOVER_RE = re.compile(
 # so the whole race block is scanned, not just lines after the marker.
 # Dead-heated horses carry a marker glyph before the name (renders as ” or “)
 WPS_RE = re.compile(
-    r"^\s*(\d{1,2}[A-Z]?)\s*-\s+[”“\"*]?\s*([A-Z][A-Z'.\- ]*?)\s*(?:\.\s*){2,}"
+    r"^\s*(\d{1,2}[A-Z]?)\s*-\s+[”“\"*]?\s*([A-Z][A-Z'.\-() ]*?)\s*(?:\.\s*){2,}"
     r"((?:\d+\.\d{2}\s*){1,3})\s*$")
 
 
@@ -143,7 +143,8 @@ def parse_finishers(block):
         if not line.strip():
             continue
         seg = line[:name_end]
-        m = re.search(r"(?:^|\s)(\d{1,2}A?)\s+([A-Za-z][A-Za-z'.\- ()]*?)\s*$",
+        # dead-heat co-winners carry a ” (or variant) glyph before the name
+        m = re.search(r"(?:^|\s)(\d{1,2}A?)\s+[”“\"*]?\s*([A-Za-z][A-Za-z'.\- ()]*?)\s*$",
                       seg)
         if not m:
             continue
@@ -174,7 +175,10 @@ def parse_mutuels(block):
         if m:
             pgm   = m.group(1)
             nums  = [float(x) for x in m.group(3).split()]
-            pools = (["WIN", "PLACE", "SHOW"][:len(nums)] if wps_row == 0
+            # A 3-value row is always a (co-)winner — dead heats for win list
+            # two full WIN/PLACE/SHOW rows before the place/show-only rows.
+            pools = (["WIN", "PLACE", "SHOW"] if len(nums) == 3
+                     else ["WIN", "PLACE"][:len(nums)] if wps_row == 0
                      else ["PLACE", "SHOW"][-len(nums):] if len(nums) == 2
                      else ["SHOW"])
             for pool, val in zip(pools, nums):

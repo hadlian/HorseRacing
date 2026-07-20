@@ -131,8 +131,12 @@ def _extract_finish_order(text: str) -> list:
         #   {date}{non-digits}{track}{non-digits}  {pgm}  {Name}  {medication}
         #   e.g. "18Feb26®TP® 6 Warm Up the Bus L 3F"
         # or for first-time starters (no last-raced date), leading spaces + pgm
+        # Anchor the name's end on the A/S + 3-digit-weight columns ("6G 155"),
+        # not the M/Eqt token — equipment is optional (absent, or v/h on jump
+        # races) and letters like the L in "Doctor Love" false-match it.
         m = re.match(
-            r"^\s*(?:\d{2}[A-Za-z]{3}\d{2}[^\d]+)?(\d+[A-Za-z]?)\s+([A-Z][A-Za-z\'\s\-]+?)\s+[LbBf]",
+            r"^\s*(?:\d{2}[A-Za-z]{3}\d{2}[^\d]+)?(\d{1,2}[A-Z]?)\s+[”“\"*]?\s*"
+            r"([A-Z][A-Za-z\'\s\-().]+?)\s+(?:[A-Za-z]{1,3}\s+){0,2}\d{1,2}[A-Z]{1,2}\s+\d{3}\b",
             line,
         )
         if m:
@@ -169,7 +173,7 @@ def _extract_win_payout(text: str) -> tuple:
         m = re.search(r"([\d]+\.[\d]+)\s+([\d]+\.[\d]+)\s+([\d]+\.[\d]+)\s*$", line)
         if m:
             # Extract winner name: "{pgm}-{NAME} . . ."
-            name_m = re.match(r"^\s*\d+[A-Za-z]?-([A-Z][A-Z\s\'\-\.]+?)\s*[\.\s]{3,}", line)
+            name_m = re.match(r"^\s*\d+[A-Za-z]?-[”“\"*]?\s*([A-Z][A-Z\s\'\-\.()]+?)\s*[\.\s]{3,}", line)
             winner_name = name_m.group(1).strip() if name_m else None
             try:
                 return float(m.group(1)), winner_name
