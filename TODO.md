@@ -9,13 +9,14 @@
 >
 > **Canonical baseline denominator:** `races WHERE result_fetched=1 AND is_backtest=0` = **160 resolved live races** (as of 2026-06-12). Backtest cards (SAR 2025 Jul 12/23, Aug 2) live in production DB tagged `is_backtest=1`; log future historical cards with `--backtest` flag (CLI) or Year override field (webapp). All analytics, β fit, and calibration exclude backtest rows automatically.
 >
-> **Current performance (160-race clean baseline, 2026-06-12):**
-> Top pick win 22.9% | ROI **−18.5%** | Rank-3 ROI **+17.4%** on 35/151 (matches TODO canonical; sp_odds = mutuel payout per $2)
+> **Current performance (246-race corrected canonical, 2026-07-19 — see WIN-PAYOFF REPAIR section below):**
+> Top pick win **23.6%** | ROI **−10.3%** | Rank-3 ROI **+5.3%** on 234 (but ex-Professor-Plum ≈ −2.5% — single-payout, retirement stands)
+> ⚠️ The old 160-race −18.5% / rank-3 +17.4% numbers were corrupted by the WPS parser bug (PURE MADNESS never won). Do not quote them.
 > Play/spread gate RETIRED | Tier ladder RETIRED | Overlay live win betting NOT AUTHORIZED
 >
 > **Pace diagnostic (2026-06-12):** No actionable pace dynamic under R5 engine `pace_style`. HOT-scenario "closers win" angle is dead — win-share ≈ starter-share in all three scenarios. BRIS field 210 shows a weak pattern (see Issue 17), but `bias_n` uses engine style, not field 210. Do NOT structure tickets on pace scenario.
 >
-> **Rank-3 caveat (2026-06-12):** +17.4% ROI on 151 bets confirmed, BUT ex-PURE MADNESS ($57.20 payout) profit = −$2.64, ROI = −0.9%. The entire margin is one longshot. Win rate (23.2%) equals rank-1 (22.9%). Paper-tracked from day 1 via `rank3_tracker`; settle math corrected (sp_odds = mutuel payout per $2).
+> **Rank-3 caveat (corrected 2026-07-19):** now +5.3% ROI on 234, BUT ex-Professor-Plum ($38.44) ≈ −2.5%. The entire margin is still one longshot — retirement stands. ⚠️ The old "+17.4% ex-PURE MADNESS" framing is VOID: PURE MADNESS never won; the $57.20 was THE OLD NINE's (WPS parser bug, see repair section). Paper-tracked via `rank3_tracker` (meet: 102 settled, 18 wins, −7.9%).
 >
 > **Paper trackers running from day 1 (auto-logged by run_r5.py --track):**
 > - `rank3_tracker`: $2 flat paper bet on every rank-3 pick, every race
@@ -41,11 +42,17 @@
 
 **💥 PURE MADNESS never won.** The $57.20 that anchored rank-3's "+17.4% only-positive-slot" story belonged to THE OLD NINE (IRE), who beat Pure Madness (2nd, "lacked the needed final kick" — chart verbatim) at 27-1 in SAX 0525 R1. The legendary payout was a results-entry error. Similarly OBLITERATION (20250802 R3 backtest) ran 2nd, not 1st.
 
-**Corrected canonical numbers (246 live resolved races, 2026-07-19):**
+**Corrected canonical numbers (246 live resolved races, 2026-07-19) — THIS IS THE BASELINE:**
 - Rank-1: **23.6% win, ROI −10.3%** (better than the old −18.5% — the bug had been *understating* winner payoffs, e.g. Kensington Lane $48.66 stored as $5.04)
 - Rank-3: 21.8% win, **+5.3%** on 234 — but ex-Professor-Plum ($38.44) ≈ −2.5%: the single-payout pattern persists, **retirement stands**
 - rank3_tracker (meet): 102 settled, 18 wins, −7.9%
 - Backtest caveat: 2025 SAR0712 R9 pick/chart name mismatch (Classic Creation vs Gilded Craken, same pgm) — backtest card alignment is suspect; excluded from analytics as always.
+
+**Correction does NOT change the model.** β is a monotonic softmax temperature on comp_ex_val — it rescales P(win) magnitude but cannot reorder ranks, so R5's picks are byte-identical pre/post repair. Refit on clean data moved β 0.7674→0.7661 (−0.0012, negligible; NOT redeployed — no rank effect, only feeds retired OVERLAY/paper val_n). Freeze safe.
+
+**`signal_validation.py` was also contaminated (fixed 2026-07-19, commit 79d30ab).** It filtered no races, so backtest cards + clobbered SAR 0605/0606 (result_fetched=0, stale finish data) leaked in — inflating rank-1 to 301 races/−17.8%. Added `LIVE_R5` predicate (`result_fetched=1 AND is_backtest=0`); now matches canonical 246/−10.3% exactly. Every prior signal_validation number was ~7pp pessimistic on rank-1.
+
+**Market-anchor gate — corrected-data PREVIEW (not the pre-registered test):** re-ran `scripts/market_anchor_gate.py` on the repaired DB. At **n=199** joined races: β=+0.029 (LR 0.09, NS, 90% CI [−0.11,+0.18] spans 0); OOS mean ΔLL **−0.0071/race** (90% CI [−0.0102,−0.0043], excludes 0 negative); SAR fold −0.048. **Verdict unchanged: NO-GO.** The correction halved the OOS drag (was −0.0164 at n=120 on corrupted labels) but did not flip sign or verdict — cleaning the data did not rescue the fundamental score. This is a preview at n=199; the **pre-registered confirmatory re-run is still at n≈300** (~4 cards out at 262 total resolved) and will decide ABANDON vs keep-open on clean data.
 
 ---
 
